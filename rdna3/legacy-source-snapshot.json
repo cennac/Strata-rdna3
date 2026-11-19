@@ -2774,5 +2774,7 @@
     "third_party/llama.cpp/ggml/src/ggml-openvino/openvino/pass/mark_dequantization_subgraph.h": "1d5a639ef7ab457dca3d9e0180010dcd96ca0f5224ad58d6583c3ec419c89ae7",
     "third_party/llama.cpp/ggml/src/ggml-openvino/openvino/pass/fuse_to_conv.h": "32756898d52216e6f44bdebe4dc3ef0e7a44e01a43bff79320709f26f1c40530",
     "third_party/llama.cpp/ggml/src/ggml-openvino/openvino/rt_info/weightless_caching_attributes.hpp": "e9b53eba5e98335e6160641ca36edeed3a08be40042b3106a196d05fbc77b0dc"
-  }
+  },
+  "upstream_version": "0.1.43",
+  "release_version": "0.1.43-rdna3.1"
 }

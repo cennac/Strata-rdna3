@@ -25,5 +25,6 @@
       "sha256": "54548eb817801ff8c84933ec71143a7d95042182b6df1263d3ec1c2cfc70e613"
     }
   ],
-  "tested_binary_sha256": "0e9906bc742585ef19d6d234b70ae1e758695e781b2b85b18054acd5b8658aea"
+  "tested_binary_sha256": "0e9906bc742585ef19d6d234b70ae1e758695e781b2b85b18054acd5b8658aea",
+  "release_version": "0.2.16-rdna3.1"
 }

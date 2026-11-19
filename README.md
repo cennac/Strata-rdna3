@@ -4,8 +4,8 @@
 
 我在这里维护双 RX 7900 XTX 的 Strata 优化，重点是单请求速度、双并发吞吐，以及可复现的源码和配置。
 
-- **`main`：现役优化版**，legacy-20261110 / engine 0.1.43，作为首版性能基线。
-- **`dev/0.2.16`：正式版迁移研发**，基于上游 Strata v0.2.16 / engine 0.1.62。达到现役性能并完成正确性验证后再合入主分支。
+- **`main`：现役优化版**，Strata v0.1.43-rdna3.1 / engine 0.1.43，作为首版性能基线。
+- **`dev/0.2.16`：正式版迁移研发**，版本为 v0.2.16-rdna3.1，基于上游 Strata v0.2.16 / engine 0.1.62。达到现役性能并完成正确性验证后再合入主分支。
 
 这是一份独立维护的优化项目。上游为 [Niko1221/Strata](https://github.com/Niko1221/Strata)，RDNA3 参考实现为 [nicejunjie/Strata-rdna3](https://github.com/nicejunjie/Strata-rdna3)。保留原作者署名与许可证。
 
@@ -90,3 +90,5 @@ python3 rdna3/bench.py --url http://127.0.0.1:8100 \
 后续开发与合并规则见 [DEVELOPMENT.md](rdna3/DEVELOPMENT.md)，改动记录见 [CHANGELOG.md](rdna3/CHANGELOG.md)。
 
 上游完整说明保留于 [UPSTREAM_README.md](UPSTREAM_README.md)。当前分支尚未达到主分支性能，日常服务仍用主分支基线。
+
+版本规则：`v<上游版本>-rdna3.<修订号>`。现役0.1.43基底包含后续MTP与调度回移，控制层也较新；源码版本核对记录见 [来源](rdna3/PROVENANCE.md)。
