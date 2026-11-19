@@ -1,0 +1,21 @@
+{
+  "purpose": "Compare legacy and v0.2.16 verifier GPU stage stamps; diagnostic only, not serving throughput",
+  "output_tokens": 768,
+  "repeats": 1,
+  "actual_long_input": false,
+  "profile_changes_execution": true,
+  "common_env": {
+    "STRATA_VERIFY_PROFILE": "1",
+    "STRATA_SH_STREAM": "0"
+  },
+  "candidates": [
+    {
+      "name": "profile-legacy",
+      "official": false
+    },
+    {
+      "name": "profile-dev",
+      "official": true
+    }
+  ]
+}

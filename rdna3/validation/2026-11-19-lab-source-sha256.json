@@ -1,8 +1,11 @@
 {
-  "engine/CMakeLists.txt": "871855b40eba9e1344c9179ce8dd6c183f7311aa8c896af49f912e116b0c160d",
+  "engine/CMakeLists.txt": "c0be1c0b520fff2cb668c960c8862d55927edd1bbfa33ab4be6d17df15b3e1a7",
   "engine/src/kernels/cuda/fused_gr.cu": "1b93fa0d7996c507fa0ad3b0a34b2a8d01c725ab1189729fd2f8b8943174d12a",
   "engine/src/kernels/cuda/rdna_gr_local.cu": "dbb2d440fe8b68f2e6ad65d20b3d65881490bb676a323c7acc643d623ae6c6ce",
-  "engine/src/kernels/cuda/native_mmvq.cu": "f2fce60319b41495433f6e949fd74f214245558391ae74609dbde431f125e363",
+  "engine/src/kernels/cuda/native_mmvq.cu": "bf654b07774458e6090faeecb6462aa75c4921e268392054ccaae7cc7bb86033",
   "engine/src/kernels/rdna_hc_probe.cpp": "7cee61ca6ebeb885697a0e3e42888b4b2b1b7f80c2a25ae206b01175ee1ea88c",
-  "engine/src/kernels/rdna_mmvq_probe.cpp": "de447b90c8ca9a07be1fab88d6453d3bdda91f3526fec7f5550517c499824ed0"
+  "engine/src/kernels/rdna_mmvq_probe.cpp": "de447b90c8ca9a07be1fab88d6453d3bdda91f3526fec7f5550517c499824ed0",
+  "engine/src/kernels/cuda/rdna_kquant_lab.cu": "219f8c099d5adced600c9c827a22d505c86e70a4373b79b1bb6926e256f05198",
+  "engine/include/strata/kernels/rdna_kquant_lab.hpp": "b1d5f585a89eefb7a3c3a8abd539a15e01a977d24eb6e86196bf9498cb15bad8",
+  "engine/src/kernels/rdna_kquant_probe.cpp": "da39b2498817b48f3769e68c85a5ea5c48c1bee82e9c959a2b476df5a0d22c1e"
 }

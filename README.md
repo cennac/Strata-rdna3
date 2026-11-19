@@ -30,6 +30,8 @@ MSI MPG Z490 GAMING CARBON WIFI、10900T ES、96GB DDR4，两张 24GB RX 7900 XT
 
 三次复测见[第六轮](rdna3/benchmarks/2026-11-19-round6.md)与[Q5_K输出头实验](rdna3/benchmarks/2026-11-19-round7.md)。输出头局部耗时改善没有形成明确整机收益；这些默认关闭的实验不代表上表成绩再次提高。
 
+新增[阶段计时](rdna3/benchmarks/2026-11-19-round8.md)、[流调度筛选](rdna3/benchmarks/2026-11-19-round9.md)及[旧版K-quant投影核迁移](rdna3/benchmarks/2026-11-19-round10.md)。K-quant实验的中文单／双路为111.3／162.9、代码为156.2／220.6 tok/s；同构建关闭开关的对照为113.9／155.1、152.0／210.3。双路约+5%，但中文单路−2.3%，保留默认关闭，不替换上表推荐模板。两卡各400组数值检查、冻结条件下的惩罚流水线与强制回滚对照通过；三题冒烟仍有算术错误。
+
 ## 现役版包含什么
 
 - RDNA3 HC read、预填充与量化专家计算核。
@@ -50,7 +52,7 @@ git switch dev/0.2.16
 python3 rdna3/build.py --rocm /opt/rocm --jobs 4
 ```
 
-`dev/0.2.16` 使用正式版自带的计算核和依赖；`main` 携带历史构建对应的GGML与rocWMMA源码。模型 GGUF、pack、tokenizer 和 MTP runtime 由使用者单独准备，量化及模型家族必须匹配。
+`dev/0.2.16` 在正式版自带的计算核和依赖上迁入选定的本地优化；`main` 携带历史构建对应的GGML与rocWMMA源码。模型 GGUF、pack、tokenizer 和 MTP runtime 由使用者单独准备，量化及模型家族必须匹配。
 
 ## 生成配置并运行
 

@@ -33,6 +33,9 @@
 #include "strata/core/dispatch_stats.hpp"
 #include "strata/core/defaults_026.hpp"
 #include "s26_tsum.cuh"
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+#include "strata/kernels/rdna_kquant_lab.hpp"
+#endif
 #if !defined(__HIPCC__)
 #include "q8_1_il.cuh"
 #endif
@@ -3546,6 +3549,12 @@ void q8_0_pair_launch(const Q80Block* w1, const Q80Block* w2, const Q81Block* x,
 
 bool native_mmvq_pair(int ggml_type, const void* w1, const void* w2, const void* x_q8_1, float* y1, float* y2,
                       int n_in, int n_out, int ncols, void* stream) {
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+    if (w2 && y2 && rdna_kquant_lab(ggml_type, w1, x_q8_1, y1, n_in, n_out, ncols, stream, w2, y2)) {
+        launch_check();
+        return true;
+    }
+#endif
     using F = SmallTraits<Q80Block, 8>;
     // only where both calls would run native_mmvq_multi_kernel<F, ncols, WARPS, 1> (exact layout, not packed)
     if (ggml_type != 8 || !g_multi_exact || ncols < 2 || ncols > 8 || n_out <= 0 || n_in <= 0 || n_in % 32 != 0 ||
@@ -3641,6 +3650,12 @@ void native_mmvq(int ggml_type, const void* weights, const void* x_q8_1, float* 
         return;
     }
     strata::dispatch::kernel(strata::dispatch::kDense, 0, ggml_type, n_in, n_out, ncols);   // BW-MEASURE: the multi-column MMVQ kernels
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+    if (rdna_kquant_lab(ggml_type, weights, x_q8_1, y, n_in, n_out, ncols, stream)) {
+        launch_check();
+        return;
+    }
+#endif
     switch (ggml_type) {
     case 2: native_q4_0_mmvq(weights, x_q8_1, y, n_in, n_out, ncols, stream); break;
     case 6: native_q5_0_mmvq(weights, x_q8_1, y, n_in, n_out, ncols, stream); break;
