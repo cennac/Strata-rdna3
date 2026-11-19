@@ -96,11 +96,11 @@ __global__ void route(const float* __restrict__ logits, int32_t* __restrict__ id
     const float inverse_selected_sum = 1.0f / selected_sum;
     if (lane < 10) weights[lane] = selected * inverse_selected_sum;
 }
-__launch_bounds__(256, 1)
-__global__ void route_multi(const float* __restrict__ logits, int32_t* __restrict__ ids,
-                            float* __restrict__ weights, int n_tok) {
-    const int tk = (int) blockIdx.x * 8 + (int) threadIdx.y;
-    if (tk >= n_tok) return;
+// One warp's 512-expert softmax top-10, the exact body route_multi ran inline before it became a
+// helper (the bits are the single-token route kernel's): shared by route_multi and the fused
+// route_publish_res below.
+__device__ __forceinline__ void route_row(const float* __restrict__ logits, int32_t* __restrict__ ids,
+                                          float* __restrict__ weights, int tk) {
     logits += (size_t) tk * 512; ids += (size_t) tk * 10; weights += (size_t) tk * 10;
     const int lane = threadIdx.x;
     float values[16];
@@ -147,6 +147,49 @@ __global__ void route_multi(const float* __restrict__ logits, int32_t* __restric
     selected_sum = max(warp_sum(selected_sum), 6.103515625e-5f);
     const float inverse_selected_sum = 1.0f / selected_sum;
     if (lane < 10) weights[lane] = selected * inverse_selected_sum;
+}
+__launch_bounds__(256, 1)
+__global__ void route_multi(const float* __restrict__ logits, int32_t* __restrict__ ids,
+                            float* __restrict__ weights, int n_tok) {
+    const int tk = (int) blockIdx.x * 8 + (int) threadIdx.y;
+    if (tk >= n_tok) return;
+    route_row(logits, ids, weights, tk);
+}
+// STRATA_LAB_RDNA_ROUTE_PUBLISH (opt-in): route_multi's rows (one warp per token, the same code) and then the
+// resident doorbell publish for the window's rows in the same block - one launch instead of two on the path to
+// the CPU experts.  Ported from the legacy 0.1.43 tree's native_router_top10_publish_res; the routing code is
+// this file's route_row, the publish part is elementwise.cu's doorbell_publish_res_kernel (same writes, same
+// fences, same ring increment; the float4 x copy is the legacy kernel's fast path, the same bits).
+__launch_bounds__(256, 1)
+__global__ void route_publish_res(const float* __restrict__ logits, int32_t* __restrict__ ids, float* __restrict__ weights,
+                                  int n_tok, const float* __restrict__ x, const int32_t* __restrict__ d_res, int n_expert,
+                                  int n, float* x_out, int32_t* ids_out, uint32_t* seq) {
+    const int tk = (int) threadIdx.y;
+    if (tk < n_tok) route_row(logits, ids, weights, tk);
+    __syncthreads();
+    const int t = (int) (threadIdx.y * 32 + threadIdx.x), k = n_tok * 10;
+    int any_miss = 0;
+    for (int i = t; i < k; i += 256) {
+        const int32_t id = ids[i];
+        ids_out[i] = id;
+        if (d_res == nullptr || id < 0 || id >= n_expert || d_res[id] < 0) any_miss = 1;
+    }
+    if (__syncthreads_or(any_miss)) {
+        if ((n & 3) == 0 && ((reinterpret_cast<uintptr_t>(x) | reinterpret_cast<uintptr_t>(x_out)) & 15u) == 0)
+            for (int i = t; i < n / 4; i += 256) reinterpret_cast<float4*>(x_out)[i] = reinterpret_cast<const float4*>(x)[i];
+        else
+            for (int i = t; i < n; i += 256) x_out[i] = x[i];
+        __threadfence_system();
+    } else if (t < k) {
+        __threadfence_system();
+    }
+    __syncthreads();
+    if (t == 0) {
+        *(volatile uint32_t*) seq = *(volatile uint32_t*) seq + 1u;
+#if defined(__HIPCC__)
+        __threadfence_system();
+#endif
+    }
 }
 // The same contract for other (experts, top-k) shapes - Qwen3.6-35B-A3B's 256 / 8 - one warp per token, n_tok tokens
 // (8 per block).  The 512 / 10 path keeps its own kernels above (the Flash-Next bits), this template is only used
@@ -230,6 +273,18 @@ void native_router_top10_multi(const float* logits, int32_t* ids, float* weights
         !valid(weights, (size_t) n_tok * 10 * 4))
         throw std::invalid_argument("native router (multi) requires a stream and aligned [n,512]/[n,10] buffers");
     route_multi<<<(unsigned) ((n_tok + 7) / 8), dim3(32, 8), 0, static_cast<cudaStream_t>(stream)>>>(logits, ids, weights, n_tok);
+    const auto error = cudaGetLastError();
+    if (error != cudaSuccess) throw std::runtime_error(cudaGetErrorString(error));
+}
+// STRATA_LAB_RDNA_ROUTE_PUBLISH: the multi router and the resident doorbell publish in one launch (route_publish_res
+// above).  Same contract as native_router_top10_multi followed by doorbell_publish_res, for 1..8 tokens.
+void native_router_top10_publish_res(const float* logits, int32_t* ids, float* weights, int n_tok, const float* x,
+                                     const int32_t* d_res, int n_expert, int64_t n, float* x_out, int32_t* ids_out,
+                                     uint32_t* seq, void* stream) {
+    if (!stream || n_tok < 1 || n_tok > 8)
+        throw std::invalid_argument("native router + publish requires a stream and 1..8 tokens");
+    route_publish_res<<<1, dim3(32, 8), 0, static_cast<cudaStream_t>(stream)>>>(logits, ids, weights, n_tok, x, d_res,
+                                                                                n_expert, (int) n, x_out, ids_out, seq);
     const auto error = cudaGetLastError();
     if (error != cudaSuccess) throw std::runtime_error(cudaGetErrorString(error));
 }

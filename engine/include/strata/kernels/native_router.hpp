@@ -16,6 +16,13 @@ bool native_router_enabled();
 void native_router_top10(const float* logits, int32_t* ids, float* weights, void* stream);
 /// n_tok rows at once (logits [n,512], ids/weights [n,10]); each row exactly as the single call.
 void native_router_top10_multi(const float* logits, int32_t* ids, float* weights, int n_tok, void* stream);
+/// STRATA_LAB_RDNA_ROUTE_PUBLISH (opt-in, ported from the legacy tree): native_router_top10_multi's rows plus the
+/// resident doorbell publish (elementwise.cu's doorbell_publish_res contract) in one launch, 1..8 tokens: `x` is the
+/// window's activation rows (n floats total), copied to `x_out` only when an id misses `d_res` (or d_res is null);
+/// ids land in `ids_out` always; the host ring at `seq` increments.  Same bits as the two separate calls.
+void native_router_top10_publish_res(const float* logits, int32_t* ids, float* weights, int n_tok, const float* x,
+                                     const int32_t* d_res, int n_expert, int64_t n, float* x_out, int32_t* ids_out,
+                                     uint32_t* seq, void* stream);
 /// The same contract for a model family's (experts, top-k): 512 / 10 (Flash-Next: the two calls above, unchanged) and
 /// 256 / 8 (Qwen3.6-35B-A3B).  logits [n_tok, n_expert], ids / weights [n_tok, k].  CUDA / HIP.
 bool native_router_topk_supported(int n_expert, int k);
