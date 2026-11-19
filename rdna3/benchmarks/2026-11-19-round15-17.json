@@ -1,0 +1,1643 @@
+{
+ "date": "2026-11-19",
+ "purpose": "wait-chain knob screen (r15) + 1024x3 confirmation (r16/r17) + adoption of SH_STREAM and AUX_CPUS=auto",
+ "binary": "fd9335314ceb2b3daa9b26fdfa7a549bbd6b09e1155c64e40c357ac1c32642a8 (no source change)",
+ "r15_screen_768": {
+  "r15-control": {
+   "zh1": [
+    {
+     "tps": 108.54,
+     "valid": true,
+     "decode": [
+      113.2
+     ],
+     "ttft": [
+      0.31
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 147.22,
+     "valid": true,
+     "decode": [
+      84.7,
+      80.9
+     ],
+     "ttft": [
+      0.309,
+      0.95
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 139.83,
+     "valid": true,
+     "decode": [
+      147.2
+     ],
+     "ttft": [
+      0.293
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 204.78,
+     "valid": true,
+     "decode": [
+      111.7,
+      116.2
+     ],
+     "ttft": [
+      0.282,
+      0.904
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  "r15-copyprio": {
+   "zh1": [
+    {
+     "tps": 103.69,
+     "valid": true,
+     "decode": [
+      108.0
+     ],
+     "ttft": [
+      0.313
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 147.43,
+     "valid": true,
+     "decode": [
+      78.1,
+      83.5
+     ],
+     "ttft": [
+      0.308,
+      0.953
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 143.75,
+     "valid": true,
+     "decode": [
+      151.5
+     ],
+     "ttft": [
+      0.293
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 201.57,
+     "valid": true,
+     "decode": [
+      109.6,
+      114.3
+     ],
+     "ttft": [
+      0.285,
+      0.913
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  "r15-shstream": {
+   "zh1": [
+    {
+     "tps": 110.68,
+     "valid": true,
+     "decode": [
+      115.5
+     ],
+     "ttft": [
+      0.307
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 162.99,
+     "valid": true,
+     "decode": [
+      87.1,
+      90.3
+     ],
+     "ttft": [
+      0.301,
+      0.931
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 146.37,
+     "valid": true,
+     "decode": [
+      154.4
+     ],
+     "ttft": [
+      0.288
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 203.49,
+     "valid": true,
+     "decode": [
+      109.3,
+      118.4
+     ],
+     "ttft": [
+      0.278,
+      0.878
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  "r15-copyprio-sh": {
+   "zh1": [
+    {
+     "tps": 114.52,
+     "valid": true,
+     "decode": [
+      119.7
+     ],
+     "ttft": [
+      0.306
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 150.96,
+     "valid": true,
+     "decode": [
+      83.5,
+      86.5
+     ],
+     "ttft": [
+      0.993,
+      0.303
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 141.35,
+     "valid": true,
+     "decode": [
+      148.8
+     ],
+     "ttft": [
+      0.289
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 204.81,
+     "valid": true,
+     "decode": [
+      115.8,
+      111.1
+     ],
+     "ttft": [
+      0.881,
+      0.277
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  "r15-coldov4": {
+   "zh1": [
+    {
+     "tps": 105.3,
+     "valid": true,
+     "decode": [
+      109.8
+     ],
+     "ttft": [
+      0.316
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 150.11,
+     "valid": true,
+     "decode": [
+      82.7,
+      83.6
+     ],
+     "ttft": [
+      0.96,
+      0.313
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 139.4,
+     "valid": true,
+     "decode": [
+      146.8
+     ],
+     "ttft": [
+      0.295
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 201.81,
+     "valid": true,
+     "decode": [
+      111.4,
+      114.4
+     ],
+     "ttft": [
+      0.289,
+      0.914
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  "r15-auxauto": {
+   "zh1": [
+    {
+     "tps": 110.85,
+     "valid": true,
+     "decode": [
+      115.8
+     ],
+     "ttft": [
+      0.311
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 153.48,
+     "valid": true,
+     "decode": [
+      81.6,
+      87.1
+     ],
+     "ttft": [
+      0.314,
+      0.968
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 140.68,
+     "valid": true,
+     "decode": [
+      148.2
+     ],
+     "ttft": [
+      0.293
+     ],
+     "tokens": [
+      768
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 202.99,
+     "valid": true,
+     "decode": [
+      109.2,
+      118.2
+     ],
+     "ttft": [
+      0.289,
+      0.879
+     ],
+     "tokens": [
+      768,
+      768
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  }
+ },
+ "r16_confirm_1024x3": {
+  "r16-control": {
+   "zh1": [
+    {
+     "tps": 106.25,
+     "valid": true,
+     "decode": [
+      109.6
+     ],
+     "ttft": [
+      0.309
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 112.37,
+     "valid": true,
+     "decode": [
+      116.1
+     ],
+     "ttft": [
+      0.312
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 108.12,
+     "valid": true,
+     "decode": [
+      111.6
+     ],
+     "ttft": [
+      0.316
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 150.16,
+     "valid": true,
+     "decode": [
+      78.4,
+      86.0
+     ],
+     "ttft": [
+      0.307,
+      0.948
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 157.12,
+     "valid": true,
+     "decode": [
+      84.9,
+      82.4
+     ],
+     "ttft": [
+      0.994,
+      0.316
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 153.62,
+     "valid": true,
+     "decode": [
+      88.8,
+      80.4
+     ],
+     "ttft": [
+      0.996,
+      0.316
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 150.25,
+     "valid": true,
+     "decode": [
+      156.5
+     ],
+     "ttft": [
+      0.289
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 146.02,
+     "valid": true,
+     "decode": [
+      151.8
+     ],
+     "ttft": [
+      0.286
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 145.2,
+     "valid": true,
+     "decode": [
+      151.0
+     ],
+     "ttft": [
+      0.288
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 210.7,
+     "valid": true,
+     "decode": [
+      120.3,
+      111.6
+     ],
+     "ttft": [
+      0.92,
+      0.3
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 211.66,
+     "valid": true,
+     "decode": [
+      117.8,
+      112.0
+     ],
+     "ttft": [
+      0.907,
+      0.285
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 210.18,
+     "valid": true,
+     "decode": [
+      112.4,
+      115.7
+     ],
+     "ttft": [
+      0.288,
+      0.909
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  "r16-shstream": {
+   "zh1": [
+    {
+     "tps": 113.93,
+     "valid": true,
+     "decode": [
+      117.7
+     ],
+     "ttft": [
+      0.307
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 112.72,
+     "valid": true,
+     "decode": [
+      116.5
+     ],
+     "ttft": [
+      0.311
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 152.88,
+     "valid": true,
+     "decode": [
+      86.6,
+      82.1
+     ],
+     "ttft": [
+      0.304,
+      0.936
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 157.66,
+     "valid": true,
+     "decode": [
+      90.6,
+      84.8
+     ],
+     "ttft": [
+      0.31,
+      0.932
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 155.89,
+     "valid": false,
+     "decode": [
+      87.9,
+      83.5
+     ],
+     "ttft": [
+      0.937,
+      0.31
+     ],
+     "tokens": [
+      977,
+      1024
+     ],
+     "finish": [
+      "stop",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 146.03,
+     "valid": true,
+     "decode": [
+      151.9
+     ],
+     "ttft": [
+      0.289
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 152.11,
+     "valid": true,
+     "decode": [
+      158.3
+     ],
+     "ttft": [
+      0.279
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 151.01,
+     "valid": true,
+     "decode": [
+      157.1
+     ],
+     "ttft": [
+      0.281
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 213.31,
+     "valid": true,
+     "decode": [
+      114.1,
+      117.4
+     ],
+     "ttft": [
+      0.285,
+      0.894
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 215.2,
+     "valid": true,
+     "decode": [
+      114.3,
+      118.0
+     ],
+     "ttft": [
+      0.28,
+      0.855
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 216.14,
+     "valid": true,
+     "decode": [
+      119.1,
+      114.9
+     ],
+     "ttft": [
+      0.89,
+      0.287
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  }
+ },
+ "r17_confirm_1024x3": {
+  "r17-auxauto": {
+   "zh1": [
+    {
+     "tps": 110.66,
+     "valid": true,
+     "decode": [
+      114.3
+     ],
+     "ttft": [
+      0.312
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 110.66,
+     "valid": true,
+     "decode": [
+      114.4
+     ],
+     "ttft": [
+      0.317
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 110.34,
+     "valid": true,
+     "decode": [
+      114.0
+     ],
+     "ttft": [
+      0.316
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 159.58,
+     "valid": true,
+     "decode": [
+      86.2,
+      84.0
+     ],
+     "ttft": [
+      0.966,
+      0.322
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 151.04,
+     "valid": true,
+     "decode": [
+      81.2,
+      82.9
+     ],
+     "ttft": [
+      0.963,
+      0.317
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 156.09,
+     "valid": true,
+     "decode": [
+      92.0,
+      81.8
+     ],
+     "ttft": [
+      0.966,
+      0.322
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 148.07,
+     "valid": true,
+     "decode": [
+      154.3
+     ],
+     "ttft": [
+      0.295
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 150.27,
+     "valid": true,
+     "decode": [
+      156.4
+     ],
+     "ttft": [
+      0.286
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 150.61,
+     "valid": true,
+     "decode": [
+      156.9
+     ],
+     "ttft": [
+      0.292
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 213.55,
+     "valid": true,
+     "decode": [
+      113.1,
+      118.0
+     ],
+     "ttft": [
+      0.288,
+      0.878
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 207.02,
+     "valid": true,
+     "decode": [
+      117.9,
+      109.4
+     ],
+     "ttft": [
+      0.876,
+      0.286
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 212.14,
+     "valid": true,
+     "decode": [
+      117.0,
+      112.3
+     ],
+     "ttft": [
+      0.88,
+      0.292
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  "r17-sh-aux": {
+   "zh1": [
+    {
+     "tps": 112.36,
+     "valid": true,
+     "decode": [
+      116.1
+     ],
+     "ttft": [
+      0.308
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 113.42,
+     "valid": true,
+     "decode": [
+      117.2
+     ],
+     "ttft": [
+      0.308
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 112.34,
+     "valid": true,
+     "decode": [
+      116.1
+     ],
+     "ttft": [
+      0.31
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 164.94,
+     "valid": true,
+     "decode": [
+      90.3,
+      86.5
+     ],
+     "ttft": [
+      0.935,
+      0.303
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 159.62,
+     "valid": true,
+     "decode": [
+      86.0,
+      86.7
+     ],
+     "ttft": [
+      0.937,
+      0.313
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 164.27,
+     "valid": true,
+     "decode": [
+      87.9,
+      88.7
+     ],
+     "ttft": [
+      0.311,
+      0.94
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 144.98,
+     "valid": true,
+     "decode": [
+      150.9
+     ],
+     "ttft": [
+      0.296
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 152.85,
+     "valid": true,
+     "decode": [
+      159.1
+     ],
+     "ttft": [
+      0.281
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 152.57,
+     "valid": true,
+     "decode": [
+      158.8
+     ],
+     "ttft": [
+      0.28
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 212.18,
+     "valid": true,
+     "decode": [
+      112.2,
+      117.9
+     ],
+     "ttft": [
+      0.283,
+      0.859
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 212.72,
+     "valid": true,
+     "decode": [
+      112.5,
+      116.7
+     ],
+     "ttft": [
+      0.281,
+      0.858
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 211.75,
+     "valid": true,
+     "decode": [
+      117.0,
+      112.0
+     ],
+     "ttft": [
+      0.862,
+      0.287
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  "r17-copyprio": {
+   "zh1": [
+    {
+     "tps": 107.08,
+     "valid": true,
+     "decode": [
+      110.5
+     ],
+     "ttft": [
+      0.317
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 111.55,
+     "valid": true,
+     "decode": [
+      115.3
+     ],
+     "ttft": [
+      0.317
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 113.01,
+     "valid": true,
+     "decode": [
+      116.9
+     ],
+     "ttft": [
+      0.316
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "zh2": [
+    {
+     "tps": 158.57,
+     "valid": true,
+     "decode": [
+      83.1,
+      86.1
+     ],
+     "ttft": [
+      0.312,
+      0.963
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 159.71,
+     "valid": true,
+     "decode": [
+      83.7,
+      87.6
+     ],
+     "ttft": [
+      0.319,
+      0.996
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 157.51,
+     "valid": true,
+     "decode": [
+      86.5,
+      82.5
+     ],
+     "ttft": [
+      0.967,
+      0.322
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "code1": [
+    {
+     "tps": 140.96,
+     "valid": true,
+     "decode": [
+      146.7
+     ],
+     "ttft": [
+      0.301
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 148.05,
+     "valid": true,
+     "decode": [
+      154.1
+     ],
+     "ttft": [
+      0.291
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "tps": 145.33,
+     "valid": true,
+     "decode": [
+      151.2
+     ],
+     "ttft": [
+      0.29
+     ],
+     "tokens": [
+      1024
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ],
+   "code2": [
+    {
+     "tps": 208.87,
+     "valid": true,
+     "decode": [
+      110.5,
+      115.3
+     ],
+     "ttft": [
+      0.292,
+      0.919
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 207.67,
+     "valid": true,
+     "decode": [
+      114.3,
+      109.8
+     ],
+     "ttft": [
+      0.913,
+      0.289
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "tps": 208.77,
+     "valid": true,
+     "decode": [
+      110.4,
+      115.1
+     ],
+     "ttft": [
+      0.29,
+      0.913
+     ],
+     "tokens": [
+      1024,
+      1024
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  }
+ },
+ "early_stop_events": [
+  {
+   "round": 16,
+   "arm": "r16-shstream",
+   "burst": "zh n2 r2",
+   "lane_tokens": 977,
+   "finish": "stop"
+  }
+ ],
+ "adopted": {
+  "env": {
+   "STRATA_SH_STREAM": "1",
+   "STRATA_AUX_CPUS": "auto"
+  },
+  "template_revision": "shstream-aux-stage1"
+ },
+ "completed": {
+  "r15": true,
+  "r16": null,
+  "r17": true
+ },
+ "restored": {
+  "r15": true,
+  "r16": true,
+  "r17": true
+ }
+}
