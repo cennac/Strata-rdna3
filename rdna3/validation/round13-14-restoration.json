@@ -1,0 +1,20 @@
+{
+ "date": "2026-11-19",
+ "rounds": "13-14",
+ "production_engine_reloaded": {
+  "service": "active",
+  "port": 8100,
+  "version": "legacy-20261110",
+  "engine_version": "0.1.43",
+  "exe_sha256": "588549701c867dc5a4aafef8de48c1e77b3d2f0dff4fd8d6e3a71db72df50df2 (verified in preflight)"
+ },
+ "config_hash_unchanged": true,
+ "test_port_8101": "closed after campaign",
+ "aer_before_equals_after": true,
+ "gpu_faults": [],
+ "campaign_result": {
+  "completed": true,
+  "restored": true
+ },
+ "verified_at": "2026-11-19 14:28:20"
+}

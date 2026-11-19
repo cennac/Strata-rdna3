@@ -1,0 +1,187 @@
+{
+ "date": "2026-11-19",
+ "purpose": "frozen-condition per-stage window profiling, legacy public rebuild vs dev (round 10 follow-up)",
+ "method": {
+  "output_tokens": 512,
+  "repeats": 1,
+  "lanes": "single only",
+  "frozen": true,
+  "profiling_env": "STRATA_VERIFY_PROFILE=1 STRATA_DECODE_TIMING=1 (disables fused paths; diagnostic only)",
+  "engines": {
+   "legacy": "/data/strata-rdna3-project-20261119/build-main/strata be601550af81514e987bc5da3ae7ffcfebd2595a625c8ab15a54d0cd910d4fec",
+   "dev": "/data/strata-0216-optimize-20261119/build/strata-0216-kquant-select fd9335314ceb2b3daa9b26fdfa7a549bbd6b09e1155c64e40c357ac1c32642a8"
+  }
+ },
+ "attribution_gdn_zh_main_ms": {
+  "total": {
+   "legacy": 10.27,
+   "dev": 12.2
+  },
+  "wait_chain_waitB_pcie_waitCPU": {
+   "legacy": 0.21,
+   "dev": 1.04
+  },
+  "hc_read_all": {
+   "legacy": 1.31,
+   "dev": 1.69
+  },
+  "compute_kernels": {
+   "legacy": 3.06,
+   "dev": 3.52
+  },
+  "waitA_vram": {
+   "legacy": 2.36,
+   "dev": 2.48
+  },
+  "copy_combine": {
+   "legacy": 0.54,
+   "dev": 0.3
+  }
+ },
+ "arms": [
+  {
+   "name": "r13-legacy",
+   "engine_version": "0.1.43",
+   "engine_sha256": "be601550af81514e987bc5da3ae7ffcfebd2595a625c8ab15a54d0cd910d4fec",
+   "env": {
+    "GPU_MAX_HW_QUEUES": "4",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_VERIFY_PROFILE": "1",
+    "STRATA_SH_STREAM": "0"
+   },
+   "frozen_args": {
+    "adapt_every": 0,
+    "adapt_swaps": 0,
+    "suffix_draft": 0
+   },
+   "bursts": [
+    {
+     "kind": "zh",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 96.01,
+     "decode_tps": [
+      102.9
+     ],
+     "ttft_s": [
+      0.376
+     ],
+     "draft_n": 348,
+     "draft_n_accepted": 247,
+     "text_sha256": [
+      "3bc46e302e9e698c76d4a6b9be29fa3e5dd332d488c6f967eed1b33de1a12d62"
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "kind": "code",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 133.69,
+     "decode_tps": [
+      142.9
+     ],
+     "ttft_s": [
+      0.264
+     ],
+     "draft_n": 384,
+     "draft_n_accepted": 305,
+     "text_sha256": [
+      "482996a0453b7a271626de39196a5e526f48074b164887577e21314b5d93852f"
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "r13-dev",
+   "engine_version": "0.1.62",
+   "engine_sha256": "fd9335314ceb2b3daa9b26fdfa7a549bbd6b09e1155c64e40c357ac1c32642a8",
+   "env": {
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_MMVQ": "0",
+    "STRATA_LAB_RDNA_Q5_HEAD": "0",
+    "STRATA_LAB_RDNA_KQUANTS": "0",
+    "STRATA_VERIFY_PROFILE": "1",
+    "STRATA_SH_STREAM": "0"
+   },
+   "frozen_args": {
+    "adapt_every": 0,
+    "adapt_swaps": 0,
+    "suffix_draft": 0
+   },
+   "bursts": [
+    {
+     "kind": "zh",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 86.18,
+     "decode_tps": [
+      92.2
+     ],
+     "ttft_s": [
+      0.407
+     ],
+     "draft_n": 371,
+     "draft_n_accepted": 253,
+     "text_sha256": [
+      "e952d7357f2e8b714165e2b0ede2eeac1f3a7b03de3bc0eecde9d02bd5e71648"
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "kind": "code",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 111.55,
+     "decode_tps": [
+      119.3
+     ],
+     "ttft_s": [
+      0.32
+     ],
+     "draft_n": 390,
+     "draft_n_accepted": 302,
+     "text_sha256": [
+      "4d8dd9d6f932765231f4993d961ced6a66a8ab344bc0e47423e8bb749e1fe004"
+     ],
+     "finish": [
+      "length"
+     ]
+    }
+   ]
+  }
+ ],
+ "stage_lines": {
+  "legacy": [
+   "strata decode GPU stages (ms/window): GDN layers: q8+qkv/q-idx gemv 0.63 conv 0.12 ab 0.19 z 0.44 rec 0.26 out-proj 0.44 router+plan+bell 0.52 shared+quant 0.48 waitA 1.06 VRAM hits 1.51 waitB 0.05 PCIe grp 0.05 waitCPU 0.11 copy+combine 0.56 (gap) 0.05   hc0 norm 0.24   hc0 down 0.27   hc0 up 0.27   hc1 norm 0.05   hc1 down 0.26   hc1 up 0.25 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.14 kv+idx append 0.10 q+q-idx 0.34 scores+topk 0.06 kv-resolve 0.08 attention 0.24 gate 0.04 out-proj 0.17 router+plan+bell 0.15 shared+quant 0.15 waitA 0.36 VRAM hits 0.42 waitB 0.02 PCIe grp 0.01 waitCPU 0.02 copy+combine 0.11 (gap) 0.01   hc0 norm 0.01   hc0 down 0.08   hc0 up 0.08   hc1 norm 0.01   hc1 down 0.08   hc1 up 0.08 | total 10.63 ms/window over 137 windows",
+   "strata decode GPU stages, stage 1 (ms/window): GDN layers: q8+qkv/q-idx gemv 0.52 conv 0.10 ab 0.17 z 0.38 rec 0.23 out-proj 0.38 router+plan+bell 0.44 shared+quant 0.42 waitA 0.25 VRAM hits 1.27 waitB 0.04 PCIe grp 0.04 waitCPU 0.31 copy+combine 1.70 (gap) 0.04 head 0.68   hc0 norm 0.04   hc0 down 0.22   hc0 up 0.22   hc1 norm 0.04   hc1 down 0.22   hc1 up 0.21 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.14 kv+idx append 0.11 q+q-idx 0.37 scores+topk 0.07 kv-resolve 0.09 attention 0.26 gate 0.04 out-proj 0.17 router+plan+bell 0.16 shared+quant 0.15 waitA 0.10 VRAM hits 0.43 waitB 0.02 PCIe grp 0.02 waitCPU 0.09 copy+combine 0.64 (gap) 0.01   hc0 norm 0.02   hc0 down 0.08   hc0 up 0.08   hc1 norm 0.02   hc1 down 0.08   hc1 up 0.08 | total 11.19 ms/window over 94 windows",
+   "strata decode GPU stages (ms/window): GDN layers: q8+qkv/q-idx gemv 0.63 conv 0.12 ab 0.19 z 0.44 rec 0.26 out-proj 0.43 router+plan+bell 0.51 shared+quant 0.48 waitA 0.93 VRAM hits 1.43 waitB 0.05 PCIe grp 0.05 waitCPU 0.11 copy+combine 0.54 (gap) 0.05   hc0 norm 0.23   hc0 down 0.26   hc0 up 0.26   hc1 norm 0.05   hc1 down 0.26   hc1 up 0.25 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.14 kv+idx append 0.10 q+q-idx 0.33 scores+topk 0.06 kv-resolve 0.08 attention 0.25 gate 0.04 out-proj 0.17 router+plan+bell 0.15 shared+quant 0.14 waitA 0.32 VRAM hits 0.40 waitB 0.02 PCIe grp 0.01 waitCPU 0.02 copy+combine 0.14 (gap) 0.01   hc0 norm 0.01   hc0 down 0.08   hc0 up 0.08   hc1 norm 0.01   hc1 down 0.08   hc1 up 0.07 | total 10.27 ms/window over 424 windows",
+   "strata decode GPU stages, stage 1 (ms/window): GDN layers: q8+qkv/q-idx gemv 0.51 conv 0.10 ab 0.16 z 0.37 rec 0.23 out-proj 0.37 router+plan+bell 0.44 shared+quant 0.41 waitA 0.25 VRAM hits 1.21 waitB 0.04 PCIe grp 0.04 waitCPU 0.32 copy+combine 1.57 (gap) 0.04 head 0.66   hc0 norm 0.04   hc0 down 0.22   hc0 up 0.22   hc1 norm 0.04   hc1 down 0.22   hc1 up 0.21 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.14 kv+idx append 0.11 q+q-idx 0.36 scores+topk 0.07 kv-resolve 0.09 attention 0.27 gate 0.04 out-proj 0.17 router+plan+bell 0.16 shared+quant 0.15 waitA 0.11 VRAM hits 0.42 waitB 0.02 PCIe grp 0.02 waitCPU 0.09 copy+combine 0.56 (gap) 0.01   hc0 norm 0.02   hc0 down 0.08   hc0 up 0.08   hc1 norm 0.02   hc1 down 0.08   hc1 up 0.08 | total 10.87 ms/window over 288 windows",
+   "strata decode GPU stages (ms/window): GDN layers: q8+qkv/q-idx gemv 0.63 conv 0.12 ab 0.19 z 0.44 rec 0.27 out-proj 0.43 router+plan+bell 0.52 shared+quant 0.46 waitA 0.69 VRAM hits 1.57 waitB 0.05 PCIe grp 0.05 waitCPU 0.07 copy+combine 0.85 (gap) 0.05   hc0 norm 0.24   hc0 down 0.28   hc0 up 0.27   hc1 norm 0.05   hc1 down 0.27   hc1 up 0.26 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.14 kv+idx append 0.10 q+q-idx 0.33 scores+topk 0.07 kv-resolve 0.08 attention 0.25 gate 0.04 out-proj 0.17 router+plan+bell 0.15 shared+quant 0.14 waitA 0.21 VRAM hits 0.43 waitB 0.02 PCIe grp 0.01 waitCPU 0.02 copy+combine 0.31 (gap) 0.01   hc0 norm 0.01   hc0 down 0.08   hc0 up 0.08   hc1 norm 0.01   hc1 down 0.08   hc1 up 0.08 | total 10.64 ms/window over 288 windows",
+   "strata decode GPU stages, stage 1 (ms/window): GDN layers: q8+qkv/q-idx gemv 0.52 conv 0.10 ab 0.17 z 0.38 rec 0.24 out-proj 0.37 router+plan+bell 0.45 shared+quant 0.40 waitA 0.34 VRAM hits 1.36 waitB 0.04 PCIe grp 0.04 waitCPU 0.05 copy+combine 1.20 (gap) 0.04 head 0.68   hc0 norm 0.04   hc0 down 0.23   hc0 up 0.23   hc1 norm 0.04   hc1 down 0.23   hc1 up 0.22 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.14 kv+idx append 0.11 q+q-idx 0.36 scores+topk 0.07 kv-resolve 0.10 attention 0.27 gate 0.04 out-proj 0.17 router+plan+bell 0.17 shared+quant 0.15 waitA 0.13 VRAM hits 0.47 waitB 0.02 PCIe grp 0.02 waitCPU 0.02 copy+combine 0.60 (gap) 0.01   hc0 norm 0.02   hc0 down 0.09   hc0 up 0.09   hc1 norm 0.02   hc1 down 0.09   hc1 up 0.08 | total 10.63 ms/window over 229 windows"
+  ],
+  "dev": [
+   "strata decode GPU stages (ms/window): GDN layers: q8+qkv/q-idx gemv 0.79 conv 0.12 ab 0.20 z 0.49 rec 0.27 out-proj 0.46 router+plan+bell 0.59 shared+quant 0.66 waitA 1.06 VRAM hits 1.56 waitB 0.38 PCIe grp 0.23 waitCPU 0.32 copy+combine 0.30 (gap) 0.05   hc0 norm 0.25   hc0 down 0.35   hc0 up 0.36   hc1 norm 0.05   hc1 down 0.34   hc1 up 0.35 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.15 kv+idx append 0.10 q+q-idx 0.40 scores+topk 0.08 kv-resolve 0.08 attention 0.28 gate 0.04 out-proj 0.17 router+plan+bell 0.17 shared+quant 0.20 waitA 0.26 VRAM hits 0.43 waitB 0.11 PCIe grp 0.07 waitCPU 0.07 copy+combine 0.09 (gap) 0.01   hc0 norm 0.01   hc0 down 0.10   hc0 up 0.11   hc1 norm 0.01   hc1 down 0.10   hc1 up 0.10 | total 12.39 ms/window over 119 windows",
+   "strata decode GPU stages, stage 1 (ms/window): GDN layers: q8+qkv/q-idx gemv 0.68 conv 0.10 ab 0.17 z 0.45 rec 0.23 out-proj 0.40 router+plan+bell 0.51 shared+quant 0.57 waitA 0.28 VRAM hits 1.35 waitB 0.32 PCIe grp 0.19 waitCPU 1.45 copy+combine 0.29 (gap) 0.04 head 0.92   hc0 norm 0.04   hc0 down 0.30   hc0 up 0.30   hc1 norm 0.04   hc1 down 0.29   hc1 up 0.30 | QSA layers: q8+kv-idx 0.05 k/v+norm-rope 0.15 kv+idx append 0.11 q+q-idx 0.43 scores+topk 0.08 kv-resolve 0.09 attention 0.29 gate 0.04 out-proj 0.18 router+plan+bell 0.19 shared+quant 0.21 waitA 0.10 VRAM hits 0.47 waitB 0.12 PCIe grp 0.07 waitCPU 0.51 copy+combine 0.10 (gap) 0.01   hc0 norm 0.02   hc0 down 0.11   hc0 up 0.11   hc1 norm 0.02   hc1 down 0.11   hc1 up 0.11 | total 12.90 ms/window over 87 windows",
+   "strata decode GPU stages (ms/window): GDN layers: q8+qkv/q-idx gemv 0.77 conv 0.12 ab 0.20 z 0.48 rec 0.27 out-proj 0.45 router+plan+bell 0.58 shared+quant 0.65 waitA 0.98 VRAM hits 1.50 waitB 0.38 PCIe grp 0.23 waitCPU 0.43 copy+combine 0.30 (gap) 0.05   hc0 norm 0.24   hc0 down 0.34   hc0 up 0.36   hc1 norm 0.05   hc1 down 0.34   hc1 up 0.34 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.15 kv+idx append 0.10 q+q-idx 0.39 scores+topk 0.07 kv-resolve 0.08 attention 0.29 gate 0.04 out-proj 0.17 router+plan+bell 0.17 shared+quant 0.20 waitA 0.23 VRAM hits 0.41 waitB 0.11 PCIe grp 0.07 waitCPU 0.09 copy+combine 0.09 (gap) 0.01   hc0 norm 0.01   hc0 down 0.10   hc0 up 0.10   hc1 norm 0.01   hc1 down 0.10   hc1 up 0.10 | total 12.20 ms/window over 402 windows",
+   "strata decode GPU stages, stage 1 (ms/window): GDN layers: q8+qkv/q-idx gemv 0.65 conv 0.10 ab 0.17 z 0.43 rec 0.23 out-proj 0.39 router+plan+bell 0.50 shared+quant 0.56 waitA 0.36 VRAM hits 1.29 waitB 0.32 PCIe grp 0.20 waitCPU 1.54 copy+combine 0.28 (gap) 0.04 head 0.87   hc0 norm 0.04   hc0 down 0.29   hc0 up 0.30   hc1 norm 0.04   hc1 down 0.28   hc1 up 0.29 | QSA layers: q8+kv-idx 0.05 k/v+norm-rope 0.15 kv+idx append 0.11 q+q-idx 0.42 scores+topk 0.08 kv-resolve 0.09 attention 0.31 gate 0.04 out-proj 0.18 router+plan+bell 0.19 shared+quant 0.21 waitA 0.11 VRAM hits 0.45 waitB 0.12 PCIe grp 0.07 waitCPU 0.49 copy+combine 0.10 (gap) 0.01   hc0 norm 0.02   hc0 down 0.11   hc0 up 0.11   hc1 norm 0.02   hc1 down 0.11   hc1 up 0.11 | total 12.81 ms/window over 282 windows",
+   "strata decode GPU stages (ms/window): GDN layers: q8+qkv/q-idx gemv 0.81 conv 0.12 ab 0.21 z 0.50 rec 0.28 out-proj 0.47 router+plan+bell 0.60 shared+quant 0.67 waitA 0.69 VRAM hits 1.61 waitB 0.38 PCIe grp 0.23 waitCPU 0.62 copy+combine 0.32 (gap) 0.05   hc0 norm 0.25   hc0 down 0.36   hc0 up 0.38   hc1 norm 0.05   hc1 down 0.36   hc1 up 0.36 | QSA layers: q8+kv-idx 0.04 k/v+norm-rope 0.15 kv+idx append 0.11 q+q-idx 0.41 scores+topk 0.07 kv-resolve 0.08 attention 0.30 gate 0.04 out-proj 0.18 router+plan+bell 0.17 shared+quant 0.20 waitA 0.21 VRAM hits 0.44 waitB 0.11 PCIe grp 0.07 waitCPU 0.27 copy+combine 0.10 (gap) 0.01   hc0 norm 0.01   hc0 down 0.11   hc0 up 0.11   hc1 norm 0.01   hc1 down 0.11   hc1 up 0.11 | total 12.74 ms/window over 287 windows",
+   "strata decode GPU stages, stage 1 (ms/window): GDN layers: q8+qkv/q-idx gemv 0.69 conv 0.11 ab 0.18 z 0.46 rec 0.24 out-proj 0.40 router+plan+bell 0.53 shared+quant 0.58 waitA 0.35 VRAM hits 1.42 waitB 0.32 PCIe grp 0.20 waitCPU 0.87 copy+combine 0.28 (gap) 0.04 head 0.94   hc0 norm 0.04   hc0 down 0.30   hc0 up 0.31   hc1 norm 0.04   hc1 down 0.30   hc1 up 0.30 | QSA layers: q8+kv-idx 0.05 k/v+norm-rope 0.16 kv+idx append 0.11 q+q-idx 0.44 scores+topk 0.08 kv-resolve 0.10 attention 0.31 gate 0.04 out-proj 0.18 router+plan+bell 0.20 shared+quant 0.22 waitA 0.10 VRAM hits 0.50 waitB 0.12 PCIe grp 0.07 waitCPU 0.50 copy+combine 0.11 (gap) 0.01   hc0 norm 0.02   hc0 down 0.11   hc0 up 0.12   hc1 norm 0.02   hc1 down 0.11   hc1 up 0.12 | total 12.71 ms/window over 231 windows"
+  ]
+ },
+ "completed": true,
+ "restored": true,
+ "faults": []
+}

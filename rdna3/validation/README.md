@@ -28,3 +28,7 @@ Q8/A8 HC 的独立标量参考、Q8工作区首次失败及修正理由见[第�
 第十一轮选择器验证为[round11-format-selector.json](round11-format-selector.json)：两GPU分别检查全部、IQ4_XS、IQ4_XS＋Q6_K，GPU0另检空值／非法／未知／末尾逗号，十进程各400组、各10组图重放通过。最大相对L2为`1.69e-7`；未选格式逐位回退。诊断日志包含图捕获注册，不是执行计数。
 
 第十二轮正常路径的窗口计数见[round12-decode-windows.json](round12-decode-windows.json)，逐条匹配测速请求的token/s与草稿计数。它说明中文退化表现为验证窗口增多，不是固定token路由的算子对照。冻结惩罚／回滚文本一致性及三题冒烟见[整机记录](../benchmarks/2026-11-19-round12.json)；服务恢复核验见[round12-restoration.json](round12-restoration.json)。
+
+第十三轮冻结插桩的逐阶段窗口对照见[round13记录](../benchmarks/2026-11-19-round13.md)：开发版每窗口慢约1.9ms，约45%在等待链（waitB/PCIe grp/waitCPU）、18%在HC读取残余差距，copy+combine开发版更好。插桩数字只用于归因。
+
+第十四轮CPU分发对照见[round14记录](../benchmarks/2026-11-19-round14.md)：`STRATA_CPU_IQ_ALL_EXACT1`（上游收编版Codex IQ3S_EXACT1）在本机全量parity零失败（`round14-iq-avx2-parity.txt`，生效日志`round14-exact1-gate.txt`），但整机慢于`STRATA_IQ_MT_MIN=1`且破坏窗口不变性（中文冻结串行两次文本不同），不采纳。开关对照审计见[2026-11-19-switch-audit.md](2026-11-19-switch-audit.md)。
