@@ -1,6 +1,6 @@
 {
   "exe": "@ROOT@/build/strata",
-  "cwd": "@ROOT@/control",
+  "cwd": "@ROOT@/terminal",
   "args": [
     "--pack",
     "@PACK@",
@@ -76,7 +76,6 @@
   "fit_max_tokens": false,
   "env": {
     "STRATA_ROUTE_TAIL_SKIP": "0",
-    "STRATA_HIPBLASLT_TUNING": "@ROOT@/engine/tools/hip/gfx1100-hipblaslt-100401.txt",
     "STRATA_PF_FUSED": "1",
     "STRATA_PF_GEMM": "1",
     "STRATA_PF_SWITCH_MIN_T": "4096",
@@ -156,10 +155,10 @@
   "max_active_requests": 2,
   "deployment": {
     "framework": "Strata",
-    "version": "legacy-20261110",
-    "engine_version": "0.1.43",
+    "version": "0.2.16",
+    "engine_version": "0.1.62",
     "optimization": "RDNA3",
-    "revision": "main-v0.1.0",
+    "revision": "upstream-v0.2.16",
     "weights_variant": "GSQ-RCO IQ3_XXS"
   }
 }

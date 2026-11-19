@@ -1,4 +1,6 @@
-# Strata-rdna3
+# Strata-rdna3 — dev/0.2.16
+
+当前检出的是正式版0.2.16迁移开发分支。稳定基线在 [`main`](https://github.com/cennac/Strata-rdna3/tree/main)。
 
 我在这里维护双 RX 7900 XTX 的 Strata 优化，重点是单请求速度、双并发吞吐，以及可复现的源码和配置。
 
@@ -40,14 +42,15 @@ MSI MPG Z490 GAMING CARBON WIFI、10900T ES、96GB DDR4，两张 24GB RX 7900 XT
 ```bash
 git clone https://github.com/cennac/Strata-rdna3.git
 cd Strata-rdna3
+git switch dev/0.2.16
 python3 rdna3/build.py --rocm /opt/rocm --jobs 4
 ```
 
-`main` 携带对应 GGML 与 rocWMMA 源码。模型 GGUF、pack、tokenizer 和 MTP runtime 由使用者单独准备，量化及模型家族必须匹配。
+`dev/0.2.16` 使用正式版自带的计算核和依赖；`main` 携带历史构建对应的GGML与rocWMMA源码。模型 GGUF、pack、tokenizer 和 MTP runtime 由使用者单独准备，量化及模型家族必须匹配。
 
 ## 生成配置并运行
 
-以下为96GB内存、双XTX的现役配置模板。`--gpu` 使用 **HIP序号**，不使用容易随插卡变化的 Vulkan 序号。先确认两张目标显卡，再填入参数。
+以下为96GB内存、双XTX的开发配置模板。`--gpu` 使用 **HIP序号**，不使用容易随插卡变化的 Vulkan 序号。先确认两张目标显卡，再填入参数。
 
 ```bash
 python3 rdna3/configure.py \
@@ -61,12 +64,12 @@ python3 rdna3/configure.py \
 
 模板保留MTP、26/22分层、两请求及每路131072容量；默认只监听本机。配置写到 `state/`，不自动启动、不改系统服务。专家画像未附带，首次加载与预热结果会受画像和文件缓存影响。
 
-使用控制层所需的 Python 环境，从 `control/` 启动：
+使用控制层所需的 Python 环境，从 `terminal/` 启动：
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -r control/requirements.txt
-cd control
+.venv/bin/python -m pip install -r terminal/requirements.txt
+cd terminal
 ../.venv/bin/python -s serve/server.py --engine strata \
   --config ../state/dual-xxs.json --host 127.0.0.1 --port 8100
 ```
@@ -85,3 +88,5 @@ python3 rdna3/bench.py --url http://127.0.0.1:8100 \
 脚本保留每请求输出、首字时间、引擎速度和整批吞吐。提前EOS单独标记，不能混作固定长度成绩。测试速度不能代替质量结论。
 
 后续开发与合并规则见 [DEVELOPMENT.md](rdna3/DEVELOPMENT.md)，改动记录见 [CHANGELOG.md](rdna3/CHANGELOG.md)。
+
+上游完整说明保留于 [UPSTREAM_README.md](UPSTREAM_README.md)。当前分支尚未达到主分支性能，日常服务仍用主分支基线。

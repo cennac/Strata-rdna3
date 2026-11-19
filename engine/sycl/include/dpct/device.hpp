@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <array>
 #include <climits>
+#include <cstdlib>
 #include <cstring>
 #include <functional>
 #include <iostream>
@@ -30,6 +31,9 @@
 #if defined(_WIN64)
 #ifndef NOMINMAX
 #define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
 #endif
@@ -680,6 +684,14 @@ private:
     sycl::async_handler eh = {};
     if (enable_exception_handler) {
       eh = exception_handler;
+    }
+    // STRATA_KPROF=1 (include/strata/kprof.hpp): every queue profiles, whatever this translation unit defined
+    static const bool kprof_on = [] { const char* v = std::getenv("STRATA_KPROF"); return v != nullptr && v[0] != '0'; }();
+    if (kprof_on) {
+      _queues.push_back(std::make_shared<sycl::queue>(
+          _ctx, *this, eh,
+          sycl::property_list(sycl::property::queue::enable_profiling(), properties...)));
+      return _queues.back().get();
     }
     _queues.push_back(std::make_shared<sycl::queue>(
         _ctx, *this, eh,

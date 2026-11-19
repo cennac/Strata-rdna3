@@ -156,6 +156,14 @@ inline IntelGpuGen intel_gpu_gen(const sycl::device& d) {
     }
     return IntelGpuGen::Unknown;
 }
+// The Battlemage decode controls of PR #4185 (glorysdj): unset = `bm_default` for a Battlemage device and off for every other
+// device (Arc A-series included); a set value turns the control on ("1") or off ("0") whatever the device, as before. The
+// controls with bm_default=false measured neutral or slower on 2x Arc Pro B65 (IQ3_S): they stay opt-in.
+inline bool bm_default_on(const char* name, const sycl::device& d, bool bm_default = true) {
+    const char* v = std::getenv(name);
+    if (v != nullptr && v[0] != '\0') return v[0] != '0';
+    return bm_default && intel_gpu_gen(d) == IntelGpuGen::Battlemage;
+}
 }  // namespace strata
 
 #include <cstdint>
@@ -256,8 +264,33 @@ inline size_t device_offset_end(const void* p, size_t bytes) {
 // sycl::malloc_device for a big allocation, checked for aliased pages (arena_alias_check) and, when it has some, allocated
 // again behind a growing spacer that moves it.  Small allocations and STRATA_ARENA_ALIAS_CHECK=0 go straight to
 // sycl::malloc_device.  The memory comes back uninitialised, as from sycl::malloc_device.
+// #5557 / #5578: the largest single device allocation this GPU allows (max_mem_alloc_size: 3.77 GiB on an 8 GB A750, ~4 GiB on
+// a 16 GB A770 under NEO, 1 GiB under WSL2 GPU-PV); 0 when it cannot be read.  A test build (STRATA_SYCL_TEST_HOOKS) takes
+// STRATA_TEST_MAX_ALLOC_MIB instead, and malloc_device_guarded then refuses anything larger, as such a driver does.
+inline uint64_t device_max_alloc(sycl::queue& q) {
+#if defined(STRATA_SYCL_TEST_HOOKS)
+    if (const char* t = std::getenv("STRATA_TEST_MAX_ALLOC_MIB")) return (uint64_t) std::strtoull(t, nullptr, 10) << 20;
+#endif
+    try {
+        return (uint64_t) q.get_device().get_info<sycl::info::device::max_mem_alloc_size>();
+    } catch (...) {
+        return 0;
+    }
+}
+
 inline void* malloc_device_guarded(size_t bytes, sycl::queue& q, const char* what = "device buffer") {
-    void* p = sycl::malloc_device(bytes, q);
+    const uint64_t max_alloc = device_max_alloc(q);
+    void* p = nullptr;
+#if defined(STRATA_SYCL_TEST_HOOKS)
+    if (!(std::getenv("STRATA_TEST_MAX_ALLOC_MIB") && max_alloc && (uint64_t) bytes > max_alloc))
+#endif
+        p = sycl::malloc_device(bytes, q);
+    if (p == nullptr && max_alloc && (uint64_t) bytes > max_alloc)
+        // #5557: sycl::malloc_device answers null, not an error, for one allocation above the GPU's limit: say so here, for
+        // every caller (the weight arena, the expert cache, the K/V), instead of a silent null or "failed: no error"
+        std::fprintf(stderr, "strata: the %s needs one %.2f GiB GPU allocation, and this GPU allows at most %.2f GiB in one "
+                             "allocation (max_mem_alloc_size)\n",
+                     what, (double) bytes / 1073741824.0, (double) max_alloc / 1073741824.0);
     if (p == nullptr || bytes < ((size_t) 32 << 20) || !arena_alias_guard_enabled()) {
         device_alloc_register(p, bytes);
         return p;

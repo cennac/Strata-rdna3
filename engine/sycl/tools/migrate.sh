@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CUDA -> SYCL migration of the Strata engine with SYCLomatic (dpct), run inside strata-sycl-dev.
-#   sycl/migrate.sh [repo] [out]      repo defaults to the Strata_B70 checkout beside this dir
+#   sycl/tools/migrate.sh [repo] [out]      repo defaults to the Strata_B70 checkout beside this dir
 # Writes a compilation database first (there is no nvcc here, so CMake cannot make one), then migrates every
 # CUDA-touching source into <out> mirroring the tree. Files dpct leaves alone are not copied - the port's
 # CMake falls back to the original for those, so the diff against upstream stays the port itself.
@@ -28,6 +28,8 @@ db = []
 skip = {"src/prefill/moe_mmq.cu", "src/prefill/ggml_cuda_host.cu", "src/kernels/native_expert_parity.cpp"}
 for f in sorted(set(files) - skip):
     tool = "nvcc" if f.endswith(".cu") else "g++"
+    # third_party/ggml is the repo's shared quant header (read from the checkout).  dpct also writes a migrated copy of it to <out>/third_party/ggml:
+    # the SYCL build does not use it (sycl/CMakeLists.txt includes ${STRATA_ROOT}/third_party/ggml), so it is not kept in sycl/ (deleted in 0.2.15)
     cmd = [tool, "-std=c++20", "-Iinclude", "-Ithird_party/ggml", "-I" + hdr, "-DSTRATA_VERSION=\"port\""]
     if tool == "nvcc": cmd += ["--cuda-gpu-arch=sm_80", "-x", "cuda"]
     cmd += ["-c", f, "-o", f + ".o"]

@@ -1,11 +1,17 @@
+#include "b60_layout_state.hpp"
 // src/core/verify.cpp - see include/strata/core/verify.hpp.
 #define DPCT_PROFILING_ENABLED
 #include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
+#include "strata/sycl_doorbell.hpp"
+#include "strata/core/window_wait.hpp"
 #include "strata/sycl_queue.hpp"
+#include "strata/kprof.hpp"
 #include "strata/core/verify.hpp"
+#include "strata/kernels/dflash2.hpp"
 #include "strata/core/remote_expert_opt.hpp"
 #include "strata/core/dma_batch.hpp"
+#include "strata/workload_trace.hpp"
 #if defined(_WIN32)
 #include <intrin.h>
 #endif
@@ -14,7 +20,9 @@
 #include "strata/core/on_device.hpp"
 #include "strata/core/peer_experts.hpp"
 #include "strata/kernels/iq_kernels.hpp"
+#include "strata/kernels/expert_staging.hpp"
 #include "strata/kernels/cpu/expert_layout.hpp"
+#include "strata/kernels/cpu/hadamard.hpp"
 #include "strata/kernels/bf16_gemv.hpp"
 #include "strata/kernels/native_router.hpp"
 #include "strata/kernels/native_moe.hpp"
@@ -46,6 +54,7 @@
 #include <atomic>
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -63,6 +72,56 @@
 
 namespace strata::core {
 namespace {
+bool sycl_mirror_adapt() {
+    static const bool enabled = [] {
+        const char* v = std::getenv("STRATA_SYCL_MIRROR_ADAPT");
+        return v && v[0] == '1';
+    }();
+    return enabled;
+}
+class ExpertRouteCount;
+void count_expert_routes(sycl::queue* q, const int32_t* ids, int entries,
+                         int layer, int experts, uint32_t* counts) {
+    q->parallel_for<ExpertRouteCount>(
+        sycl::nd_range<1>((entries + 31) / 32 * 32, 32),
+        [=](sycl::nd_item<1> item) [[sycl::reqd_sub_group_size(32)]] {
+            const int i = (int)item.get_global_id(0);
+            if (i < entries) {
+                const int expert = ids[i];
+                if (expert >= 0 && expert < experts) {
+                    sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed,
+                        sycl::memory_scope::device, sycl::access::address_space::global_space>
+                        count(counts[layer * experts + expert]);
+                    count.fetch_add(1);
+                }
+            }
+        });
+}
+
+#ifdef STRATA_SYCL_WORKLOAD_TRACE
+// Diagnostic graph copies preserve the actual per-layer plan before its shared
+// scratch is reused. CPU reads them only after the existing end-window wait.
+struct RoutingAudit {
+    int32_t* snapshots = nullptr;
+    FILE* output = nullptr;
+    int64_t words = 0, layers = 0;
+    sycl::queue* queue = nullptr;
+    RoutingAudit(int64_t nwords, int64_t nlayers, sycl::queue* stream, const char* path)
+        : words(nwords), layers(nlayers), queue(stream) {
+        output = std::fopen(path, "a");
+        if (!output) throw std::runtime_error("routing audit output unavailable");
+        snapshots = sycl::malloc_host<int32_t>((size_t)words * layers * 2, *queue);
+        if (!snapshots) { std::fclose(output); output = nullptr; throw std::bad_alloc(); }
+        std::memset(snapshots, 0, (size_t)words * layers * 2 * sizeof(int32_t));
+    }
+    ~RoutingAudit() {
+        if (snapshots) { try { sycl::free(snapshots, *queue); } catch (...) {} }
+        if (output) std::fclose(output);
+    }
+    int32_t* slot(int64_t layer, int group) { return snapshots + (size_t)(layer * 2 + group) * words; }
+};
+std::map<const Verifier*, std::unique_ptr<RoutingAudit>> routing_audits;
+#endif
 
 constexpr float EPS = 1e-6f;
 using Clock = std::chrono::steady_clock;
@@ -92,6 +151,38 @@ struct Bump {
 bool env_on(const char* name) {
     const char* e = std::getenv(name);
     return e != nullptr && e[0] != 0 && e[0] != '0';
+}
+
+// STRATA_LAYER_HASH_FILE=<path> (debug, off by default): after every CPU-expert service the host writes one text line
+// "window layer rows xhash idshash whash yhash" (FNV-1a over the host-visible payload the GPU published for the CPU
+// experts - the activation rows, the routed ids, the weights - and over the CPU experts' output rows).  Two runs of the
+// same teacher-forced window are compared line by line: the first line that differs names the first layer whose input
+// differs (CLEAN-6.0).  The activation rows are published only when a routed expert is not resident, or with
+// STRATA_DOORBELL_CHECK=1 for every layer.
+std::FILE* layer_hash_file() {
+    static std::FILE* f = [] {
+        const char* p = std::getenv("STRATA_LAYER_HASH_FILE");
+        return p != nullptr && p[0] != 0 ? std::fopen(p, "w") : nullptr;
+    }();
+    return f;
+}
+uint64_t layer_hash_fnv(const void* p, size_t bytes) {
+    uint64_t h = 1469598103934665603ull;
+    const auto* b = static_cast<const uint8_t*>(p);
+    for (size_t i = 0; i < bytes; ++i) h = (h ^ b[i]) * 1099511628211ull;
+    return h;
+}
+
+// STRATA_STATE_HASH_FILE=<path> (debug, off by default): before every window the host waits for the queue and writes
+// "window gdn <ordinal> <fnv>" for every GDN layer's recurrent+conv state and "window qsa <ordinal> <fnv>" for the
+// int8 K/V codes and scales of the pages the window's position already filled (page table taken as the identity),
+// so two runs can be compared at the first window to see whether the prompt path left the same state (CLEAN-6.0).
+std::FILE* state_hash_file() {
+    static std::FILE* f = [] {
+        const char* p = std::getenv("STRATA_STATE_HASH_FILE");
+        return p != nullptr && p[0] != 0 ? std::fopen(p, "w") : nullptr;
+    }();
+    return f;
 }
 #if defined(STRATA_USE_HIP)
 const bool g_coherent = env_on("STRATA_VERIFY_COHERENT");
@@ -246,15 +337,7 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-strata::kernels::QsaShapes shapes_of(const ModelGeometry& g) {
-    strata::kernels::QsaShapes s = strata::kernels::qsa_real_shapes();
-    s.n_head = g.n_head;
-    s.n_head_kv = g.n_head_kv;
-    s.head_dim = g.head_dim;
-    s.idx_n_head = g.idx_q_heads;
-    s.idx_dim = g.idx_key_dim;
-    return s;
-}
+strata::kernels::QsaShapes shapes_of(const ModelGeometry& g) { return qsa_shapes(g); }
 
 const WeightRef* need(const LayerView& v, const char* suffix, std::string& err) {
     const WeightRef* r = v.get(suffix);
@@ -317,6 +400,21 @@ const int64_t g_test_stall = [] {
     const char* e = std::getenv("STRATA_TEST_VERIFY_STALL");
     return e != nullptr ? (int64_t) std::atoll(e) : (int64_t) 0;
 }();
+// #5160 test hook, compiled only into a test build (cmake -DSTRATA_SYCL_TEST_HOOKS=ON; released engines have no such switch):
+// STRATA_TEST_POOL_DELAY=W:K:MS sleeps MS ms after the CPU step K of window W (0-based), so the GPU's wait on that step
+// runs out with a small STRATA_SPIN_MAX.  Without the build option this is an empty function.
+void test_pool_delay(int64_t window, int64_t step) {
+#ifdef STRATA_SYCL_TEST_HOOKS
+    static long long tw = -1, tk = -1, tms = 0;
+    static const bool on = [] {
+        const char* e = std::getenv("STRATA_TEST_POOL_DELAY");
+        return e != nullptr && std::sscanf(e, "%lld:%lld:%lld", &tw, &tk, &tms) == 3 && tms > 0;
+    }();
+    if (on && window == tw && step == tk) std::this_thread::sleep_for(std::chrono::milliseconds(tms));
+#else
+    (void) window; (void) step;
+#endif
+}
 }  // namespace
 
 bool Verifier::release_gpu_waits(int timeout_ms) try {
@@ -346,6 +444,58 @@ bool Verifier::release_gpu_waits(int timeout_ms) try {
     return true;
 } catch (...) {
     return false;   // the runtime may already be tearing down (the watchdog's path ends the engine)
+}
+
+bool Verifier::drain_failed_window(int timeout_ms) try {
+    trace_ev("DRAIN", -1, -1, timeout_ms);
+    // as release_gpu_waits: every flag past every ring, so the window's remaining waits pass at once (the host has stopped
+    // serving it); then the queues, bounded.  Drained: the next stage_inputs() resets the flags and re-arms the record.
+    for (uint32_t* p : {h_flag_, h_flagA_, h_flagB_})
+        if (p != nullptr) *(volatile uint32_t*) p = UINT32_MAX;
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+    _mm_sfence();
+    const OnDevice on_device(device_);
+    const Clock::time_point t0 = Clock::now();
+    for (dpct::queue_ptr q : {cs_, copy_}) {
+        if (q == nullptr) continue;
+        while (!q->ext_oneapi_empty()) {
+            if (ms_since(t0) > timeout_ms) {
+                released_.store(true);   // still running: no later window may share its buffers
+                trace_ev("DRAIN-NOT-DRAINED", -1, -1, (int64_t) ms_since(t0));
+                return false;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
+    trace_ev("DRAINED", -1, -1, (int64_t) ms_since(t0));
+    return true;
+} catch (...) {
+    released_.store(true);
+    return false;
+}
+
+bool Verifier::wait_failed(int64_t pos0, int T, int G, bool drain, std::string& err) {
+    const WaitExpiry x = wait_record_read(h_wrec_);
+    if (!x.expired()) return false;
+    const bool drained = drain ? drain_failed_window(5000) : true;
+    ++waits_expired;
+    const int g = G > 0 ? G : 1;
+    const int64_t step = x.step > 0 ? (int64_t) x.step - 1 : 0;
+    const int64_t layer = (x.site == kWaitFirst) ? 1 : lb_ + step / g;
+    const int grp = (int) (step % g);
+    char buf[640];
+    std::snprintf(buf, sizeof buf,
+                  "verify: the GPU stopped waiting for %s of layer %lld (group %d, window %lld at position %lld, %d tokens, "
+                  "device %d layers [%lld,%lld)): the CPU took %.0f ms, longer than the GPU's wait of %u reads; the window was "
+                  "discarded%s%s%s",
+                  wait_site_name(x.site), (long long) layer, grp, (long long) windows, (long long) pos0, T, device_,
+                  (long long) lb_, (long long) le_, wpool_ms_, (unsigned) strata::spin_max(*cs_),
+                  x.count > 1 ? (" (" + std::to_string(x.count) + " waits ran out)").c_str() : "",
+                  x.epoch != wepoch_ ? " (the record carries another window's epoch)" : "",
+                  drained ? "" : "; the GPU did not finish within 5 s, so this verifier takes no further windows");
+    err = buf;
+    trace_ev("WAIT-EXPIRED", (int64_t) x.step, layer, (int64_t) x.site);
+    return true;
 }
 
 void Verifier::trace_ev(const char* what, int64_t step, int64_t layer, int64_t aux) const {
@@ -428,6 +578,7 @@ Verifier::~Verifier() try {
         slot.compare_exchange_strong(me, nullptr);
     }
     if (cs_) cs_->wait();
+    if (slot_hist_d_ != nullptr && cs_) { try { sycl::free(slot_hist_d_, *cs_); } catch (...) {} slot_hist_d_ = nullptr; }
     if (sh_cs_) sh_cs_->wait();
     for (auto& e : exec_)
         if (e) delete (e);
@@ -437,6 +588,10 @@ Verifier::~Verifier() try {
         for (auto* e : v)
             if (e) delete e;
     if (commit_exec_) delete (commit_exec_);
+#ifdef STRATA_SYCL_WORKLOAD_TRACE
+    routing_audits.erase(this);
+#endif
+    if (expert_usage_counts_d_) sycl::free(expert_usage_counts_d_, *cs_);
     for (auto& kv : exec_bm_)
         if (kv.second) delete (kv.second);
     for (auto& kv : commit_bm_)
@@ -444,19 +599,22 @@ Verifier::~Verifier() try {
     if (arena_b_) sycl::free(arena_b_, dpct::get_in_order_queue());
     if (h_commitb_) sycl::free(h_commitb_, dpct::get_in_order_queue());
     if (qcnt_) sycl::free(qcnt_, dpct::get_in_order_queue());
-    if (cs_ && cs_ != ext_stream_) dpct::get_current_device().destroy_queue(
+    // (a verifier whose init stopped before it made its own queues still holds the process's default queue in all three (cs_, sh_cs_, copy_): that one is never ours to destroy -
+    // destroying it took the next verifier's wait down with a SIGSEGV in urQueueFinish when a start was refused for lack of VRAM)
+    if (cs_ && cs_ != ext_stream_ && cs_ != &dpct::get_in_order_queue()) dpct::get_current_device().destroy_queue(
         cs_); // set_stream: the stage's stream, shared, not ours
-    if (sh_cs_) dpct::get_current_device().destroy_queue(sh_cs_);
-    if (copy_) { copy_->wait(); dpct::get_current_device().destroy_queue(copy_); }
+    if (sh_cs_ && sh_cs_ != cs_ && sh_cs_ != &dpct::get_in_order_queue()) dpct::get_current_device().destroy_queue(sh_cs_);
+    if (copy_) { copy_->wait(); if (copy_ != &dpct::get_in_order_queue()) dpct::get_current_device().destroy_queue(copy_); }   // (the default one when init never made the copy stream)
     if (commit_done_) dpct::destroy_event(commit_done_);
     if (ev_done_) dpct::destroy_event(ev_done_);
     if (ev_commit_) dpct::destroy_event(ev_commit_);
     if (prof_pin_) sycl::free(prof_pin_, dpct::get_in_order_queue());
     if (ev_fork_) dpct::destroy_event(ev_fork_);
     if (ev_join_) dpct::destroy_event(ev_join_);
+    if (tap_dev_) sycl::free(tap_dev_, dpct::get_in_order_queue());
     if (arena_) sycl::free(arena_, dpct::get_in_order_queue());
     void* hosts[] = {h_tok_, h_step_, h_pos_, h_commit_, h_ple_, h_out_, h_x_, h_ids_, h_w_, h_seq_, h_flag_, h_ymiss_,
-                     h_flagA_, h_plan_, h_flagB_, h_plan_err_};
+                     h_flagA_, h_plan_, h_flagB_, h_plan_err_, h_wrec_};
     for (void* h : hosts)
         if (h) strata::host_free_polled(h, dpct::get_in_order_queue());
 } catch (...) {
@@ -501,7 +659,7 @@ bool Verifier::init(const WeightTable &wt, const ModelGeometry &g,
         err = "verify: " + why + " (the verify window reproduces the default native decode path)";
         return false;
     }
-    if (!strata::kernels::fused_gr_supported(g.n_embd, g.hc, g.hc_lr) || ss.k != 10 || g.ssm_state_size != 128 ||
+    if (!strata::kernels::fused_gr_supported(g.n_embd, g.hc, g.hc_lr) || ss.k != (int) strata::core::kCompiledGeometry.n_expert_used || g.ssm_state_size != 128 ||
         g.ssm_d_conv != 4) {
         err = "verify: geometry differs from the artifact's";
         return false;
@@ -545,8 +703,22 @@ bool Verifier::init(const WeightTable &wt, const ModelGeometry &g,
               mapped(64, (void**) &h_flagA_, (void**) &m_flagA_) &&
               mapped(64, (void**) &h_flagB_, (void**) &m_flagB_) &&
               mapped(64, (void**) &h_plan_err_, (void**) &m_plan_err_) &&
+              mapped(64, (void**) &h_wrec_, (void**) &m_wrec_) &&
               mapped(T * K * N * 4, (void**) &h_ymiss_, (void**) &m_ymiss_);
     if (!ok) { err = "verify: mapped staging allocation failed"; return false; }
+    // DFlash2 taps (set_taps): off, and nothing is allocated or recorded, otherwise
+    if (!tap_req_.empty() && lb_ == 0 && le_ == g.n_layers) {
+        tap_layers_.clear();
+        for (int l : tap_req_) if (l >= 0 && l < g.n_layers - 1) tap_layers_.push_back(l);
+        tap_slot_.assign((size_t) g.n_layers, -1);
+        for (size_t i = 0; i < tap_layers_.size(); ++i) tap_slot_[(size_t) tap_layers_[i]] = (int) i;
+        const size_t nt = tap_layers_.size();
+        if (nt == 0 || (tap_dev_ = sycl::malloc_device<float>((size_t) T * nt * N, dpct::get_in_order_queue())) == nullptr) {
+            err = "verify: the DFlash2 tap buffers could not be allocated";
+            return false;
+        }
+        tap_on_ = true;
+    }
     // the GPU plan: counts(4) | start(cap+1) | dst(cap) | tok(cap) | pad | ptr(cap u64) | ptr2(cap u64) | start2(cap+1)
     {
         const int64_t cap = (int64_t) (T * K);
@@ -570,6 +742,13 @@ bool Verifier::init(const WeightTable &wt, const ModelGeometry &g,
         sink_.ctx = this;
     }
 
+    // APR: the rotated copy of the expert input (nat_xr_, T x N floats) only where a layer's gate/up is
+    // Hadamard-folded; its one reader is that layer's f.had_gu branch in the expert-input step below
+    bool had_gu_any = false;
+    {
+        const auto& lay = strata::kernels::cpu::expert_layout();
+        for (size_t l = 0; lay.native && l < lay.fmt.size(); ++l) had_gu_any = had_gu_any || lay.fmt[l].had_gu;
+    }
     // ---- the device arena: the same sequence counted, then carved
     auto carve = [&](Bump& b) {
         tok_ = b.take<int32_t>(T); step_ = b.take<int32_t>(T * strata::kernels::kStepCount);
@@ -597,6 +776,7 @@ bool Verifier::init(const WeightTable &wt, const ModelGeometry &g,
         staging_ = b.take<uint8_t>((uint64_t) kStagingBlobs * strata::kernels::cpu::expert_layout().max_blob);
         hit_xq_ = b.take<uint8_t>(T * (N / 32) * 34); hit_xs_ = b.take<float>(T * (N / 32));
         nat_xq_ = b.take<uint8_t>(T * (N / 32) * 36);
+        nat_xr_ = had_gu_any ? b.take<float>(T * N) : nullptr;
         hit_scratch_ = b.take<uint8_t>(std::max<uint64_t>(
             strata::kernels::moe_hit_grouped_scratch_bytes((int64_t) (T * K), g.n_embd, g.n_ff),
             strata::kernels::native_expert_scratch_bytes((int64_t) (T * K), g.n_ff)));
@@ -660,6 +840,10 @@ bool Verifier::init(const WeightTable &wt, const ModelGeometry &g,
             return false;
         }
     }
+    {   // APR (prism.hadamard, hadamard.txt): the sign vectors on this device, before any graph capture
+        had_sx_ = strata::kernels::hadamard_device_signs(strata::kernels::cpu::hadamard_signs((int) g.n_embd), (int) g.n_embd);
+        had_sh_ = strata::kernels::hadamard_device_signs(strata::kernels::cpu::hadamard_signs((int) g.n_ff), (int) g.n_ff);
+    }
     sink_.staging = (unsigned long long) staging_;
     sink_.staging_cap = kStagingBlobs;
     (void) TS;
@@ -691,6 +875,18 @@ bool Verifier::init(const WeightTable &wt, const ModelGeometry &g,
             sh_cs_ = dpct::get_current_device().create_queue(true)) != 0) {
         err = "verify: stream create failed";
         return false;
+    }
+    if (std::getenv("STRATA_VERIFY_DEBUG") != nullptr) {
+        // SYCL: a queue belongs to one context, so ev_fork_/ev_join_ (recorded on cs_) can only be waited on by
+        // sh_cs_ when the two streams are the same card.  Print both, and whether the streams are the shared ones.
+        auto dn = [](dpct::queue_ptr q) -> std::string {
+            if (q == nullptr) return "<null>";
+            try { return q->get_device().get_info<sycl::info::device::name>(); } catch (...) { return "<no device>"; }
+        };
+        std::fprintf(stderr, "strata verify: init device %d, cs '%s', sh_cs '%s', ext_stream %s, copy '%s'\n",
+                     device_, dn(cs_).c_str(), dn(sh_cs_).c_str(),
+                     ext_stream_ == nullptr ? "none" : dn(ext_stream_).c_str(), dn(copy_).c_str());
+        std::fflush(stderr);
     }
     if (DPCT_CHECK_ERROR(commit_done_ = new sycl::event()) != 0 ||
         DPCT_CHECK_ERROR(ev_fork_ = new sycl::event()) != 0 ||
@@ -727,6 +923,14 @@ bool Verifier::init(const WeightTable &wt, const ModelGeometry &g,
         // (not with set_always_publish: the device table may lag the host's while windows are in flight)
         device_plan_ = !all_resident_ && !always_publish_ && (v != nullptr && std::atoi(v) != 0);
     }
+    // a window the host serves waits for it: with CPU-served experts (no device plan), with the device plan and non-resident
+    // experts, and ALSO a stage that starts 100% resident: refresh_ar() runs its windows on the doorbell graph whenever a prompt
+    // loan, a VRAM shrink or a swap takes an expert out of VRAM, and that graph asks the host at every layer (measured:
+    // --layer-split 26, --max-context 65536, "100% VRAM resident" stages, a wait expired at 20,000 reads under 4 concurrent
+    // extractions). None of these is the xe "every expert resident, the wait only spins in a failure" case the short bound is
+    // sized for, so the bound goes up whenever the host can be asked (h_res_ present) or must be (not all resident). The flag is
+    // process-wide (a stage of a --layer-split run raises it for every device) and spin_max() no longer freezes its answer.
+    if (!all_resident_ || h_res_ != nullptr) strata::spin_host_waits_expected(true);
     // (halo's STRATA_VERIFY_RESIDENT=1 is this window's all_resident_ graph above, which 0.1.39 has on by default)
     if (g_qfuse()) {   // S26: the HC read's q8_1 group counters, zeroed once (each launch leaves them zero)
         if (DPCT_CHECK_ERROR(qcnt_ = sycl::malloc_device<unsigned int>(
@@ -770,6 +974,20 @@ bool Verifier::init(const WeightTable &wt, const ModelGeometry &g,
         */
         if (!ok2) {; all_resident_ = false; device_plan_ = false; }
     }
+    if (sycl_mirror_adapt()) {
+        if (!device_plan_ || !env_on("STRATA_VERIFY_NO_HOST"))
+            throw std::runtime_error("mirror adaptive expert usage requires NoHost device planning");
+        expert_usage_counts_h_.assign((size_t)g.n_layers * (size_t)g.n_expert, 0);
+        expert_usage_counts_d_ = sycl::malloc_device<uint32_t>(expert_usage_counts_h_.size(), *cs_);
+        if (!expert_usage_counts_d_) throw std::bad_alloc();
+        cs_->memset(expert_usage_counts_d_, 0, expert_usage_counts_h_.size() * sizeof(uint32_t)).wait_and_throw();
+    }
+#ifdef STRATA_SYCL_WORKLOAD_TRACE
+    if (const char* audit = std::getenv("STRATA_SYCL_ROUTING_AUDIT_FILE"); audit && *audit) {
+        if (!device_plan_) throw std::runtime_error("routing audit requires device planning");
+        routing_audits[this] = std::make_unique<RoutingAudit>(plan_i32_, g.n_layers, cs_, audit);
+    }
+#endif
     if (std::getenv("STRATA_VERIFY_DEBUG") != nullptr) {   // SYCL port: the per-layer residual ladder (token 0)
         dbgR_ = (float*) sycl::malloc_device((size_t) g.n_layers * g.n_embd * 4, dpct::get_in_order_queue());
         dbgM_ = (float*) sycl::malloc_device((size_t) g.n_layers * g.n_embd * 4, dpct::get_in_order_queue());
@@ -798,6 +1016,7 @@ const float* Verifier::final_R(int t) const { return R_ + (size_t) t * (size_t) 
 // while the GPU combines A and runs A's layer l+1.  B's mixer only needs A's mixer of the same layer (K/V, GDN
 // state), never A's experts, so nothing waits that did not wait before.  Every token's arithmetic is unchanged.
 bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
+    strata::kernels::B60MainActorScope b60_actor_scope;
     using namespace strata::kernels;
     const ModelGeometry& g = *g_;
     // 0.1.43 (STRATA_VERIFY_LEAN=0 turns it off): with the device plan under STRATA_VERIFY_NO_HOST no host ever answers a doorbell, so
@@ -806,7 +1025,10 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
     // combine and the answers are the same kernels on the same data.
     static const bool lean_env = [] { const char* v = std::getenv("STRATA_VERIFY_LEAN"); return !(v && v[0] == '0'); }();
     static const bool no_host_env = [] { const char* v = std::getenv("STRATA_VERIFY_NO_HOST"); return v && *v && std::strcmp(v, "0") != 0; }();
-    const bool lean = lean_env && no_host_env && device_plan_ && !step_hook_ && !step_hook2_ && !remote_opt_ && !always_publish_ && !g_stepped;
+    // Not for a batch window (batch_rec_): unless the stage is all-resident, run_slot_rows / batch_poll wait for each
+    // layer's doorbell, so a lean batch graph finishes with the ring silent ("verify batch: layer 0 never rang (graph
+    // finished)", then the engine dies). Batch windows keep the doorbell nodes; the solo window stays lean.
+    const bool lean = lean_env && no_host_env && device_plan_ && !batch_rec_ && !step_hook_ && !step_hook2_ && !remote_opt_ && !always_publish_ && !g_stepped;
     const WeightTable& wt = *wt_;
     SessionState& ss = *ss_;
     const int64_t N = g.n_embd, HC = g.hc, K = ss.k, C = g.ssm_conv_channels, ZV = g.ssm_value_dim;
@@ -821,7 +1043,8 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
     const bool ple_on = ss.ple.ready() && ple_stage();
     auto Rt = [&](int t) { return R_ + (size_t) t * HC * N; };
     const int G = (split_ && T >= 2 && !batch_rec_) ? 2 : 1;   // a batch window is one group
-    const bool self_commit = T == 1 && !batch_rec_ && !g_qfuse() && one_token_self_commit();   // see Verifier::commit
+    const bool self_commit = T == 1 && !batch_rec_ && !g_qfuse() && one_token_self_commit() &&
+                              !self_commit_off_;   // see Verifier::commit
     static const bool dec_batch = [] { const char* v = std::getenv("STRATA_DEC_BATCH"); return v == nullptr || std::atoi(v) != 0; }();
     // SYCL port, STRATA_VERIFY_EAGER=1: the window runs on the queue instead of as a graph, and each stage stamp is
     // a host-side wait + clock (there is no %globaltimer here), so the existing stage profiler reports ms per stage.
@@ -893,6 +1116,10 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
     // ---------------------------------------------------------------- pre(l, group): up to the ring
     auto pre = [&](int64_t l, int grp) -> bool {
         const int tb = tb_[grp], te = te_[grp], n = te - tb;
+#ifdef STRATA_SYCL_WORKLOAD_TRACE
+        strata::workload_trace::ContextGuard layer_context(strata::workload_trace::context.position, n, l);
+#endif
+        strata::workload_trace::Scope layer_trace("decode.layer.pre", cs, n, N);
         stamp(l, 0, grp);
         const LayerView v(wt, l);
         const char* pfx[2] = {"hc_attn_", "hc_ffn_"};
@@ -909,7 +1136,7 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
         bool pending = l > 0 && !cvec().covers(l - 1);
         if (l == 1 && ple_on) {
             if (grp == 0) {
-                if (ar_on()) wait_flag_ge(m_flag_, 1, cs);
+                if (ar_on()) wait_flag_ge(m_flag_, 1, cs, m_wrec_, kWaitFirst);
                 copy_from_mapped(ple_, m_ple_, (int64_t) T * N, cs);
             }
             float* normalized = (float*) ((uint8_t*) ss.ple.scratch + ple_block_scratch_bytes());
@@ -980,6 +1207,7 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
             pending = false;
         }
         auto gr_read_group = [&](int half, bool apply, float* inj_prev, float* inj_out) {
+            strata::workload_trace::Scope gr_trace("decode.gr_read", cs, n, HC * N, g.hc_lr, HC, N, half);
             FusedGrArgs fa[kFusedGrMaxT];
             for (int t = tb; t < te; ++t) {
                 FusedGrArgs& a = fa[t - tb];
@@ -991,7 +1219,7 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
                 a.q8_inject = (const uint8_t*) wi[half]->hc_q8;
                 a.eps = EPS; a.lo = lo_ + t * g.hc_lr; a.rs = rs_ + t * HC;
                 a.inject_out = inj_out + t * HC; a.mixed = mixed_ + t * N;
-                if (qcnt_ != nullptr) {   // S26 STRATA_QFUSE: the consumer's q8_1 image written by the read itself
+                if (qcnt_ != nullptr || (b60_gr_q8_requested() && n==1)) {   // S26 STRATA_QFUSE: the consumer's q8_1 image written by the read itself
                     a.q8_cnt = qcnt_;
                     if (half == 0) a.q8_mixed = xq_ + (size_t) (t - tb) * (N / 32) * 36;
                     else if (strata::kernels::cpu::expert_layout().native) a.q8_mixed = nat_xq_ + (size_t) t * (N / 32) * 36;
@@ -1047,6 +1275,24 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
                 native_mmvq(wg->native_type, wg->native_data, xq_, z_ + (size_t) tb * ZV, (int) N, (int) ZV, n, cs);
                 stamp(l, 5, grp);
                 // the recurrence from the untouched state over tokens [0, te); outputs only for this group's
+                static const bool gdn_groups_on = [] {   // STRATA_BATCH_GDN_GROUPS=1, all slots in one launch
+                    const char* e = std::getenv("STRATA_BATCH_GDN_GROUPS");
+                    return e != nullptr && std::atoi(e) != 0;
+                }();
+                if (batch_rec_ && gdn_groups_on && te - tb <= 8) {
+                    GdnGroups gg;
+                    for (int t = tb; t < te;) {
+                        const int first = t;
+                        while (t < te && brow_[t] == brow_[first]) ++t;
+                        SessionState& sx = slot_ss(first);
+                        gg.state[gg.n] = sx.gdn_state + (size_t) (gi - sx.gdn_ord0) * gdn_floats;
+                        gg.first[gg.n] = first;
+                        gg.ntok[gg.n] = t - first;
+                        ++gg.n;
+                    }
+                    gdn_step_norm_groups(gg, hb, (int) C, gate, beta, z_, (const float*) wnm->data, EPS, y_, (int) HK,
+                                         (int) HV, false, cs);
+                } else
                 if (batch_rec_) {   // each slot's recurrence over its own proposed-token group
                     for (int t = tb; t < te;) {
                         const int first = t;
@@ -1236,6 +1482,34 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
                 }
                 }
                 stamp(l, 10, grp);
+                // STRATA_BATCH_ATTN_ROWS=1: the window's rows in ONE launch per step (scores with each row's own indexer
+                // keys, the top-k over all rows, attention with each row's own pools): the same per-row arithmetic.
+                // Not with KV streaming (qsa_kv_resolve has work per slot then).
+                static const bool attn_rows = [] {
+                    const char* e = std::getenv("STRATA_BATCH_ATTN_ROWS");
+                    return e != nullptr && std::atoi(e) != 0;
+                }();
+                bool rows_ok = batch_rec_ && attn_rows && te - tb <= kAttnRowsMax;
+                for (int t = tb; rows_ok && t < te; ++t) rows_ok = slot_ss(t).qsa_states[qi].kv_mode != 1;
+                if (rows_ok) {
+                    const int n_rows = te - tb;
+                    QsaScoreRows sr;
+                    QsaAttnPoolsRows pr;
+                    sr.n = pr.n = n_rows;
+                    for (int t = tb; t < te; ++t) {
+                        const QsaState& sx = slot_ss(t).qsa_states[qi];
+                        sr.pooled[t - tb] = sx.idx_pooled;
+                        sr.dead[t - tb] = sx.idx_dead;
+                        pr.p[t - tb] = qsa_attn_pools(sx);
+                    }
+                    qsa_block_scores_rows(sr, qidx_ + tb * IQ * ID, step_ + tb * kStepCount, n_rows, max_blocks_, s,
+                                          scores_ + (size_t) tb * max_blocks_, cs);
+                    qsa_block_topk(scores_ + (size_t) tb * max_blocks_, step_ + tb * kStepCount, n_rows, max_blocks_, cap_,
+                                   s, sel_ + (size_t) tb * cap_, cs);
+                    qsa_decode_attn_batch_rows(qcur_ + tb * NH * HD, pr, sel_ + (size_t) tb * cap_, step_ + tb * kStepCount,
+                                               cap_, s, attn_scratch_ + (size_t) tb * attn_scratch_floats_,
+                                               attn_ + tb * NH * HD, n_rows, cs);
+                } else
                 if (batch_rec_) {   // each row selects and attends over its own slot's K/V
                     for (int t = tb; t < te; ++t) {
                         const QsaState& sx = slot_ss(t).qsa_states[qi];
@@ -1332,6 +1606,9 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
             mb.logits = logits_ + t * NE; mb.ids = ids_ + t * K; mb.weights = w_ + t * K;
             if (!moe_route(wt, g, l, K, mb, mixed_ + t * N, cs, err, nullptr)) return false;
         }
+        if (expert_usage_counts_d_)
+            count_expert_routes(cs, ids_ + tb * K, (int)(n * K), (int)l,
+                                (int)g.n_expert, expert_usage_counts_d_);
         if (ar_on()) {
             resident_plan(ids_ + tb * K, n * (int) K, (int) K, hits_.d_res + l * g.n_expert, (int) g.n_expert,
                           hits_.cache_base, slot_off_d_, (long long) hits_.blob,
@@ -1400,8 +1677,17 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
             if (sh_fork) dpct::sync_barrier(ev_join_, sh_cs_);
         }
         if (strata::kernels::cpu::expert_layout().native) {
-            if (!qdedup)
-                if (!q8_ffn) quantize_q8_1_rows(xm, n, N, nat_xq_ + (size_t) tb * (N / 32) * 36, cs);
+            // APR: Hadamard-folded gate/up take H (s * x); xm itself stays as it is (the shared expert above and the
+            // doorbell copy for the CPU pool, which rotates its own in native_quant_act). The q8_1 image of xm that
+            // STRATA_QFUSE / STRATA_VERIFY_QDEDUP may already have written is of the unrotated input, so a folded layer
+            // always rewrites it from the rotated rows (same stream, after the shared expert has read it).
+            const auto& f = strata::kernels::cpu::expert_layout().fmt[(size_t) l];
+            if (f.had_gu) {   // nat_xr_ exists: init carved it because this layer is folded (had_gu_any)
+                hadamard_rows(xm, nat_xr_ + (size_t) tb * N, n, N, f.had_block, had_sx_, cs);
+                quantize_q8_1_rows(nat_xr_ + (size_t) tb * N, n, N, nat_xq_ + (size_t) tb * (N / 32) * 36, cs);
+            } else if (!qdedup && !q8_ffn) {
+                quantize_q8_1_rows(xm, n, N, nat_xq_ + (size_t) tb * (N / 32) * 36, cs);
+            }
         } else
             quantize_q8_0_scaled(xm, hit_xq_ + (size_t) tb * (N / 32) * 34, hit_xs_ + (size_t) tb * (N / 32), (int64_t) n * N, cs);
         stamp(l, 18, grp);
@@ -1417,6 +1703,10 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
                               !cvec().covers(g.n_layers - 1);
     auto post = [&](int64_t l, int grp) -> bool {
         const int tb = tb_[grp], te = te_[grp], n = te - tb;
+#ifdef STRATA_SYCL_WORKLOAD_TRACE
+        strata::workload_trace::ContextGuard layer_context(strata::workload_trace::context.position, n, l);
+#endif
+        strata::workload_trace::Scope layer_trace("decode.layer.post", cs, n, N);
         const uint32_t ring = (uint32_t) ((l - lb_) * G + grp + 1);
         const int64_t cap = (int64_t) n * K, capx = (int64_t) max_t_ * K;
         int32_t* pl = plan_ + (size_t) grp * (size_t) (plan_i32_ + 16);
@@ -1437,9 +1727,27 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
             if (lay.native) {
                 // the layer's GGUF formats (i-quant gate/up, Q2_0 / IQ4_NL down)
                 const auto& f = lay.fmt[(size_t) l];
-                const NativeExpertLayout L = native_expert_layout(f.gu_type, f.d_type, f.n_embd, f.n_ff);
-                native_expert_grouped(L, gp, gs, gn, p_dst, p_tok, cap, cap,
-                                      nat_xq_ + (size_t) tb * (N / 32) * 36, hit_scratch_, dst_buf, cs, gy);
+                NativeExpertLayout L = native_expert_layout(f.gu_type, f.d_type, f.n_embd, f.n_ff);
+                if (f.had_d) { L.had_block = f.had_block; L.d_signs = had_sh_; }   // APR: h is rotated in there
+                if(b60_single_actor_requested()&&b60_layout_requested()){
+                    if(!lean||gy!=0)throw std::logic_error("B60 single staging needs the complete device plan");
+                    b60_stage_single_experts(const_cast<unsigned long long*>(gp),gn,int(cap),f.gu_type,size_t(f.up_off),size_t(f.down_off),size_t(f.bytes),cs);
+                }
+                if (!b60_layout_requested() && gy == 0 && device_plan_ && env_on("STRATA_VERIFY_NO_HOST") &&
+                    env_on("STRATA_SYCL_EXPERT_STAGE")) {
+                    // NoHost device planning leaves no CPU/DMA owner of this existing workspace.
+                    const int64_t per = G == 2 ? kStagingBlobs / 2 : kStagingBlobs;
+                    uint8_t* stage = staging_ + (size_t)(grp * per) * lay.max_blob;
+                    const char* batch_env = std::getenv("STRATA_SYCL_EXPERT_STAGE_GROUPS");
+                    const char* copy_env = std::getenv("STRATA_SYCL_EXPERT_STAGE_COPY");
+                    native_expert_grouped_staged(L,gp,gs,gn,p_dst,p_tok,cap,cap,
+                        nat_xq_ + (size_t)tb * (N / 32) * 36,hit_scratch_,dst_buf,cs,
+                        stage,(size_t)per * lay.max_blob,batch_env ? std::atoi(batch_env) : 8,
+                        copy_env ? std::atoi(copy_env) : 0);
+                } else {
+                    native_expert_grouped(L, gp, gs, gn, p_dst, p_tok, cap, cap,
+                                          nat_xq_ + (size_t) tb * (N / 32) * 36, hit_scratch_, dst_buf, cs, gy);
+                }
             } else {
                 moe_grouped_s2(gp, gs, gn, p_dst, p_tok, cap, cap, hit_xq_ + (size_t) tb * (N / 32) * 34,
                                hit_xs_ + (size_t) tb * (N / 32), hit_scratch_, dst_buf, cs);
@@ -1451,10 +1759,10 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
             stamp(l, 20, grp);
         } else {
             if (device_plan_) {   // E-6: skipped when the device planned this group (all its experts resident)
-                if (!lean) wait_flag_ge_or(m_flagA_, ring, skip_ + grp, cs);
+                if (!lean) wait_flag_ge_or(m_flagA_, ring, skip_ + grp, cs, m_wrec_, kWaitDevicePlan);
                 if (!lean) copy_i32_from_mapped_unless(pl, m_plan_ + (size_t) grp * (size_t) plan_i32_, plan_i32_, skip_ + grp, ring, cs);
             } else {
-                wait_flag_ge(m_flagA_, ring, cs);                  // the pool published this group's GPU plan
+                wait_flag_ge(m_flagA_, ring, cs, m_wrec_, kWaitPlan);   // the pool published this group's GPU plan
                 copy_i32_from_mapped(pl, m_plan_ + (size_t) grp * (size_t) plan_i32_, plan_i32_, cs);
             }
             stamp(l, 19, grp);
@@ -1462,8 +1770,8 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
             stamp(l, 20, grp);
             // stepped mode: the plan copy + VRAM groups end a segment, so they run while the CPU computes its rows
             if (step_hook2_ && !step_hook2_(l, grp)) { if (err.empty()) err = "verify: stepped split failed"; return false; }
-            if (device_plan_) { if (!lean) wait_flag_ge_or(m_flagB_, ring, skip_ + grp, cs); }
-            else wait_flag_ge(m_flagB_, ring, cs);                 // the PCIe share is in staging (DMA) or mapped
+            if (device_plan_) { if (!lean) wait_flag_ge_or(m_flagB_, ring, skip_ + grp, cs, m_wrec_, kWaitDevicePlan); }
+            else wait_flag_ge(m_flagB_, ring, cs, m_wrec_, kWaitPcie);   // the PCIe share is in staging (DMA) or mapped
             if (!lean && sink_.pcie_mode == 2) {                 // stage it with a copy kernel, then point at staging
                 const int64_t per = G == 2 ? kStagingBlobs / 2 : kStagingBlobs;
                 uint8_t* stage = staging_ + (size_t) (grp * per) * lay.max_blob;
@@ -1476,11 +1784,11 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
             if (!lean) grouped(p_ptr2, p_start2, p_counts + 2, kPcieGroupRows, hit_out);   // (lean: the device plan leaves it empty)
             stamp(l, 22, grp);
             if (device_plan_) {   // no CPU share when the device planned the group: its rows are zeros
-                if (!lean) wait_flag_ge_or(m_flag_, ring, skip_ + grp, cs);
+                if (!lean) wait_flag_ge_or(m_flag_, ring, skip_ + grp, cs, m_wrec_, kWaitDevicePlan);
                 copy_or_zero_from_mapped(parts_out, m_ymiss_ + (size_t) tb * K * N, (long long) n * K * N,
                                          skip_ + grp, ring, cs);
             } else {
-                wait_flag_ge(m_flag_, ring, cs);               // the CPU's share is in the mapped rows
+                wait_flag_ge(m_flag_, ring, cs, m_wrec_, kWaitRows);   // the CPU's share is in the mapped rows
                 stamp(l, 23, grp);
                 if (remote_opt_)   // #578: the helper's rows come back reduced; skip them as well
                     remote_opt_->copy_rows(parts_out, m_ymiss_ + (size_t) tb * K * N, tb, n, p_dst, p_counts + 1, cs);
@@ -1517,6 +1825,17 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
         if (remote_opt_) remote_opt_->combine(bo_ + tb * N, y_dummy_ + tb * N, tb, n,
                               device_plan_ ? skip_ + grp : nullptr, ring, cs);
         stamp(l, 24, grp);
+        if (tap_on_ && !batch_rec_ && l < (int64_t) tap_slot_.size() && tap_slot_[(size_t) l] >= 0) {
+            // the layer's completed output: R with this FFN half's write applied (the next layer's read would fold it), the mean of the hc streams,
+            // all rows of the group in one launch
+            const int64_t nt = (int64_t) tap_layers_.size();
+            strata::kernels::df2_tap_gr(Rt(tb), HC * N, bo_ + tb * N, N, inj2_ + tb * HC, HC, tap_dev_ + ((size_t) tb * nt + (size_t) tap_slot_[(size_t) l]) * N,
+                                        nt * N, n, N, (int) HC, cs);
+        }
+#ifdef STRATA_SYCL_WORKLOAD_TRACE
+        if (auto audit = routing_audits.find(this); audit != routing_audits.end())
+            cs->memcpy(audit->second->slot(l, grp), pl, (size_t)plan_i32_ * sizeof(int32_t));
+#endif
         if (l == g.n_layers - 1) {
             if (!fuse_head_gr) {
                 if (dec_batch && !g_no_multi_gr) gr_write_multi(Rt(tb), bo_ + tb * N, inj2_ + tb * HC, gs, Rt(tb), n, cs);
@@ -1556,6 +1875,7 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
         if (!hn || !hd || !hu) { err = "verify: an output_hc_* weight is missing"; return false; }
         // S25 (STRATA_HC_Q8=1): the final mixer from the GGUF's Q8_0 projections too, through the same multi read
         // (no pending write, no inject)
+        bool b60_head_q8=false;
         const bool mix_q8 = hd->hc_q8 != nullptr && hu->hc_q8 != nullptr && head_ != nullptr && head_->loaded();
         if (mix_q8) {
             FusedGrArgs fa[kFusedGrMaxT];
@@ -1566,9 +1886,9 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
                 a.w_up = (const uint16_t*) hu->data; a.w_inject = nullptr;
                 a.q8_down = (const uint8_t*) hd->hc_q8; a.q8_up = (const uint8_t*) hu->hc_q8;
                 a.eps = EPS; a.lo = lo_ + t * g.hc_lr; a.rs = rs_ + t * HC;
-                a.mixed = head_mixed_ + t * N;
+                a.mixed = head_mixed_ + t * N; if(b60_gr_q8_requested() && T==1)a.q8_mixed=xq_+size_t(t)*(N/32)*36;
             }
-            fused_gr_read_multi(fa, T, xn_, cs);
+            b60_head_q8=fused_gr_read_multi(fa, T, xn_, cs);
         }
         else if (fuse_head_gr) {
             FusedGrArgs fa[kFusedGrMaxT];
@@ -1584,9 +1904,9 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
                 a.lo = lo_ + t * g.hc_lr;
                 a.rs = rs_ + t * HC;
                 a.inject_out = head_inj_;
-                a.mixed = head_mixed_ + t * N;
+                a.mixed = head_mixed_ + t * N; if(b60_gr_q8_requested() && T==1)a.q8_mixed=xq_+size_t(t)*(N/32)*36;
             }
-            fused_gr_read_multi(fa, T, xn_, cs);
+            b60_head_q8=fused_gr_read_multi(fa, T, xn_, cs);
         } else if (head_mix_multi_enabled() && head_ != nullptr && head_->loaded()) {
             // the final mixer, the window's tokens in one read (fused_gr_read_multi without the pending write: the
             // last layer's write was done above; its sums are gr_read's)
@@ -1599,9 +1919,9 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
                 fa[t].R = Rt(t); fa[t].R_out = Rt(t); fa[t].apply = false;
                 fa[t].w_norm = (const float*) hn->data; fa[t].w_down = (const uint16_t*) hd->data;
                 fa[t].w_up = (const uint16_t*) hu->data; fa[t].eps = EPS;
-                fa[t].lo = lo_ + t * g.hc_lr; fa[t].rs = rs_ + t * HC; fa[t].mixed = head_mixed_ + t * N;
+                fa[t].lo = lo_ + t * g.hc_lr; fa[t].rs = rs_ + t * HC; fa[t].mixed = head_mixed_ + t * N; if(b60_gr_q8_requested() && T==1)fa[t].q8_mixed=xq_+size_t(t)*(N/32)*36;
             }
-            fused_gr_read_multi(fa, T, xn_, cs);
+            b60_head_q8=fused_gr_read_multi(fa, T, xn_, cs);
         } else {
             for (int t = 0; t < T; ++t) {
                 BlockBuffers bb = ss.block;
@@ -1616,7 +1936,7 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
         }
         if (head_ != nullptr && head_->loaded()) {
             try {
-                native_quantize_q8_1(head_mixed_, xq_, (int) N, T, cs);
+                if(!b60_head_q8)native_quantize_q8_1(head_mixed_, xq_, (int) N, T, cs);
                 native_mmvq(head_->type(), head_->weights(), xq_, head_logits_, (int) N, (int) n_vocab_, T, cs);
             } catch (const std::exception& e) {
                 err = std::string("verify head: ") + e.what();
@@ -1637,6 +1957,24 @@ bool Verifier::record_window(int T, dpct::queue_ptr cs, std::string &err) {
     }
     stamp(g.n_layers, 1, 0);
     return true;
+}
+
+// SYCL port: a failed queue wait reported as what it was.  DPCT_CHECK_ERROR keeps only "error" from the SYCL
+// exception and drops the device, which made a pipelined-window failure on a layer split impossible to place:
+// the same text came from either card and from any of the four verifiers.  These two helpers say which.
+static dpct::err0 queue_wait_diag(sycl::queue *cs, int dev, const char *what) {
+    if (cs == nullptr) return dpct::default_error;
+    try {
+        cs->wait();
+        return dpct::success;
+    } catch (std::exception const &e) {
+        std::string qdev = "<unknown>";
+        try { qdev = cs->get_device().get_info<sycl::info::device::name>(); } catch (...) {}
+        std::fprintf(stderr, "strata verify: %s: the queue wait failed on verifier device %d (queue device: %s): %s\n",
+                     what, dev, qdev.c_str(), e.what());
+        std::fflush(stderr);
+        return dpct::default_error;
+    }
 }
 
 std::string Verifier::profile_report() {
@@ -1866,10 +2204,17 @@ bool Verifier::capture_commit(std::string &err) try {
                 float* conv = state + (uint64_t) g.ssm_state_size * g.ssm_v_heads * g.ssm_state_size;
                 const float* qkv = qkv_L_ + (size_t) gdn_index * MT * C;
                 gdn_conv_commit(conv, qkv, (int) C, commit_, cs_);
+                static const bool state_only = [] { const char* e=std::getenv("STRATA_SYCL_GDN_STATE_COMMIT"); return e && e[0]=='1'; }();
+                if(state_only)
+                    gdn_commit_state_multi(state,h_L_+(size_t)gdn_index*MT*C,(int)C,
+                        gate_L_+(size_t)gdn_index*MT*HV,beta_L_+(size_t)gdn_index*MT*HV,
+                        (int)g.ssm_k_heads,(int)HV,(int)MT,commit_,cs_);
+                else {
                 gdn_step_norm_multi(state, h_L_ + (size_t) gdn_index * MT * C, (int) C, gate_L_ + (size_t) gdn_index * MT * HV,
                                     beta_L_ + (size_t) gdn_index * MT * HV, z_, (const float*) wnm->data, EPS, y_dummy_,
                                     (int) g.ssm_k_heads, (int) HV, (int) MT, commit_, cs_,
                                     (int) MT);   // S26: t_out_begin = MT - the replay's outputs (y_dummy_) are never read
+                }
                 ++gdn_index;
             } else {
                 const QsaState& st = ss.qsa_states[qsa_index];
@@ -1944,6 +2289,8 @@ void Verifier::stage_inputs(int T, const int32_t* tokens, int64_t pos0) {
     *(volatile uint32_t*) h_flag_ = 0;
     *(volatile uint32_t*) h_flagA_ = 0;
     *(volatile uint32_t*) h_flagB_ = 0;
+    wait_record_arm(h_wrec_, ++wepoch_);   // #5160: this window's wait record (the previous window has completed)
+    wpool_ms_ = 0;
     std::atomic_thread_fence(std::memory_order_seq_cst);
     last_t_ = T;
     last_pos0_ = pos0;
@@ -1952,11 +2299,26 @@ void Verifier::stage_inputs(int T, const int32_t* tokens, int64_t pos0) {
 }
 
 void Verifier::collect_profile() {
-    if (std::getenv("STRATA_VERIFY_EAGER") == nullptr)   // eager (SYCL port): prof_h_ already holds the host clocks
-        dpct::get_in_order_queue()
-            .memcpy(prof_h_.data(), prof_, prof_h_.size() * 8)
-            .wait();
+    if (std::getenv("STRATA_VERIFY_EAGER") == nullptr) {   // eager (SYCL port): prof_h_ already holds the host clocks
+        // SYCL port: the stamps are written by kernels on THIS verifier's stream, so the readback has to ride the
+        // same stream.  The device's default queue is neither ordered after the window nor necessarily this
+        // stage's device (a layer split), so reading there could return the previous window's stamps or another
+        // card's memory - which is why the table was only ever printed in the eager mode before.
+        const strata::core::OnDevice on_device(device_);
+        cs_->memcpy(prof_h_.data(), prof_, prof_h_.size() * 8).wait();
+    }
     accumulate_profile(prof_h_.data());
+    if (prof_S_ > 0) {   // a batch window: its table (run() prints only its own windows)
+        static const long long every = [] {
+            const char* e = std::getenv("STRATA_VERIFY_PROFILE_EVERY");
+            return e ? std::atoll(e) : 0LL;
+        }();
+        if (every > 0 && prof_windows_ >= every) {
+            std::fprintf(stderr, "verify stages batch window of %d rows (ms/window over %lld, GPU clock):%s\n", prof_S_,
+                         (long long) prof_windows_, profile_report().c_str());
+            std::fflush(stderr);
+        }
+    }
 }
 
 void Verifier::accumulate_profile(const unsigned long long* stamps) {
@@ -1996,6 +2358,8 @@ void Verifier::accumulate_profile(const unsigned long long* stamps) {
 bool Verifier::run(int T, const int32_t *tokens, int64_t pos0, PoolMultiFn pool,
                    void *user, int32_t *out, std::string &err) try {
     using namespace strata::kernels;
+    strata::kprof::phase("decode");
+    prof_S_ = 0;
     const OnDevice on_device(device_);
     last_batch_ = false;
     if (T < 1 || T > max_t_) { err = "verify: window size out of range"; return false; }
@@ -2021,7 +2385,39 @@ bool Verifier::run(int T, const int32_t *tokens, int64_t pos0, PoolMultiFn pool,
         }
     }
     if (trace_h_ != nullptr) std::memset(trace_h_, 0, trace_n_ * 8);   // #649: this window's breadcrumbs only
+    if (std::FILE* sf = state_hash_file()) {   // debug only (STRATA_STATE_HASH_FILE)
+        cs_->wait();
+        const uint64_t gf = (uint64_t) g.ssm_state_size * g.ssm_v_heads * g.ssm_state_size +
+                            (uint64_t) g.ssm_conv_channels * (g.ssm_d_conv - 1);
+        std::vector<char> hb(std::max<uint64_t>(gf * 4, 1u << 20));
+        for (int64_t i = 0; i < ss.gdn_alloc; ++i) {
+            cs_->memcpy(hb.data(), ss.gdn_state + (size_t) i * gf, gf * 4).wait();
+            if (const char* dp = std::getenv("STRATA_STATE_DUMP"); dp != nullptr && windows == 0 && i < 4) {   // raw state of the first GDN layers
+                const std::string fn = std::string(dp) + "_gdn" + std::to_string(ss.gdn_ord0 + i) + ".bin";
+                if (std::FILE* df = std::fopen(fn.c_str(), "wb")) { std::fwrite(hb.data(), 1, gf * 4, df); std::fclose(df); }
+            }
+            std::fprintf(sf, "%lld gdn %lld %016llx\n", (long long) windows, (long long) (ss.gdn_ord0 + i),
+                         (unsigned long long) layer_hash_fnv(hb.data(), gf * 4));
+        }
+        const int64_t pages = (pos0 + 3) / 4;
+        for (int64_t i = 0; i < ss.qsa_alloc; ++i) {
+            const QsaState& q = ss.qsa_states[i];
+            if (!q.kv_int8 || q.k_q == nullptr) continue;
+            const size_t kb = (size_t) pages * g.n_head_kv * 4 * g.head_dim;
+            uint64_t h = 1469598103934665603ull;
+            auto mix = [&](const void* dev, size_t bytes) {
+                if (bytes > hb.size()) hb.resize(bytes);
+                cs_->memcpy(hb.data(), dev, bytes).wait();
+                h ^= layer_hash_fnv(hb.data(), bytes); h *= 1099511628211ull;
+            };
+            mix(q.k_q, kb); mix(q.v_q, kb); mix(q.k_scale, kb / 64 * 2); mix(q.v_scale, kb / 64 * 2);
+            std::fprintf(sf, "%lld qsa %lld %016llx\n", (long long) windows, (long long) (ss.qsa_ord0 + i), (unsigned long long) h);
+        }
+        std::fflush(sf);
+    }
     std::atomic_thread_fence(std::memory_order_seq_cst);
+    if (expert_usage_counts_d_)
+        cs_->memset(expert_usage_counts_d_, 0, expert_usage_counts_h_.size() * sizeof(uint32_t));
     trace_ev("WINDOW", -1, -1, pos0 * 16 + T);
     ms_host += ms_since(t0);
     VDBG("staged; launching\n");
@@ -2033,8 +2429,14 @@ bool Verifier::run(int T, const int32_t *tokens, int64_t pos0, PoolMultiFn pool,
         // timeout, the engine dies). Letting the other queues drain before every window removes it (9 of 9 three-request runs pass; before, almost all
         // failed; the gap rule alone (=2) did not help, so it is the windows after each other, not only the first). The cost is
         // the overlap of a window with the previous commit's tail.  STRATA_WINDOW_SYNC=1 always drains, =0 never, =2 the gap rule; the default is 1 on an i915 card, 0 elsewhere.
+        // #2194: the same never-starting first window on an Arc A770 under xe (main thread in this function's stepped
+        // serve, queue::wait, no xe reset) - an Alchemist card, whatever its driver. Reproduced on the A750 with
+        // STRATA_WINDOW_SYNC=0 (stepped, --resident-experts, IQ3_XXS): 1 of 6 runs hung there (same stack), against 0 of 11
+        // with the drain. So the default drain is per GPU generation now: every Alchemist card (i915 or xe), as before
+        // every i915 card; Battlemage and the others are unchanged (0).
         static const char* wv = std::getenv("STRATA_WINDOW_SYNC");
-        static const int wmode = wv ? std::atoi(wv) : (intel_i915_gpu() ? 1 : 0);
+        static const int wmode = wv ? std::atoi(wv)
+                                    : ((intel_i915_gpu() || strata::intel_gpu_gen(cs_->get_device()) == strata::IntelGpuGen::Alchemist) ? 1 : 0);
         const bool first_or_gap = t_prev_end.time_since_epoch().count() == 0 || (t_launch - t_prev_end) > std::chrono::milliseconds(20);
         if (wmode == 1 || (wmode == 2 && first_or_gap)) dpct::get_current_device().queues_wait_and_throw();
     }
@@ -2268,6 +2670,17 @@ bool Verifier::run(int T, const int32_t *tokens, int64_t pos0, PoolMultiFn pool,
             pool(user, h_x_ + (size_t) tb * g.n_embd, h_ids_ + (size_t) tb * ss.k, n, ss.k,
                  h_ymiss_ + (size_t) tb * ss.k * g.n_embd, l);
         if (remote_opt_) remote_opt_->end();
+        test_pool_delay(windows, k);
+        wpool_ms_ = std::max(wpool_ms_, ms_since(b));
+        if (wait_failed(pos0, T, G, true, err)) return false;   // #5160: the GPU went on without this step: give the window up
+        if (std::FILE* lf = layer_hash_file()) {   // debug only (STRATA_LAYER_HASH_FILE)
+            std::fprintf(lf, "%lld %lld %d %016llx %016llx %016llx %016llx\n", (long long) windows, (long long) l, n,
+                         (unsigned long long) layer_hash_fnv(h_x_ + (size_t) tb * g.n_embd, (size_t) n * g.n_embd * 4),
+                         (unsigned long long) layer_hash_fnv(h_ids_ + (size_t) tb * ss.k, (size_t) n * ss.k * 4),
+                         (unsigned long long) layer_hash_fnv(h_w_ + (size_t) tb * ss.k, (size_t) n * ss.k * 4),
+                         (unsigned long long) layer_hash_fnv(h_ymiss_ + (size_t) tb * ss.k * g.n_embd, (size_t) n * ss.k * g.n_embd * 4));
+            std::fflush(lf);
+        }
         VDBG("layer %lld served\n", (long long) l);
         if (g_trace) trace_ev(*(volatile uint32_t*) h_flagA_ == want ? "SERVED" : "SERVED-NO-PLAN-YET", k, l,
                               (int64_t) ms_since(b));   // aux: ms the CPU experts took
@@ -2305,7 +2718,7 @@ bool Verifier::run(int T, const int32_t *tokens, int64_t pos0, PoolMultiFn pool,
     // watchdog then releases every verifier's GPU waits (release_live_verifiers) before it ends the engine, so no
     // spin kernel outlives the process.  The wait itself stays a blocking sync (a polling wait cost decode upstream).
     trace_ev("SYNC", -1, -1, 0);
-    const dpct::err0 se = DPCT_CHECK_ERROR(cs_->wait());
+    const dpct::err0 se = queue_wait_diag(cs_, device_, "window sync");
     trace_ev("SYNCED", -1, -1, (int64_t) se);
     const Clock::time_point t_done = Clock::now();
     if (std::getenv("STRATA_VERIFY_DEBUG") != nullptr) {
@@ -2330,6 +2743,68 @@ bool Verifier::run(int T, const int32_t *tokens, int64_t pos0, PoolMultiFn pool,
         err = std::string("verify: ") + dpct::get_error_string_dummy(se);
         return false;
     }
+    if (wait_failed(pos0, T, G, false, err)) return false;   // #5160: a wait ran out: the window's tokens are not used
+    if (expert_usage_counts_d_) {
+        if (!expert_usage_counter_ || expert_usage_counter_->size() != expert_usage_counts_h_.size())
+            throw std::runtime_error("mirror adaptive expert usage is unbound");
+        cs_->memcpy(expert_usage_counts_h_.data(), expert_usage_counts_d_,
+                    expert_usage_counts_h_.size() * sizeof(uint32_t)).wait_and_throw();
+        uint64_t total = 0;
+        for (uint32_t count : expert_usage_counts_h_) total += count;
+        if (total != (uint64_t)(le_ - lb_) * (uint64_t)T * (uint64_t)ss.k)
+            throw std::runtime_error("mirror adaptive route histogram coverage mismatch");
+        // Match the CPU usage counter's scalar increment order.
+        static const bool presence = [] { const char* e=std::getenv("STRATA_SYCL_ADAPT_WINDOW_PRESENCE"); return e && e[0]=='1'; }();
+        for (size_t i = 0; i < expert_usage_counts_h_.size(); ++i) {
+            const uint32_t count=presence ? (expert_usage_counts_h_[i]>0 ? 1u : 0u) : expert_usage_counts_h_[i];
+            for (uint32_t n=0;n<count;++n) (*expert_usage_counter_)[i] += 1.f;
+        }
+    }
+#ifdef STRATA_SYCL_WORKLOAD_TRACE
+    if (auto found = routing_audits.find(this); found != routing_audits.end()) {
+        auto& audit = *found->second;
+        const int64_t capx = (int64_t)max_t_ * ss.k;
+        const int64_t ptr_off = ((4 + capx + 1 + 2 * capx) + 1) & ~1ll;
+        const auto& layout = strata::kernels::cpu::expert_layout();
+        if (!layout.native) throw std::runtime_error("routing audit requires native expert layout");
+        for (int64_t layer = lb_; layer < le_; ++layer) for (int group = 0; group < G; ++group) {
+            const int32_t* data = audit.slot(layer, group);
+            const int32_t* starts = data + 4;
+            const int32_t* dst = starts + capx + 1;
+            const int32_t* tok = dst + capx;
+            const auto* pointers = reinterpret_cast<const unsigned long long*>(data + ptr_off);
+            const int n = gte[group] - gtb[group], expected = n * (int)ss.k;
+            if (data[0] < 0 || data[0] > expected || data[1] != expected || data[2] != 0 || starts[0] != 0 || starts[data[0]] != expected)
+                throw std::runtime_error("routing audit: incomplete resident plan");
+            const auto& format = layout.fmt[(size_t)layer];
+            std::vector<bool> seen((size_t)expected, false);
+            std::fprintf(audit.output, "{\"kind\":\"expert_plan\",\"raw_ns\":%lld,\"position\":%lld,\"T\":%d,\"layer\":%lld,\"group\":%d,\"rows\":%d,\"GU_type\":%d,\"down_type\":%d,\"n_embd\":%lld,\"n_ff\":%lld,\"gu_row_bytes\":%llu,\"down_row_bytes\":%llu,\"groups\":%d,\"entries\":%d,\"pcie_plan_groups\":%d,\"plans\":[",
+                (long long)strata::workload_trace::trace_ns(), (long long)pos0, T, (long long)layer, group, n,
+                format.gu_type, format.d_type, (long long)format.n_embd, (long long)format.n_ff,
+                (unsigned long long)format.gu_row, (unsigned long long)format.d_row, data[0], data[1], data[2]);
+            for (int index = 0; index < data[0]; ++index) {
+                const int begin = starts[index], end = starts[index + 1];
+                if (begin < 0 || end <= begin || end > expected || end - begin > n)
+                    throw std::runtime_error("routing audit: invalid group range");
+                const auto allocation = sycl::get_pointer_type(reinterpret_cast<const void*>(pointers[index]), cs_->get_context());
+                const char* residency = allocation == sycl::usm::alloc::device ? "device" : allocation == sycl::usm::alloc::host ? "host" : allocation == sycl::usm::alloc::shared ? "shared" : "unknown";
+                std::fprintf(audit.output, "%s{\"count\":%d,\"allocation\":\"%s\",\"pointer\":%llu,\"dst\":[", index ? "," : "", end - begin, residency, pointers[index]);
+                for (int e = begin; e < end; ++e) {
+                    if (dst[e] < 0 || dst[e] >= expected || seen[(size_t)dst[e]] || tok[e] < 0 || tok[e] >= T)
+                        throw std::runtime_error("routing audit: invalid entry mapping");
+                    seen[(size_t)dst[e]] = true;
+                    std::fprintf(audit.output, "%s%d", e == begin ? "" : ",", dst[e]);
+                }
+                std::fprintf(audit.output, "],\"tok\":[");
+                for (int e = begin; e < end; ++e) std::fprintf(audit.output, "%s%d", e == begin ? "" : ",", tok[e]);
+                std::fprintf(audit.output, "]}");
+            }
+            if (std::find(seen.begin(), seen.end(), false) != seen.end()) throw std::runtime_error("routing audit: missing entry");
+            std::fprintf(audit.output, "]}\n");
+        }
+        std::fflush(audit.output);
+    }
+#endif
     if (no_host && std::getenv("STRATA_VERIFY_DEBUG") != nullptr) {   // SYCL port: what the window left behind
         const int Gd = groups_[T] > 0 ? groups_[T] : 1;
         std::vector<uint32_t> sk((size_t) Gd, 0);
@@ -2400,10 +2875,25 @@ bool Verifier::run(int T, const int32_t *tokens, int64_t pos0, PoolMultiFn pool,
                        // the next one
         copy_used_ = false;
     }
+    strata::kprof::window_end("decode");   // STRATA_KPROF=1 (with STRATA_VERIFY_EAGER=1): this window's per-kernel times
     if (prof_on_ && G == 1) {   // the window's GPU stage stamps
         collect_profile();
         if (std::getenv("STRATA_VERIFY_EAGER") != nullptr)   // SYCL port: the stage table per window, host-clocked
             std::fprintf(stderr, "verify stages T=%d (ms/window):%s\n", T, profile_report().c_str());
+        else {
+            // SYCL port: the same table from the GPU's own clock, averaged over N windows, so a decode can be
+            // attributed without the eager mode's drain per stamp (which measures host gaps, not kernel time).
+            // STRATA_VERIFY_PROFILE=1 STRATA_VERIFY_PROFILE_EVERY=32.
+            static const long long every = [] {
+                const char* e = std::getenv("STRATA_VERIFY_PROFILE_EVERY");
+                return e ? std::atoll(e) : 0LL;
+            }();
+            if (every > 0 && prof_windows_ >= every) {
+                std::fprintf(stderr, "verify stages T=%d (ms/window over %lld, GPU clock):%s\n", T,
+                             (long long) prof_windows_, profile_report().c_str());
+                std::fflush(stderr);
+            }
+        }
     }
     // ---- a sampled or penalized request: the head's sampling again, host-side so its parameters are this call's
     // own (a captured kernel would replay the same draws forever).  Row t's draw is Philox(seed, pos0 + t): tied to
@@ -2425,6 +2915,23 @@ bool Verifier::run(int T, const int32_t *tokens, int64_t pos0, PoolMultiFn pool,
         }
     }
     for (int t = 0; t < T; ++t) out[t] = ((volatile int32_t*) h_out_)[t];
+    // STRATA_LOGITS_DUMP=<path> (debug tap, off by default; src/core/verify.cpp's, for the gate-2 judge of the Qwen4 shapes): the window's
+    // logits as the sampler saw them, written AFTER the window (synchronised above).  One record is
+    // {int32 magic, int32 T, int32 n_vocab, int32 record, int64 position}, then T * n_vocab FP32 rows; row 0 is the window's first position.
+    if (const char* logits_path = std::getenv("STRATA_LOGITS_DUMP")) {
+        static std::FILE* lf = std::fopen(logits_path, "wb");
+        static int32_t lrec = 0;
+        if (lf != nullptr) {
+            std::vector<float> h((size_t) T * (size_t) n_vocab_);
+            dpct::get_in_order_queue().memcpy(h.data(), head_logits_, h.size() * sizeof(float)).wait();
+            const int32_t hdr[4] = {0x53474F4C /*"LOGS"*/, T, (int32_t) n_vocab_, lrec++};
+            const int64_t hpos = pos0;
+            std::fwrite(hdr, sizeof hdr, 1, lf);
+            std::fwrite(&hpos, sizeof hpos, 1, lf);
+            std::fwrite(h.data(), sizeof(float), h.size(), lf);
+            std::fflush(lf);
+        }
+    }
     if (static const bool dbg = std::getenv("STRATA_DBG_NAN") != nullptr; dbg) {   // debug: the first non-finite head
         static bool reported = false;
         if (!reported) {
@@ -2621,7 +3128,7 @@ bool Verifier::commit(int n_keep, std::string &err) try {
     h_commit_[0] = n_keep;
     h_commit_[1] = n_keep - 1;
     for (int t = 0; t < max_t_; ++t) h_commit_[2 + t] = t < n_keep ? (int32_t) (last_pos0_ + t) : -1;
-    if (last_t_ == 1 && one_token_self_commit()) {
+    if (last_t_ == 1 && one_token_self_commit() && !self_commit_off_) {
         // a one-token window has advanced the state itself (record_window): no commit graph
     } else {
         std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -2787,6 +3294,7 @@ bool Verifier::init_slots(const std::vector<SessionState *> &slots,
     tail_snap_b_ = (float*) ((uint8_t*) d + a);
     slots_ = slots;
     slot_sp_.assign(slots.size(), sampling_);   // greedy until set_slot_sampling
+    slot_tail_.assign(slots.size(), {});
     std::fprintf(stderr, "strata verify: batch windows of up to %lld sequences (layers [%lld, %lld))\n", (long long) S,
                  (long long) lb_, (long long) le_);
     return true;
@@ -2895,6 +3403,13 @@ bool Verifier::capture_commit_batch(const int *rows, int S, int hbase,
             if (!is_qsa_layer(g, l)) {
                 const WeightRef* wnm = need(v, "ssm_norm.weight", err);
                 if (!wnm) { ok = false; break; }
+                static const bool gdn_groups_on = [] {   // STRATA_BATCH_GDN_GROUPS=1: the one-row groups in one launch
+                    const char* e = std::getenv("STRATA_BATCH_GDN_GROUPS");
+                    return e != nullptr && std::atoi(e) != 0;
+                }();
+                bool one_row = S <= 8;
+                for (int t = 1; one_row && t < S; ++t) one_row = rows[t] != rows[t - 1];
+                GdnGroups gg;
                 for (int t = 0; t < S;) {
                     const int first = t;
                     while (t < S && rows[t] == rows[first]) ++t;
@@ -2904,6 +3419,14 @@ bool Verifier::capture_commit_batch(const int *rows, int S, int hbase,
                     float* conv = state + (uint64_t) g.ssm_state_size * g.ssm_v_heads * g.ssm_state_size;
                     gdn_conv_commit(conv, qkv_L_ + (size_t) gdn_index * MT * C + (size_t) first * C,
                                     (int) C, keep, cs_);
+                    if (gdn_groups_on && one_row) {
+                        gg.state[gg.n] = state;
+                        gg.keep[gg.n] = keep;
+                        gg.first[gg.n] = first;
+                        gg.ntok[gg.n] = 1;
+                        ++gg.n;
+                        continue;
+                    }
                     gdn_step_norm_multi(state, h_L_ + (size_t) gdn_index * MT * C + (size_t) first * C, (int) C,
                                         gate_L_ + (size_t) gdn_index * MT * HV + (size_t) first * HV,
                                         beta_L_ + (size_t) gdn_index * MT * HV + (size_t) first * HV,
@@ -2912,6 +3435,11 @@ bool Verifier::capture_commit_batch(const int *rows, int S, int hbase,
                                         (int) HV, t - first, keep, cs_,
                                         t - first > 1 ? t - first : 0);   // a 1-row group keeps the 0.1.39 kernel
                 }
+                if (gg.n > 0)
+                    gdn_step_norm_groups(gg, h_L_ + (size_t) gdn_index * MT * C, (int) C,
+                                         gate_L_ + (size_t) gdn_index * MT * HV, beta_L_ + (size_t) gdn_index * MT * HV,
+                                         z_, (const float*) wnm->data, EPS, y_dummy_, (int) g.ssm_k_heads, (int) HV, true,
+                                         cs_);
                 ++gdn_index;
             } else {
                 const WeightRef* wikn = need(v, "indexer.k_norm.weight", err);
@@ -3080,6 +3608,8 @@ bool Verifier::stage_batch(const int *rows, int S, int hbase,
     *(volatile uint32_t*) h_flag_ = 0;
     *(volatile uint32_t*) h_flagA_ = 0;
     *(volatile uint32_t*) h_flagB_ = 0;
+    wait_record_arm(h_wrec_, ++wepoch_);   // #5160: this window's wait record (the previous window has completed)
+    wpool_ms_ = 0;
     std::atomic_thread_fence(std::memory_order_seq_cst);
     last_t_ = S;
     for (int t = 0; t < S; ++t) last_rows_[t] = rows[t];
@@ -3108,6 +3638,7 @@ bool Verifier::run_slot_rows(const int *rows, int S, const int32_t *tokens,
     using namespace strata::kernels;
     const OnDevice on_device(device_);
     const ModelGeometry& g = *g_;
+    prof_S_ = S;
     if (!stage_batch(rows, S, 0, tokens, pos, err)) return false;
     const dpct::err0 le =
         DPCT_CHECK_ERROR((cs_)->ext_oneapi_graph(*exec_bm_[bkey(rows, S, 0)]));
@@ -3161,6 +3692,7 @@ bool Verifier::run_slot_rows(const int *rows, int S, const int32_t *tokens,
           return false;
         }
         copy_->wait();
+        if (wait_failed(pos[0], S, 1, false, err)) return false;   // #5160
         if (prof_on_) collect_profile();
         ++windows;
         if (le_ < g.n_layers) return next_ == nullptr || next_->run_slot_rows(rows, S, tokens, pos, pool, next_user_, out, err);
@@ -3210,6 +3742,9 @@ bool Verifier::run_slot_rows(const int *rows, int S, const int32_t *tokens,
         set_plan_slot(0);
         progress_at("verify batch: the CPU experts of layer", l);
         if (pool != nullptr) pool(user, h_x_, h_ids_, S, ss_->k, h_ymiss_, l);
+        test_pool_delay(windows, k);
+        wpool_ms_ = std::max(wpool_ms_, ms_since(b));
+        if (wait_failed(pos[0], S, 1, true, err)) return false;   // #5160
         progress_tick();
         std::atomic_thread_fence(std::memory_order_seq_cst);
         _mm_sfence();
@@ -3244,6 +3779,7 @@ bool Verifier::run_slot_rows(const int *rows, int S, const int32_t *tokens,
       return false;
     }
     copy_->wait();
+    if (wait_failed(pos[0], S, 1, false, err)) return false;   // #5160
     if (prof_on_) collect_profile();
     ++windows;
     if (le_ < g.n_layers) return next_ == nullptr || next_->run_slot_rows(rows, S, tokens, pos, pool, next_user_, out, err);
@@ -3343,12 +3879,37 @@ catch (sycl::exception const &exc) {
 
 bool Verifier::sample_rows(int S, std::string &err) try {
     bool any = false;
+    constexpr int kSlotHistMax = 4096;   // serve's kPenaltyWindowCap
+    std::vector<int32_t> hrows;
+    std::vector<const int32_t*> tails(slots_.size(), nullptr);
+    std::vector<int64_t> n_tails(slots_.size(), 0);
+    for (size_t b = 0; b < slots_.size() && b < slot_tail_.size(); ++b) { tails[b] = slot_tail_[b].data(); n_tails[b] = (int64_t) slot_tail_[b].size(); }
     for (int t = 0; t < S; ++t) {
         strata::kernels::SamplerParams sp = slot_sp_[(size_t) last_rows_[t]];
-        if (sp.greedy || sp.temperature <= 0.0f) continue;
+        const bool pen = sp.penalty_last_n > 0 && (sp.penalty_repeat != 1.0f || sp.penalty_freq != 0.0f || sp.penalty_present != 0.0f);
+        if ((sp.greedy || sp.temperature <= 0.0f) && !pen) continue;   // a plain greedy slot keeps the window's argmax token untouched
         sp.counter = (uint64_t) last_pos_b_[t];   // Philox(seed, position): the solo window's draw for this position
-        sp.penalty_last_n = 0;
-        strata::kernels::sample_tokens(head_logits_ + (size_t) t * (size_t) n_vocab_, 1, (int) n_vocab_, nullptr, 0, sp,
+        const int32_t* hist = nullptr;
+        int hlen = 0;
+        if (pen) {
+            // the slot's reply tail plus its tokens in this window up to row t (slot_penalty_rows), staged on the device like a solo window's
+            hlen = std::min(sp.penalty_last_n, kSlotHistMax);
+            const size_t need = (size_t) S * (size_t) hlen;
+            hrows.assign(need, -1);
+            strata::kernels::slot_penalty_rows(last_rows_, last_tokens_, S, tails.data(), n_tails.data(), hlen, hrows.data());
+            const OnDevice on_hist(device_);
+            if (slot_hist_cap_ < need) {
+                if (slot_hist_d_ != nullptr) sycl::free(slot_hist_d_, *cs_);
+                slot_hist_d_ = sycl::malloc_device<int32_t>(need, *cs_);
+                if (slot_hist_d_ == nullptr) { slot_hist_cap_ = 0; err = "verify batch: the penalty-history allocation failed"; return false; }
+                slot_hist_cap_ = need;
+            }
+            cs_->memcpy(slot_hist_d_ + (size_t) t * (size_t) hlen, hrows.data() + (size_t) t * (size_t) hlen, (size_t) hlen * sizeof(int32_t)).wait();   // (waited: the host rows are rebuilt for the next row)
+            hist = slot_hist_d_ + (size_t) t * (size_t) hlen;
+        } else {
+            sp.penalty_last_n = 0;
+        }
+        strata::kernels::sample_tokens(head_logits_ + (size_t) t * (size_t) n_vocab_, 1, (int) n_vocab_, hist, hlen, sp,
                                        m_out_ + t, cs_);
         any = true;
     }
@@ -3456,6 +4017,9 @@ int Verifier::batch_poll(PoolMultiFn pool, void *user, std::string &err) try {
         cur_layer_ = want - 1;
         set_plan_slot(0);
         if (pool != nullptr) pool(user, h_x_, h_ids_, S, ss_->k, h_ymiss_, lb_ + b_k_);
+        test_pool_delay(windows, b_k_);
+        wpool_ms_ = std::max(wpool_ms_, ms_since(b));
+        if (wait_failed(last_pos_b_[0], S, 1, true, err)) { b_running_ = false; return -1; }   // #5160
         progress_tick();
         std::atomic_thread_fence(std::memory_order_seq_cst);
         _mm_sfence();
@@ -3510,6 +4074,7 @@ int Verifier::batch_poll(PoolMultiFn pool, void *user, std::string &err) try {
     to rewrite this code.
     */
     if (qc == 1) return 0;
+    if (wait_failed(last_pos_b_[0], S, 1, false, err)) { b_running_ = false; return -1; }   // #5160
     if (prof_on_) collect_profile();
     if (last_stage()) {
         if (!sample_rows(S, err)) { b_running_ = false; return -1; }
@@ -3786,6 +4351,9 @@ int Verifier::service(PoolMultiFn pool, void *user, std::string &err) try {
         if (pool != nullptr)
             pool(user, h_x_ + (size_t) tb * g.n_embd, h_ids_ + (size_t) tb * ss.k, n, ss.k,
                  h_ymiss_ + (size_t) tb * ss.k * g.n_embd, l);
+        test_pool_delay(windows, fl_k_);
+        wpool_ms_ = std::max(wpool_ms_, ms_since(b));
+        if (wait_failed(last_pos0_, T, G, true, err)) { fl_active_ = false; return -1; }   // #5160
         if (g_trace) trace_ev(*(volatile uint32_t*) h_flagA_ == want ? "SERVED" : "SERVED-NO-PLAN-YET", fl_k_, l,
                               (int64_t) ms_since(b));
         progress_tick();
@@ -3818,7 +4386,15 @@ catch (sycl::exception const &exc) {
 bool Verifier::done(std::string &err) try {
     if (!fl_active_ || fl_k_ < fl_total_) return false;
     const OnDevice on_device(device_);
-    const dpct::err0 q = dpct::sycl_event_query(ev_done_);
+    dpct::err0 q;
+    try {
+        q = (dpct::err0) dpct::sycl_event_query(ev_done_);
+    } catch (std::exception const &e) {
+        // a dead or foreign event used to read as the bare word "error"
+        err = std::string("verify: the window's completion event could not be queried on device ") +
+              std::to_string(device_) + ": " + e.what();
+        return false;
+    }
 
     /*
     DPCT1009: SYCL reports errors using exceptions and does not use error
@@ -3832,6 +4408,19 @@ bool Verifier::done(std::string &err) try {
     DPCT1000: Error handling if-stmt was detected but could not be
     rewritten.
     */
+    if (q == 1) {
+        // SYCL's "not complete" is CUDA's cudaErrorNotReady: the window is still running, which is not an error.
+        // The DPCT migration dropped that branch, so the first poll of every pipelined window failed with
+        // "verify: error" and --pipeline-windows never ran on this backend.  Same body as the CUDA original.
+        const double now = now_ms();
+        if (now - fl_flush_ms_ > 2.0) {
+            fl_flush_ms_ = now;
+            (void)DPCT_CHECK_ERROR(cs_->ext_oneapi_empty());
+        }
+        if (now - fl_since_ms_ > 20000.0)   // every layer served, and the graph still runs: #267 as above
+            err = "verify: the window never finished" + released_note(release_gpu_waits(5000));
+        return false;
+    }
     if (q != 0) {
       err = std::string("verify: ") + dpct::get_error_string_dummy(q);
       return false;
@@ -3853,6 +4442,10 @@ bool Verifier::pl_finish(int32_t *out, std::string &err) try {
     const OnDevice on_device(device_);
     const ModelGeometry& g = *g_;
     fl_active_ = false;
+    {   // #5160: a wait of this window ran out: its tokens are not used
+        const int Gp = groups_[fl_T_] > 0 ? groups_[fl_T_] : 1;
+        if (wait_failed(last_pos0_, fl_T_, Gp, false, err)) return false;
+    }
     if (fl_prof_) accumulate_profile(prof_pin_);
     ++windows;
     trace_ev("DONE (pipelined)", -1, -1, (int64_t) (now_ms() - fl_launch_ms_));
@@ -3882,6 +4475,12 @@ catch (sycl::exception const &exc) {
 bool Verifier::pl_commit_async(int n_keep, std::string &err) try {
     const OnDevice on_device(device_);
     if (n_keep < 1 || n_keep > last_t_) { err = "verify: commit count out of range"; return false; }
+    // Debug: with a state dump requested, print what this commit is launched with, so a wrong count names
+    // itself next to the verdict log (STRATA_PIPELINE_LOG).
+    static const bool cdbg = std::getenv("STRATA_PIPELINE_DUMP") != nullptr;
+    if (cdbg)
+        std::fprintf(stderr, "strata commit: n_keep=%d T=%d pos0=%lld self_skip=%d\n", n_keep, (int) last_t_,
+                     (long long) last_pos0_, (last_t_ == 1 && one_token_self_commit()) ? 1 : 0);
     if (commit_exec_ == nullptr || ev_commit_ == nullptr) { err = "verify: pipelined commit not prepared"; return false; }
     const Clock::time_point t0 = Clock::now();
     if (commit_live_) {   // its graph reads the words below when it starts: the previous one has (a window ago)
@@ -3904,6 +4503,23 @@ bool Verifier::pl_commit_async(int n_keep, std::string &err) try {
               std::string("verify: commit: ") + dpct::get_error_string_dummy(q);
           return false;
         }
+    }
+    // A one-token window advanced the GDN state itself (record_window), so the serial path's commit() skips the
+    // commit graph for it.  The pipelined path ran the graph anyway and advanced the state twice per
+    // single-token window; the first decode window is always one token, so the two paths' GDN states were
+    // equal after the prompt and different after that window (STRATA_PIPELINE_DUMP), and the tokens diverged
+    // at the fourth.  With this skip the pipelined windows are token-identical to the serial path.
+    if (last_t_ == 1 && one_token_self_commit() && !self_commit_off_) {
+        h_commit_[0] = n_keep;
+        h_commit_[1] = n_keep - 1;
+        for (int t = 0; t < max_t_; ++t) h_commit_[2 + t] = t < n_keep ? (int32_t) (last_pos0_ + t) : -1;
+        if (ple_stage())
+            for (int t = 0; t < n_keep; ++t) {
+                ss_->ple_prev[0] = ss_->ple_prev[1];
+                ss_->ple_prev[1] = last_tokens_[t];
+            }
+        ms_commit += ms_since(t0);
+        return true;
     }
     h_commit_[0] = n_keep;
     h_commit_[1] = n_keep - 1;
@@ -3961,6 +4577,12 @@ void Verifier::absorb_stats(Verifier& o) {
         for (int i = 0; i < kProfPer; ++i) { prof_sum_[k][i] += o.prof_sum_[k][i]; o.prof_sum_[k][i] = 0; }
     prof_windows_ += o.prof_windows_;
     o.prof_windows_ = 0;
+}
+
+void Verifier::set_expert_usage_counter(std::vector<float>* usage) {
+    if (!expert_usage_counts_d_ || !usage || usage->size() != expert_usage_counts_h_.size())
+        throw std::invalid_argument("mirror adaptive expert usage shape mismatch");
+    expert_usage_counter_ = usage;
 }
 
 }  // namespace strata::core

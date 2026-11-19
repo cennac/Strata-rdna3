@@ -13,12 +13,24 @@
 #include <iterator>
 #include <string>
 #include <cstdlib>
+#include <cstring>
 #include <limits>
 #include <vector>
 
 using namespace strata::core;
 using namespace strata::kernels;
 
+// SYCL port: a copy with neither end in device memory (pinned USM host <-> pageable host) goes through memcpy on the
+// CPU. Through the queue it runs on the Arc's copy engine, which hung on it (dmesg "Engine reset: engine_class=bcs";
+// repeated, the B70 was declared wedged): conversation_snapshot_test, and the parked KV of a --kv-resident session.
+static bool host_only_copy(void* dst, const void* src) {
+    const sycl::context ctx = dpct::get_in_order_queue().get_context();
+    const auto host = [&](const void* p) {
+        const sycl::usm::alloc t = sycl::get_pointer_type(p, ctx);
+        return t == sycl::usm::alloc::host || t == sycl::usm::alloc::unknown;
+    };
+    return host(dst) && host(src);
+}
 namespace {
 int checks = 0;
 void check(bool ok, const char* label) {
@@ -107,7 +119,8 @@ struct Fixture {
         for (size_t i=0;i<sources.size();++i) {
             std::vector<uint8_t> data(sizes[i]);
             for (size_t j=0;j<data.size();++j) data[j]=(uint8_t)(salt+i*31+j*7+j/257);
-            if (!data.empty()) cuda_check(DPCT_CHECK_ERROR(
+            if (!data.empty() && host_only_copy(sources[i], data.data())) std::memcpy(sources[i], data.data(), data.size());
+            else if (!data.empty()) cuda_check(DPCT_CHECK_ERROR(
                 dpct::get_in_order_queue()
                     .memcpy(sources[i], data.data(), data.size())
                     .wait()));
@@ -117,7 +130,9 @@ struct Fixture {
         for (size_t i=0;i<sources.size();++i) {
             const size_t offset = i == 4 ? size_t(first_dirty/4)*g.idx_key_dim*4
                                          : (sizes[i]/size_t(state.max_cells))*size_t((first_dirty/4)*4);
-            if (sizes[i] > offset)
+            if (sizes[i] > offset && host_only_copy(sources[i], sources[i]))
+                std::memset(static_cast<uint8_t *>(sources[i]) + offset, salt, sizes[i] - offset);
+            else if (sizes[i] > offset)
                 cuda_check(DPCT_CHECK_ERROR(
                     dpct::get_in_order_queue()
                         .memset(static_cast<uint8_t *>(sources[i]) + offset,
@@ -209,6 +224,27 @@ void full_session(int fmt, int mode, int experts) {
               x.checkpoints.size()==y.checkpoints.size() && equal(x.kv[0],y.kv[0]) && equal(x.kv.back(),y.kv.back()),
               "streamed file equals captured file");
         check(slurp(p1)==slurp(p2),"streamed file is byte-identical to the captured file");
+        {   // #1492 (as 1b58c335d's shared test): a session file without the MTP drafter (no drafter, or DFlash2 alone)
+            SavedConversation no_draft, meta_no_draft, loaded;
+            std::vector<SessionKvSource> no_draft_sources;
+            check(conversation_snapshot_save(no_draft,view,ss,g,nullptr,err),"capture without MTP");
+            check(conversation_snapshot_sources(meta_no_draft,no_draft_sources,view,ss,g,nullptr,err),"disk sources without MTP");
+            check(no_draft_sources.size()==no_draft.kv.size() && no_draft_sources.size()+1==b.kv.size(),"no phantom draft source");
+            check(session_file_write(p1,meta_no_draft,no_draft_sources,id,n1,err) && session_file_write(p2,no_draft,id,n2,err),
+                  "write no-MTP sessions");
+            check(slurp(p1)==slurp(p2),"streamed no-MTP file equals captured file");
+            SessionReadLimits limits;
+            check(conversation_session_read_limits(limits,ss,g,nullptr,96,1,err),"no-MTP runtime read bounds");
+            check(session_file_read(p1,id,loaded,n1,err,limits),"read no-MTP file under runtime bounds");
+            check(!conversation_snapshot_validate(loaded,ss,g,draft.state,err),"no-MTP file refused by MTP session");
+            fill(91);
+            check(conversation_snapshot_restore(loaded,ss,g,nullptr,err)==ConversationRestore::restored,"restore no-MTP disk file");
+            SavedConversation checked;
+            check(conversation_snapshot_save(checked,view,ss,g,nullptr,err) && checked.live.gdn==no_draft.live.gdn &&
+                  checked.live.dead==no_draft.live.dead && equal(checked.kv[0],no_draft.kv[0]),"no-MTP disk round trip exact");
+            check(conversation_snapshot_restore(b,ss,g,draft.state,err)==ConversationRestore::restored,
+                  "restore original fixture after no-MTP disk check");
+        }
         std::error_code ec;
         fs::remove_all(dir,ec);
         auto empty_ids=std::vector<int32_t>{};

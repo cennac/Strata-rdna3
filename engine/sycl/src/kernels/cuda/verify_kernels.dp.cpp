@@ -1,13 +1,18 @@
+#include <sycl/ext/intel/experimental/grf_size_properties.hpp>
 // src/kernels/cuda/verify_kernels.cu - see include/strata/kernels/verify_kernels.hpp.
 //
 // The per-token arithmetic of every kernel here is transcribed from its single-token original (fused_gdn.cu,
 // elementwise.cu) with the same operation order, so a verify window reproduces plain decode bit for bit.
 #define DPCT_PROFILING_ENABLED
 #include <sycl/sycl.hpp>
+#include "strata/kprof.hpp"
+#include <sycl/ext/intel/experimental/grf_size_properties.hpp>
+#include "strata/core/geometry.hpp"
 #include <dpct/dpct.hpp>
 #include "strata/sycl_queue.hpp"
 #include "strata/sycl_doorbell.hpp"
 #include "strata/kernels/verify_kernels.hpp"
+#include "strata/core/window_wait.hpp"
 #include "strata/kernels/resident_plan_mirror.hpp"
 #include "strata/kernels/dp4a.hpp"
 
@@ -30,6 +35,7 @@ namespace strata::kernels {
 namespace {
 
 constexpr int S = 128;          // GDN state size
+static_assert(S == strata::core::kCompiledGeometry.ssm_state_size, "verify_kernels is compiled for core/geometry.hpp");
 constexpr int RG = 4;
 constexpr int RPG = S / RG;
 
@@ -334,7 +340,7 @@ __dpct_inline__ void gdn_q8_1_store(GdnQ81 *__restrict__ xq, size_t idx,
     if (idx % 32 == 0) xq[idx / 32].ds = sycl::half2(d, sum);
 }
 
-template <bool ALL_OUT, bool Q>
+template <bool ALL_OUT, bool Q, bool QK_REG = false>
 /*
 DPCT1110: The total declared local variable size in device function
 gdn_step_norm_multi_kernel exceeds 128 bytes and may cause high register
@@ -348,8 +354,19 @@ __dpct_inline__ void gdn_step_norm_multi_kernel(
     const float *__restrict__ z, const float *__restrict__ gamma, float eps,
     float *__restrict__ y, int h_k, int h_v, int T,
     const int32_t *__restrict__ n_keep, int t_out_begin,
-    GdnQ81 *__restrict__ xq) {
+    GdnQ81 *__restrict__ xq, GdnGroups grp = {}) {
     auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    if (grp.n > 0) {   // group get_group(1) - its slot's state and its rows of the window's buffers
+        const int gi = item_ct1.get_group(1), f = grp.first[gi];
+        state = grp.state[gi];
+        hbuf += (size_t)f * C;
+        gate += (size_t)f * h_v;
+        beta += (size_t)f * h_v;
+        z += (size_t)f * S * h_v;
+        y += (size_t)f * S * h_v;
+        T = grp.ntok[gi];
+        n_keep = grp.keep[gi];
+    }
 auto &sk = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[2][S]>(
     sycl::ext::oneapi::this_work_item::get_work_group<3>());
     auto &sq =
@@ -371,7 +388,7 @@ auto &sk = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[2][S]>(
     const int qk = S * h_k;             // q at [0, qk), k at [qk, 2qk), v at [2qk, ...)
     const int value_dim = S * h_v;
     const int n = ALL_OUT ? T : (n_keep ? *n_keep : T);
-    if (n > 0) {
+    if (!QK_REG && n > 0) {
         if (rg == 0) sk[0][col] = hbuf[qk + qh * S + col];
         else if (rg == 1 && (ALL_OUT || 0 >= t_out_begin)) sq[0][col] = hbuf[qh * S + col];
     }
@@ -401,7 +418,14 @@ auto &sk = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[2][S]>(
         better performance if there is no access to global memory.
         */
         item_ct1.barrier();
-        if (t + 1 < n) {
+        float k_own = 0.0f, q_own = 0.0f;
+        auto sg = item_ct1.get_sub_group();
+        if constexpr (QK_REG) {
+            const int i = rg * RPG + sg.get_local_linear_id();
+            k_own = ht[qk + qh * S + i];
+            if (need_out) q_own = ht[qh * S + i];
+        }
+        if (!QK_REG && t + 1 < n) {
             const float* ht_next = ht + C;
             const bool need_next = ALL_OUT || (t + 1 >= t_out_begin);
             if (rg == 0) sk[nxt][col] = ht_next[qk + qh * S + col];
@@ -411,7 +435,7 @@ auto &sk = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[2][S]>(
         float kv = 0.0f;
 #pragma unroll
         for (int r = 0; r < RPG; ++r)
-            kv = sycl::fma(s[r], sk[cur][rg * RPG + r], kv);
+            kv = sycl::fma(s[r], QK_REG ? sycl::select_from_group(sg, k_own, r) : sk[cur][rg * RPG + r], kv);
         red_kv[rg][col] = kv;
         /*
         DPCT1118: SYCL group functions and algorithms must be encountered in
@@ -428,14 +452,16 @@ auto &sk = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[2][S]>(
         if (!need_out) {
 #pragma unroll
             for (int r = 0; r < RPG; ++r)
-                s[r] = sycl::fma((float)g, s[r], sk[cur][rg * RPG + r] * delta);
+                s[r] = sycl::fma((float)g, s[r],
+                                (QK_REG ? sycl::select_from_group(sg, k_own, r) : sk[cur][rg * RPG + r]) * delta);
             continue;
         }
         float o = 0.0f;
 #pragma unroll
         for (int r = 0; r < RPG; ++r) {
-            s[r] = sycl::fma((float)g, s[r], sk[cur][rg * RPG + r] * delta);
-            o = sycl::fma(s[r], sq[cur][rg * RPG + r], o);
+            s[r] = sycl::fma((float)g, s[r],
+                            (QK_REG ? sycl::select_from_group(sg, k_own, r) : sk[cur][rg * RPG + r]) * delta);
+            o = sycl::fma(s[r], QK_REG ? sycl::select_from_group(sg, q_own, r) : sq[cur][rg * RPG + r], o);
         }
         red_o[rg][col] = o;
         /*
@@ -621,6 +647,123 @@ auto &sk = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[S]>(
 }
 
 
+template <bool OUT>
+/*
+DPCT1110: The total declared local variable size in device function
+gdn_step_split_kernel exceeds 128 bytes and may cause high register pressure.
+Consult with your hardware vendor to find the total register size available and
+adjust the code, or use smaller sub-group size to avoid high register pressure.
+*/
+__dpct_inline__ void
+b60_gdn_split_local_kernel(float *__restrict__ state, const float *__restrict__ hbuf,
+                      int C, const float *__restrict__ gate,
+                      const float *__restrict__ beta, float *__restrict__ y,
+                      int h_k, int h_v, int T,
+                      const int32_t *__restrict__ n_keep, int t_out_begin) {
+    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+auto &sk = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[S]>(
+    sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    auto &sq = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[S]>(
+        sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    auto &red = *sycl::ext::oneapi::group_local_memory_for_overwrite<
+        float[RG][GS_COLS]>(
+        sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    const int head = item_ct1.get_group(2);
+    const int c0 = item_ct1.get_group(1) * GS_COLS;
+    const int lc = item_ct1.get_local_id(2); // local column
+    const int col = c0 + lc;
+    const int rg = item_ct1.get_local_id(1);
+    const int tid = rg * GS_COLS + lc;
+    const int qh = head % h_k;
+    const int qk = S * h_k;
+    const int value_dim = S * h_v;
+    const int n = n_keep ? *n_keep : T;
+    float s[RPG];
+    float* base = state + ((size_t) (rg * RPG) * h_v + head) * S + col;
+    const size_t row_stride = (size_t) h_v * S;
+#pragma unroll
+    for (int r = 0; r < RPG; ++r) s[r] = base[r * row_stride];
+    for (int t = 0; t < n; ++t) {
+        const float* ht = hbuf + (size_t) t * C;
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier(sycl::access::fence_space::local_space);
+        if (tid < S) { sk[tid] = ht[qk + qh * S + tid]; sq[tid] = ht[qh * S + tid]; }
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier(sycl::access::fence_space::local_space);
+        const float g = sycl::native::exp(gate[(size_t)t * h_v + head]);
+        float kv = 0.0f;
+#pragma unroll
+        for (int r = 0; r < RPG; ++r)
+            kv = sycl::fma(s[r], sk[rg * RPG + r], kv);
+        red[rg][lc] = kv;
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier(sycl::access::fence_space::local_space);
+        const float kv_col = red[0][lc] + red[1][lc] + red[2][lc] + red[3][lc];
+        const float delta = (ht[2 * qk + head * S + col] - g * kv_col) * beta[(size_t) t * h_v + head];
+        float o = 0.0f;
+#pragma unroll
+        for (int r = 0; r < RPG; ++r) {
+            s[r] = sycl::fma((float)g, s[r], sk[rg * RPG + r] * delta);
+            o = sycl::fma(s[r], sq[rg * RPG + r], o);
+        }
+        if (!OUT) continue;
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier(sycl::access::fence_space::local_space);
+        red[rg][lc] = o;
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier(sycl::access::fence_space::local_space);
+        if (rg == 0 && t >= t_out_begin)
+            y[(size_t)t * value_dim + head * S + col] =
+                (red[0][lc] + red[1][lc] + red[2][lc] + red[3][lc]) *
+                sycl::rsqrt((float)S);
+    }
+    if (n_keep != nullptr && n > 0) {
+#pragma unroll
+        for (int r = 0; r < RPG; ++r) base[r * row_stride] = s[r];
+    }
+}
+
+
 // S26: the state-only replay (the commit) with its per-token inputs prefetched - gate, beta and the v column of every
 // row up front, the next row's k / q while the current one computes. The arithmetic and its order are
 // gdn_step_split_kernel<false>'s (gfx1151 harness: state bitwise equal; 44.5 -> 39.1 us at 1 row, 47.4 -> 40.5 at 2,
@@ -782,6 +925,178 @@ runtimes. You may need to adjust the code.
                 oc * scale * gamma[col] *
                 (1.0f / (1.0f + sycl::native::exp(-zz)));
         }
+    }
+}
+
+// Commit has no output consumer. Keep the state update order.
+__dpct_inline__ void gdn_commit_state_multi_kernel(
+    float* __restrict__ state, const float* __restrict__ hbuf, int C,
+    const float* __restrict__ gate, const float* __restrict__ beta,
+    int h_k, int h_v, const int32_t* __restrict__ n_keep) {
+    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    auto& sk = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[S]>(
+        sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    auto& red = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[RG][S]>(
+        sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    const int head = item_ct1.get_group(2), col = item_ct1.get_local_id(2);
+    const int rg = item_ct1.get_local_id(1), tid = rg * S + col;
+    const int qh = head % h_k, qk = S * h_k;
+    const int n = *n_keep;
+    float s[RPG];
+    float* base = state + ((size_t)(rg * RPG) * h_v + head) * S + col;
+    const size_t row_stride = (size_t)h_v * S;
+#pragma unroll
+    for (int r = 0; r < RPG; ++r) s[r] = base[r * row_stride];
+    for (int t = 0; t < n; ++t) {
+        const float* ht = hbuf + (size_t)t * C;
+        item_ct1.barrier();
+        if (tid < S) sk[tid] = ht[qk + qh * S + tid];
+        item_ct1.barrier();
+        const float g = sycl::native::exp(gate[(size_t)t * h_v + head]);
+        float kv = 0.0f;
+#pragma unroll
+        for (int r = 0; r < RPG; ++r) kv = sycl::fma(s[r], sk[rg * RPG + r], kv);
+        red[rg][col] = kv;
+        item_ct1.barrier();
+        const float kv_col = red[0][col] + red[1][col] + red[2][col] + red[3][col];
+        const float delta = (ht[2 * qk + head * S + col] - g * kv_col) * beta[(size_t)t * h_v + head];
+#pragma unroll
+        for (int r = 0; r < RPG; ++r)
+            s[r] = sycl::fma((float)g, s[r], sk[rg * RPG + r] * delta);
+    }
+    if (n > 0) {
+#pragma unroll
+        for (int r = 0; r < RPG; ++r) base[r * row_stride] = s[r];
+    }
+}
+
+__dpct_inline__ void gdn_step_norm_qkreg_kernel(
+    float *__restrict__ state, const float *__restrict__ hbuf, int C,
+    const float *__restrict__ gate, const float *__restrict__ beta,
+    const float *__restrict__ z, const float *__restrict__ gamma, float eps,
+    float *__restrict__ y, int h_k, int h_v, int T,
+    const int32_t *__restrict__ n_keep, int t_out_begin) {
+    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    auto &red =
+        *sycl::ext::oneapi::group_local_memory_for_overwrite<float[RG][S]>(
+            sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    auto &wsum = *sycl::ext::oneapi::group_local_memory_for_overwrite<
+        float[S * RG / 32]>(
+        sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    const int head = item_ct1.get_group(2);
+    const int col = item_ct1.get_local_id(2);
+    const int rg = item_ct1.get_local_id(1);
+    const int tid = rg * S + col;
+    auto sg=item_ct1.get_sub_group();
+    const int lane=sg.get_local_linear_id();
+    const int qh = head % h_k;
+    const int qk = S * h_k;             // q at [0, qk), k at [qk, 2qk), v at [2qk, ...)
+    const int value_dim = S * h_v;
+    const int n = n_keep ? *n_keep : T;
+    float s[RPG];
+    float* base = state + ((size_t) (rg * RPG) * h_v + head) * S + col;
+    const size_t row_stride = (size_t) h_v * S;
+#pragma unroll
+    for (int r = 0; r < RPG; ++r) s[r] = base[r * row_stride];
+    for (int t = 0; t < n; ++t) {
+        const float* ht = hbuf + (size_t) t * C;
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier(); // the previous token is done with sk/sq/red/wsum
+        const float k_own=ht[qk+qh*S+rg*RPG+lane];
+        const float q_own=ht[qh*S+rg*RPG+lane];
+        const float g = sycl::native::exp(gate[(size_t)t * h_v + head]);
+        float kv = 0.0f;
+#pragma unroll
+        for (int r = 0; r < RPG; ++r)
+            kv = sycl::fma(s[r], sycl::select_from_group(sg,k_own,r), kv);
+        red[rg][col] = kv;
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
+        const float kv_col = red[0][col] + red[1][col] + red[2][col] + red[3][col];
+        const float delta = (ht[2 * qk + head * S + col] - g * kv_col) * beta[(size_t) t * h_v + head];
+        float o = 0.0f;
+#pragma unroll
+        for (int r = 0; r < RPG; ++r) {
+            s[r] = sycl::fma((float)g, s[r], sycl::select_from_group(sg,k_own,r) * delta);
+            o = sycl::fma(s[r], sycl::select_from_group(sg,q_own,r), o);
+        }
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
+        red[rg][col] = o;
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
+        float oc = 0.0f, sq_part = 0.0f;
+        if (rg == 0) {
+            oc = (red[0][col] + red[1][col] + red[2][col] + red[3][col]) *
+                 sycl::rsqrt((float)S);
+            sq_part = oc * oc;
+        }
+        if (t < t_out_begin) continue;   // a replayed token: its state update is needed, its output is not
+        /*
+DPCT1108: '__shfl_xor_sync' was migrated with the experimental feature
+masked sub_group function which may not be supported by all compilers or
+runtimes. You may need to adjust the code.
+*/
+#pragma unroll
+        for (int o2 = 16; o2 > 0; o2 >>= 1) sq_part +=
+            dpct::experimental::permute_sub_group_by_xor(
+                0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+                sq_part, o2);
+        if ((tid & 31) == 0) wsum[tid >> 5] = sq_part;
+        /*
+        DPCT1118: SYCL group functions and algorithms must be encountered in
+        converged control flow. You may need to adjust the code.
+        */
+        /*
+        DPCT1065: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
+        if (rg == 0) {
+            const float ss = wsum[0] + wsum[1] + wsum[2] + wsum[3];
+            const float scale = sycl::rsqrt(ss / (float)S + eps);
+            const float zz = z[(size_t) t * value_dim + head * S + col];
+            y[(size_t)t * value_dim + head * S + col] =
+                oc * scale * gamma[col] *
+                (1.0f / (1.0f + sycl::native::exp(-zz)));
+        }
+    }
+    if (n_keep != nullptr && n > 0) {
+#pragma unroll
+        for (int r = 0; r < RPG; ++r) base[r * row_stride] = s[r];
     }
 }
 
@@ -1018,7 +1333,7 @@ void fetch_blobs(const unsigned long long* src, const int32_t* n, uint8_t* dst, 
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
             ->submit([&](sycl::handler &cgh) {
                 auto blob_bytes_ct3 = (long long)(blob_bytes / 16);
 
@@ -1041,8 +1356,8 @@ void rebase_ptrs(unsigned long long* ptr, const int32_t* n, uint8_t* base, int64
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class rebase_ptrs_kernel_436f27>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class rebase_ptrs_kernel_436f27>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 128),
                                   sycl::range(1, 1, 128)),
                 exp_props, [=](sycl::nd_item<3> item_ct1) {
@@ -1058,8 +1373,8 @@ void add_streams_broadcast(const float* h, const float* e, float* R, int64_t n_e
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class add_streams_broadcast_kernel_7de8f5>>(
                 sycl::nd_range<3>(
                     sycl::range(1, (unsigned)n_tok,
@@ -1084,8 +1399,8 @@ void ident_hits(const int32_t* ids, int n, int32_t* slot, int32_t* dst, int32_t*
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class ident_hits_kernel_287489>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class ident_hits_kernel_287489>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 1024),
                                   sycl::range(1, 1, 1024)),
                 exp_props, [=](sycl::nd_item<3> item_ct1) {
@@ -1123,8 +1438,8 @@ void copy_row_to_first(const int32_t* row_dev, float* a, int64_t a_n, float* b, 
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class copy_row_to_first_kernel_993785>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 16) *
                                       sycl::range(1, 1, 256),
@@ -1142,8 +1457,8 @@ void mtp_select(const float* R_src, int64_t R_stride, const int32_t* ids, const 
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class mtp_select_kernel_4611fe>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class mtp_select_kernel_4611fe>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 256),
                                   sycl::range(1, 1, 256)),
                 exp_props, [=](sycl::nd_item<3> item_ct1) {
@@ -1159,8 +1474,8 @@ void force_token(int32_t* tok, const int32_t* force, int j, void* stream) {
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class force_token_kernel_a9fa72>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class force_token_kernel_a9fa72>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 1), sycl::range(1, 1, 1)),
                 exp_props, [=](sycl::nd_item<3> item_ct1) {
                     force_token_kernel(tok, force, j);
@@ -1176,7 +1491,7 @@ void gather_rows(const uint8_t* src, int64_t row_bytes, const int32_t* ids, int6
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        s->submit([&](sycl::handler &cgh) {
+        strata::kprof::kp(s, __FILE__, __func__, __LINE__)->submit([&](sycl::handler &cgh) {
             long long row_bytes_ct1 = row_bytes / 16;
 
             cgh.parallel_for<
@@ -1194,7 +1509,7 @@ void gather_rows(const uint8_t* src, int64_t row_bytes, const int32_t* ids, int6
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        s->submit([&](sycl::handler &cgh) {
+        strata::kprof::kp(s, __FILE__, __func__, __LINE__)->submit([&](sycl::handler &cgh) {
             long long row_bytes_ct1 = row_bytes / 4;
 
             cgh.parallel_for<
@@ -1211,7 +1526,7 @@ void gather_rows(const uint8_t* src, int64_t row_bytes, const int32_t* ids, int6
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        s->parallel_for<
+        strata::kprof::kp(s, __FILE__, __func__, __LINE__)->template parallel_for<
             dpct_kernel_name<class gather_rows_kernel_c5b171, uint8_t>>(
             sycl::nd_range<3>(sycl::range(1, 1, 48 * 8) *
                                   sycl::range(1, 1, 256),
@@ -1228,8 +1543,8 @@ void map_ids(int32_t* ids, const int32_t* table, int n, void* stream) {
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class map_ids_kernel_43a113>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class map_ids_kernel_43a113>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 64), sycl::range(1, 1, 64)),
                 exp_props, [=](sycl::nd_item<3> item_ct1) {
                     map_ids_kernel(ids, table, n);
@@ -1248,8 +1563,8 @@ void row_top_prob(const float* logits, int n_rows, int n_vocab, const int32_t* i
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class row_top_prob_kernel_6adbe2>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class row_top_prob_kernel_6adbe2>>(
                 sycl::nd_range<3>(sycl::range(1, 1, n_rows) *
                                       sycl::range(1, 1, 1024),
                                   sycl::range(1, 1, 1024)),
@@ -1515,8 +1830,8 @@ void argmax_rows(const float* logits, int n_rows, int n, void* scratch, int32_t*
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class argmax_rows_kernel_d5bcf6>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class argmax_rows_kernel_d5bcf6>>(
                 sycl::nd_range<3>(
                     sycl::range(1, (unsigned)n_rows, (unsigned)nb) *
                         sycl::range(1, 1, kArgThreads),
@@ -1540,8 +1855,8 @@ void row_top_prob_split(const float* logits, int n_rows, int n_vocab, const int3
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class row_top_prob_split_kernel_9495b0>>(
                 sycl::nd_range<3>(sycl::range(1, (unsigned)n_rows, kTopBlocks) *
                                       sycl::range(1, 1, 1024 / kTopBlocks),
@@ -1633,8 +1948,8 @@ void window_ids(int32_t* steps, int n, int window, int32_t* ids, int64_t ids_str
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class window_ids_kernel_581536>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class window_ids_kernel_581536>>(
                 sycl::nd_range<3>(sycl::range(1, (unsigned)n, 8) *
                                       sycl::range(1, 1, 256),
                                   sycl::range(1, 1, 256)),
@@ -1651,8 +1966,8 @@ void dense_steps(const int32_t* cells, int n, int32_t* steps, void* stream) {
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class dense_steps_kernel_fd7245>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class dense_steps_kernel_fd7245>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 64), sycl::range(1, 1, 64)),
                 exp_props, [=](sycl::nd_item<3> item_ct1) {
                     dense_steps_kernel(cells, n, steps);
@@ -1672,8 +1987,8 @@ void gdn_conv_l2_multi(const float* history, const float* qkv, const float* conv
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class gdn_conv_l2_multi_kernel_b3f737>>(
                 sycl::nd_range<3>(
                     sycl::range(1, (unsigned)n_tok, (unsigned)(channels / S)) *
@@ -1695,8 +2010,8 @@ void gdn_conv_commit(float* history, const float* qkv, int channels, const int32
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class gdn_conv_commit_kernel_dc1d7f>>(
                 sycl::nd_range<3>(
                     sycl::range(1, 1, (unsigned)((channels + 255) / 256)) *
@@ -1722,7 +2037,7 @@ void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_bet
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        st->parallel_for<
+        strata::kprof::kp(st, __FILE__, __func__, __LINE__)->template parallel_for<
             dpct_kernel_name<class gdn_ab_multi_kernel_34dcce,
                              dpct_kernel_scalar<1>, dpct_kernel_scalar<true>>>(
             sycl::nd_range<3>(sycl::range(1, 1, blocks) * sycl::range(1, 1, 64),
@@ -1737,7 +2052,7 @@ void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_bet
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        st->parallel_for<
+        strata::kprof::kp(st, __FILE__, __func__, __LINE__)->template parallel_for<
             dpct_kernel_name<class gdn_ab_multi_kernel_34dcce,
                              dpct_kernel_scalar<2>, dpct_kernel_scalar<true>>>(
             sycl::nd_range<3>(sycl::range(1, 1, blocks) * sycl::range(1, 1, 64),
@@ -1752,7 +2067,7 @@ void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_bet
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        st->parallel_for<
+        strata::kprof::kp(st, __FILE__, __func__, __LINE__)->template parallel_for<
             dpct_kernel_name<class gdn_ab_multi_kernel_34dcce,
                              dpct_kernel_scalar<3>, dpct_kernel_scalar<true>>>(
             sycl::nd_range<3>(sycl::range(1, 1, blocks) * sycl::range(1, 1, 64),
@@ -1767,7 +2082,7 @@ void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_bet
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        st->parallel_for<
+        strata::kprof::kp(st, __FILE__, __func__, __LINE__)->template parallel_for<
             dpct_kernel_name<class gdn_ab_multi_kernel_34dcce,
                              dpct_kernel_scalar<4>, dpct_kernel_scalar<true>>>(
             sycl::nd_range<3>(sycl::range(1, 1, blocks) * sycl::range(1, 1, 64),
@@ -1782,7 +2097,7 @@ void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_bet
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        st->parallel_for<
+        strata::kprof::kp(st, __FILE__, __func__, __LINE__)->template parallel_for<
             dpct_kernel_name<class gdn_ab_multi_kernel_34dcce,
                              dpct_kernel_scalar<5>, dpct_kernel_scalar<true>>>(
             sycl::nd_range<3>(sycl::range(1, 1, blocks) * sycl::range(1, 1, 64),
@@ -1797,7 +2112,7 @@ void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_bet
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        st->parallel_for<
+        strata::kprof::kp(st, __FILE__, __func__, __LINE__)->template parallel_for<
             dpct_kernel_name<class gdn_ab_multi_kernel_34dcce,
                              dpct_kernel_scalar<6>, dpct_kernel_scalar<true>>>(
             sycl::nd_range<3>(sycl::range(1, 1, blocks) * sycl::range(1, 1, 64),
@@ -1812,7 +2127,7 @@ void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_bet
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        st->parallel_for<dpct_kernel_name<class gdn_ab_multi_kernel_34dcce,
+        strata::kprof::kp(st, __FILE__, __func__, __LINE__)->template parallel_for<dpct_kernel_name<class gdn_ab_multi_kernel_34dcce,
                                           dpct_kernel_scalar<kVerifyMaxT>,
                                           dpct_kernel_scalar<false>>>(
             sycl::nd_range<3>(sycl::range(1, 1, blocks) * sycl::range(1, 1, 64),
@@ -1828,6 +2143,58 @@ void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_bet
     check("gdn_ab_multi");
 }
 
+void gdn_step_norm_groups(const GdnGroups& groups, const float* h, int conv_channels, const float* gate, const float* beta,
+                          const float* z, const float* gamma, float eps, float* y, int h_k, int h_v, bool commit,
+                          void* stream) {
+    if (groups.n < 1 || groups.n > 8 || !h || !gate || !beta || !z || !gamma || !y || h_k <= 0 || h_v % h_k) {
+        std::fprintf(stderr, "gdn_step_norm_groups: invalid arguments\n");
+        std::exit(1);
+    }
+    for (int i = 0; i < groups.n; ++i)
+        if (!groups.state[i] || groups.ntok[i] < 1 || groups.ntok[i] > kVerifyMaxT || (commit && !groups.keep[i])) {
+            std::fprintf(stderr, "gdn_step_norm_groups: invalid group %d\n", i);
+            std::exit(1);
+        }
+    const dpct::dim3 g1((unsigned)h_v, (unsigned)groups.n), b1(S, RG);
+    const GdnGroups grp = groups;
+    auto exp_props = sycl::ext::oneapi::experimental::properties{sycl::ext::oneapi::experimental::use_root_sync};
+    // the kernel gdn_step_norm_multi picks for these calls: a window's rows (all outputs, no keep) or a commit of
+    // one-row groups (keep, t_out_begin 0)
+    if (commit)
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)->template parallel_for<dpct_kernel_name<class gdn_step_norm_groups_kernel_b1, dpct_kernel_scalar<false>>>(
+            sycl::nd_range<3>(g1 * b1, b1), exp_props, [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(32)]] {
+                gdn_step_norm_multi_kernel<false, false>(nullptr, h, conv_channels, gate, beta, z, gamma, eps, y, h_k,
+                                                         h_v, 0, nullptr, 0, nullptr, grp);
+            });
+    else
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)->template parallel_for<dpct_kernel_name<class gdn_step_norm_groups_kernel_b2, dpct_kernel_scalar<true>>>(
+            sycl::nd_range<3>(g1 * b1, b1), exp_props, [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(32)]] {
+                gdn_step_norm_multi_kernel<true, false>(nullptr, h, conv_channels, gate, beta, z, gamma, eps, y, h_k,
+                                                        h_v, 0, nullptr, 0, nullptr, grp);
+            });
+}
+
+void launch_b60_gdn_readonly_split_local(float* state,const float* h,int C,
+ const float* gate,const float* beta,const float* z,const float* gamma,float* y,
+ int HK,int HV,int T,void* stream);
+void gdn_commit_state_multi(float* state, const float* h, int C, const float* gate, const float* beta,
+                            int h_k, int h_v, int n_tok, const int32_t* n_keep, void* stream) {
+    if (!state || !h || !gate || !beta || !n_keep || h_k <= 0 || h_v % h_k ||
+        n_tok < 1 || n_tok > kVerifyMaxT)
+        throw std::invalid_argument("GDN state-only commit arguments");
+    auto properties = sycl::ext::oneapi::experimental::properties{
+        sycl::ext::oneapi::experimental::use_root_sync};
+    strata::q_of(stream)->parallel_for<dpct_kernel_name<class gdn_commit_state_multi_kernel_name>>(
+        sycl::nd_range<3>(sycl::range(1,1,(unsigned)h_v) * sycl::range(1,RG,S), sycl::range(1,RG,S)),
+        properties, [=](sycl::nd_item<3>) [[sycl::reqd_sub_group_size(32)]] {
+            gdn_commit_state_multi_kernel(state,h,C,gate,beta,h_k,h_v,n_keep);
+        });
+    check("gdn_commit_state_multi");
+}
+
+void gdn_step_norm_qkreg(float* state, const float* h, int conv_channels, const float* gate, const float* beta,
+                         const float* z, const float* gamma, float eps, float* y, int h_k, int h_v, int n_tok,
+                         const int32_t* n_keep, void* stream, int t_out_begin, void* xq_out);
 void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const float* gate, const float* beta,
                          const float* z, const float* gamma, float eps, float* y, int h_k, int h_v, int n_tok,
                          const int32_t* n_keep, void* stream, int t_out_begin, void* xq_out) {
@@ -1836,6 +2203,50 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
         n_tok > kVerifyMaxT) {
         std::fprintf(stderr, "gdn_step_norm_multi: invalid arguments\n");
         std::exit(1);
+    }
+    static const bool b60_decode_pool = [] {
+        const char* v=std::getenv("STRATA_PRIVATE_B60_NEXT_POOL");return v && v[0]=='1';
+    }();
+    if (b60_decode_pool && n_keep==nullptr && t_out_begin==0 && !xq &&
+        conv_channels==10240 && h_k==16 && h_v==48 && eps==1e-6f && (n_tok == 2 || n_tok == 4)) {
+        const unsigned device=dpct::get_device_id(strata::q_of(stream)->get_device());
+        static std::atomic<uint64_t> reported{0};
+        if(device<8) {
+            const uint64_t bit=uint64_t(1)<<(device*8+unsigned(n_tok));
+            if(!(reported.fetch_or(bit,std::memory_order_relaxed)&bit))
+                std::fprintf(stderr,"[B60_GDN_SPLIT_LOCAL] capture device=%u T=%d\n",device,n_tok);
+        }
+        launch_b60_gdn_readonly_split_local(state,h,conv_channels,gate,beta,z,gamma,y,h_k,h_v,n_tok,stream);
+        check("gdn_step_norm_multi");
+        return;
+    }
+    static const bool qk_reg = strata::bm_default_on("STRATA_GDN_QK_REG", strata::q_of(stream)->get_device(), false);
+    if (qk_reg && !xq && !n_keep && t_out_begin == 0 &&
+        h_k == 16 && h_v == 48 && conv_channels == 10240 &&
+        strata::intel_gpu_gen(strata::q_of(stream)->get_device()) == strata::IntelGpuGen::Battlemage) {
+        static const bool note = [] {
+            std::fprintf(stderr, "strata: GDN QK register broadcast enabled (GRF256)\n");
+            return true;
+        }();
+        (void) note;
+        auto props = sycl::ext::oneapi::experimental::properties{
+            sycl::ext::oneapi::experimental::use_root_sync,
+            sycl::ext::intel::experimental::grf_size<256>};
+        strata::q_of(stream)->parallel_for<dpct_kernel_name<class gdn_qk_register>>(
+            sycl::nd_range<3>(sycl::range(1, RG, (unsigned) h_v * S), sycl::range(1, RG, S)),
+            props, [=](sycl::nd_item<3>) [[sycl::reqd_sub_group_size(32)]] {
+                gdn_step_norm_multi_kernel<true, false, true>(
+                    state, h, conv_channels, gate, beta, z, gamma, eps, y,
+                    h_k, h_v, n_tok, nullptr, 0, nullptr);
+            });
+        check("gdn QK register");
+        return;
+    }
+    static const bool qk_grf = [] { const char* e = std::getenv("STRATA_SYCL_GDN_QK_GRF256"); return e && e[0] == '1'; }();
+    if (qk_grf && xq_out == nullptr && n_keep == nullptr && h_k == 16 && h_v == 48 && conv_channels == 10240) {
+        gdn_step_norm_qkreg(state, h, conv_channels, gate, beta, z, gamma, eps, y,
+                           h_k, h_v, n_tok, n_keep, stream, t_out_begin, xq_out);
+        return;
     }
     static const bool split = [] { const char* v = std::getenv("STRATA_GDN_SPLIT"); return v && v[0] == '1'; }();
     // S26: the split runs where it is faster (gfx1151 harness, h_v 48: the commit 8-19% per call; a window of 2+ rows
@@ -1852,8 +2263,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
             auto exp_props = sycl::ext::oneapi::experimental::properties{
                 sycl::ext::oneapi::experimental::use_root_sync};
 
-            strata::q_of(stream)
-                ->parallel_for<
+            strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+                ->template parallel_for<
                     dpct_kernel_name<class gdn_state_replay_kernel_e4d4c4,
                                      dpct_kernel_scalar<kVerifyMaxT>>>(
                     sycl::nd_range<3>(grid * block, block), exp_props,
@@ -1873,8 +2284,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
                 auto exp_props = sycl::ext::oneapi::experimental::properties{
                     sycl::ext::oneapi::experimental::use_root_sync};
 
-                strata::q_of(stream)
-                    ->parallel_for<
+                strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+                    ->template parallel_for<
                         dpct_kernel_name<class gdn_step_split_kernel_83c676,
                                          dpct_kernel_scalar<true>>>(
                         sycl::nd_range<3>(grid * block, block), exp_props,
@@ -1895,8 +2306,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
                 auto exp_props = sycl::ext::oneapi::experimental::properties{
                     sycl::ext::oneapi::experimental::use_root_sync};
 
-                strata::q_of(stream)
-                    ->parallel_for<
+                strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+                    ->template parallel_for<
                         dpct_kernel_name<class gdn_out_norm_kernel_a650eb,
                                          dpct_kernel_scalar<true>>>(
                         sycl::nd_range<3>(ng * sycl::range(1, RG, S),
@@ -1919,8 +2330,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
                 auto exp_props = sycl::ext::oneapi::experimental::properties{
                     sycl::ext::oneapi::experimental::use_root_sync};
 
-                strata::q_of(stream)
-                    ->parallel_for<
+                strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+                    ->template parallel_for<
                         dpct_kernel_name<class gdn_out_norm_kernel_f6dfab,
                                          dpct_kernel_scalar<false>>>(
                         sycl::nd_range<3>(ng * sycl::range(1, RG, S),
@@ -1946,8 +2357,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
             auto exp_props = sycl::ext::oneapi::experimental::properties{
                 sycl::ext::oneapi::experimental::use_root_sync};
 
-            strata::q_of(stream)
-                ->parallel_for<
+            strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+                ->template parallel_for<
                     dpct_kernel_name<class gdn_step_commit_kernel_5d9da7>>(
                     sycl::nd_range<3>(sycl::range(1, 4u, (unsigned)h_v) *
                                           sycl::range(1, RG, 32),
@@ -1972,8 +2383,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
             auto exp_props = sycl::ext::oneapi::experimental::properties{
                 sycl::ext::oneapi::experimental::use_root_sync};
 
-            strata::q_of(stream)
-                ->parallel_for<dpct_kernel_name<
+            strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+                ->template parallel_for<dpct_kernel_name<
                     class gdn_step_norm_multi_kernel_42ae26,
                     dpct_kernel_scalar<true>, dpct_kernel_scalar<true>>>(
                     sycl::nd_range<3>(g1 * b1, b1), exp_props,
@@ -1993,8 +2404,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
             auto exp_props = sycl::ext::oneapi::experimental::properties{
                 sycl::ext::oneapi::experimental::use_root_sync};
 
-            strata::q_of(stream)
-                ->parallel_for<dpct_kernel_name<
+            strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+                ->template parallel_for<dpct_kernel_name<
                     class gdn_step_norm_multi_kernel_42ae26,
                     dpct_kernel_scalar<false>, dpct_kernel_scalar<true>>>(
                     sycl::nd_range<3>(g1 * b1, b1), exp_props,
@@ -2015,8 +2426,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<
                 class gdn_step_norm_multi_kernel_42ae26,
                 dpct_kernel_scalar<true>, dpct_kernel_scalar<false>>>(
                 sycl::nd_range<3>(g1 * b1, b1), exp_props,
@@ -2035,8 +2446,8 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<
                 class gdn_step_norm_multi_kernel_42ae26,
                 dpct_kernel_scalar<false>, dpct_kernel_scalar<false>>>(
                 sycl::nd_range<3>(g1 * b1, b1), exp_props,
@@ -2051,9 +2462,15 @@ void gdn_step_norm_multi(float* state, const float* h, int conv_channels, const 
 }
 
 namespace {
+// The device side of strata/core/window_wait.hpp: uncached system loads and stores of mapped host memory.
+struct WaitLoad { uint32_t operator()(const volatile uint32_t* p) const { return strata::sys_load(p); } };
+struct WaitStore { void operator()(volatile uint32_t* p, uint32_t v) const { strata::sys_store(p, v); } };
+struct WaitPause { void operator()() const { strata_spin_pause(); } };
 __dpct_inline__ void wait_flag_ge_kernel(const volatile uint32_t *flag,
-                                         uint32_t value, uint32_t spin_max) {
-    for (uint32_t spin = 0; spin < spin_max && strata::sys_load(flag) < value; ++spin) strata_spin_pause();
+                                         uint32_t value, uint32_t spin_max, volatile uint32_t *rec, uint32_t site) {
+    // a wait that runs out writes this verifier's record (window_wait.hpp): the host then discards the window
+    strata::core::bounded_wait(flag, spin_max, rec, site, value, WaitLoad{}, WaitStore{}, WaitPause{},
+                               [value](uint32_t v) { return v >= value; });
     /*
     DPCT1078: Consider replacing memory_order::acq_rel with
     memory_order::seq_cst for correctness if strong memory order restrictions
@@ -2153,6 +2570,7 @@ auto &s_ids = *sycl::ext::oneapi::group_local_memory_for_overwrite<
     const int my_pack = (my_cnt << 16) | (is_first ? 1 : 0);
     const int lane = tid & 31;
     const int warp = tid >> 5;
+    const int n_warps = item_ct1.get_local_range(2) / 32;
     int pref = my_pack;
 #pragma unroll
     for (int d = 1; d < 32; d <<= 1) {
@@ -2188,7 +2606,7 @@ auto &s_ids = *sycl::ext::oneapi::group_local_memory_for_overwrite<
     if (is_first) {
         int tot = s_excl[tid];
 #pragma unroll
-        for (int w = 0; w < 4; ++w) {
+        for (int w = 0; w < n_warps; ++w) {
             if (w < warp) tot += s_wsum[w];
         }
         const int grp_idx = tot & 0xffff;
@@ -2201,7 +2619,7 @@ auto &s_ids = *sycl::ext::oneapi::group_local_memory_for_overwrite<
         const int fj_warp = first_j >> 5;
         int fj_tot = s_excl[first_j];
 #pragma unroll
-        for (int w = 0; w < 4; ++w) {
+        for (int w = 0; w < n_warps; ++w) {
             if (w < fj_warp) fj_tot += s_wsum[w];
         }
         const int out_idx = (fj_tot >> 16) + rank_in_group;
@@ -2209,7 +2627,9 @@ auto &s_ids = *sycl::ext::oneapi::group_local_memory_for_overwrite<
         tok[out_idx] = tid / k;
     }
     if (tid == 0) {
-        const int groups = (s_wsum[0] + s_wsum[1] + s_wsum[2] + s_wsum[3]) & 0xffff;
+        int groups = 0;
+        for (int w = 0; w < n_warps; ++w) groups += s_wsum[w];
+        groups &= 0xffff;
         start[groups] = n;
         start2[0] = n;
         counts[0] = groups;
@@ -2319,9 +2739,11 @@ auto &s_id = *sycl::ext::oneapi::group_local_memory_for_overwrite<int32_t[128]>(
 }
 __dpct_inline__ void wait_flag_ge_or_kernel(const volatile uint32_t *flag,
                                             uint32_t value,
-                                            const volatile uint32_t *skip, uint32_t spin_max) {
+                                            const volatile uint32_t *skip, uint32_t spin_max,
+                                            volatile uint32_t *rec, uint32_t site) {
     if (strata::sys_load(skip) == value) return;
-    for (uint32_t spin = 0; spin < spin_max && strata::sys_load(flag) < value; ++spin) strata_spin_pause();
+    strata::core::bounded_wait(flag, spin_max, rec, site, value, WaitLoad{}, WaitStore{}, WaitPause{},
+                               [value](uint32_t v) { return v >= value; });
     /*
     DPCT1078: Consider replacing memory_order::acq_rel with
     memory_order::seq_cst for correctness if strong memory order restrictions
@@ -2364,8 +2786,15 @@ namespace {
 const int32_t* g_mirror_res = nullptr;
 const unsigned long long* g_mirror_table = nullptr;
 int32_t* g_usage = nullptr;
+long long g_mirror_entries = 0;   // 0: unchecked
+// #1980: the layer slice `res_layer` belongs to the table the mirror was set for (a later stage passes its own)
+bool in_mirror_table(const int32_t* res_layer) {
+    if (g_mirror_res == nullptr || res_layer < g_mirror_res) return false;
+    return g_mirror_entries <= 0 || res_layer - g_mirror_res < g_mirror_entries;
 }
-void resident_plan_set_mirror(const int32_t* d_res, const unsigned long long* mirror_table, int32_t* usage) {
+}
+void resident_plan_set_mirror(const int32_t* d_res, const unsigned long long* mirror_table, int32_t* usage, long long entries) {
+    g_mirror_entries = entries;
     g_usage = usage;
     g_mirror_res = d_res;
     g_mirror_table = mirror_table;
@@ -2375,17 +2804,18 @@ void resident_plan(const int32_t* ids, int n_entries, int k, const int32_t* res_
                    long long capx, uint32_t* skip, uint32_t ring, void* stream, uint32_t* plan_err) {
     const unsigned long long* mir = nullptr;   // SYCL port: the layer's slice of the host-mirror table, if any
     int32_t* use = nullptr;                    // the layer's slice of the device routing counts, if on
-    if (g_mirror_table != nullptr && g_mirror_res != nullptr && res_layer >= g_mirror_res)
-        mir = g_mirror_table + (res_layer - g_mirror_res);
-    if (g_usage != nullptr && g_mirror_res != nullptr && res_layer >= g_mirror_res) use = g_usage + (res_layer - g_mirror_res);
+    if (g_mirror_table != nullptr && in_mirror_table(res_layer)) mir = g_mirror_table + (res_layer - g_mirror_res);
+    if (g_usage != nullptr && in_mirror_table(res_layer)) use = g_usage + (res_layer - g_mirror_res);
+    static const bool compact = strata::bm_default_on("STRATA_RESIDENT_PLAN_COMPACT", strata::q_of(stream)->get_device(), false);
+    const int threads = compact ? std::max(32, ((n_entries + 31) / 32) * 32) : kResidentPlanMax;
     {
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class resident_plan_kernel_db6b7a>>(
-                sycl::nd_range<3>(sycl::range(1, 1, kResidentPlanMax),
-                                  sycl::range(1, 1, kResidentPlanMax)),
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class resident_plan_kernel_db6b7a>>(
+                sycl::nd_range<3>(sycl::range(1, 1, threads),
+                                  sycl::range(1, 1, threads)),
                 exp_props,
                 [=](sycl::nd_item<3> item_ct1)
                     [[sycl::reqd_sub_group_size(32)]] {
@@ -2397,17 +2827,20 @@ void resident_plan(const int32_t* ids, int n_entries, int k, const int32_t* res_
     check("resident_plan");
 }
 void wait_flag_ge_or(const uint32_t* flag, uint32_t value, const uint32_t* skip, void* stream) {
+    wait_flag_ge_or(flag, value, skip, stream, nullptr, 0);
+}
+void wait_flag_ge_or(const uint32_t* flag, uint32_t value, const uint32_t* skip, void* stream, uint32_t* rec, uint32_t site) {
     const uint32_t spin_max = strata::spin_max(*strata::q_of(stream));
     {
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class wait_flag_ge_or_kernel_2b2de3>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 1), sycl::range(1, 1, 1)),
                 exp_props, [=](sycl::nd_item<3> item_ct1) {
-                    wait_flag_ge_or_kernel(flag, value, skip, spin_max);
+                    wait_flag_ge_or_kernel(flag, value, skip, spin_max, rec, site);
                 });
     }
     check("wait_flag_ge_or");
@@ -2419,8 +2852,8 @@ void copy_i32_from_mapped_unless(int32_t* dst, const int32_t* src, long long n, 
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class copy_i32_unless_kernel_d9d761>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 128),
                                   sycl::range(1, 1, 128)),
@@ -2441,8 +2874,8 @@ void copy_or_zero_from_mapped(float* dst, const float* src, long long n, const u
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class copy_or_zero_kernel_5ef081>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class copy_or_zero_kernel_5ef081>>(
                 sycl::nd_range<3>(sycl::range(1, 1, blocks) *
                                       sycl::range(1, 1, 256),
                                   sycl::range(1, 1, 256)),
@@ -2456,16 +2889,19 @@ void copy_or_zero_from_mapped(float* dst, const float* src, long long n, const u
 }
 
 void wait_flag_ge(const uint32_t* flag, uint32_t value, void* stream) {
+    wait_flag_ge(flag, value, stream, nullptr, 0);
+}
+void wait_flag_ge(const uint32_t* flag, uint32_t value, void* stream, uint32_t* rec, uint32_t site) {
     const uint32_t spin_max = strata::spin_max(*strata::q_of(stream));
     {
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class wait_flag_ge_kernel_d7debf>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class wait_flag_ge_kernel_d7debf>>(
                 sycl::nd_range<3>(sycl::range(1, 1, 1), sycl::range(1, 1, 1)),
                 exp_props, [=](sycl::nd_item<3> item_ct1) {
-                    wait_flag_ge_kernel(flag, value, spin_max);
+                    wait_flag_ge_kernel(flag, value, spin_max, rec, site);
                 });
     }
     check("wait_flag_ge");
@@ -2478,8 +2914,8 @@ void embedding_gather_dev(const uint8_t* codes, const float* scales, const float
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class embedding_gather_dev_kernel_600016>>(
                 sycl::nd_range<3>(sycl::range(1, (unsigned)n_tok,
                                               (unsigned)((n + 255) / 256)) *
@@ -2499,8 +2935,8 @@ void broadcast_streams(const float* x, float* R, int64_t n_embd, int hc, int n_t
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<
                 dpct_kernel_name<class broadcast_streams_kernel_aa4f6f>>(
                 sycl::nd_range<3>(
                     sycl::range(1, (unsigned)n_tok,
@@ -2520,8 +2956,8 @@ void copy_indexed(float* dst, const float* src, int64_t stride, const int32_t* i
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 
-        strata::q_of(stream)
-            ->parallel_for<dpct_kernel_name<class copy_indexed_kernel_b12e23>>(
+        strata::kprof::kp(strata::q_of(stream), __FILE__, __func__, __LINE__)
+            ->template parallel_for<dpct_kernel_name<class copy_indexed_kernel_b12e23>>(
                 sycl::nd_range<3>(sycl::range(1, 1, blocks) *
                                       sycl::range(1, 1, 256),
                                   sycl::range(1, 1, 256)),
@@ -2576,10 +3012,65 @@ uint64_t* profile_clock_word(const sycl::queue& q) {
 void gpu_stamp(unsigned long long* buf, int i, void* stream) {
     auto& q = *strata::q_of(stream);
     uint64_t* word = profile_clock_word(q);
-    q.single_task([=] {
+    strata::kprof::kp(&q, __FILE__, __func__, __LINE__)->single_task([=] {
         sycl::atomic_fence(sycl::memory_order::acquire, sycl::memory_scope::system);
         buf[i] = strata::sys_load_mapped(word);
     });
+}
+
+class B60GdnReadonlySplitLocal;
+class B60GdnReadonlySplitLocalNorm;
+void launch_b60_gdn_readonly_split_local(float* state,const float* h,int C,
+ const float* gate,const float* beta,const float* z,const float* gamma,float* y,
+ int HK,int HV,int T,void* stream){
+  const auto props=sycl::ext::oneapi::experimental::properties{
+   sycl::ext::oneapi::experimental::use_root_sync};
+  auto* q=strata::q_of(stream);
+  q->parallel_for<B60GdnReadonlySplitLocal>(
+   sycl::nd_range<3>(sycl::range<3>(1,4*RG,size_t(HV)*GS_COLS),sycl::range<3>(1,RG,GS_COLS)),
+   props,[=](sycl::nd_item<3>) {
+    b60_gdn_split_local_kernel<true>(state,h,C,gate,beta,y,HK,HV,T,nullptr,0);
+   });
+  q->parallel_for<B60GdnReadonlySplitLocalNorm>(
+   sycl::nd_range<3>(sycl::range<3>(1,T*RG,size_t(HV)*S),sycl::range<3>(1,RG,S)),
+   props,[=](sycl::nd_item<3>) [[sycl::reqd_sub_group_size(32)]] {
+    gdn_out_norm_kernel<false>(z,gamma,1e-6f,y,HV,T,nullptr,0,nullptr);
+   });
+}
+
+void gdn_step_norm_qkreg(float* state, const float* h, int conv_channels, const float* gate, const float* beta,
+                         const float* z, const float* gamma, float eps, float* y, int h_k, int h_v, int n_tok,
+                         const int32_t* n_keep, void* stream, int t_out_begin, void* xq_out) {
+    if (xq_out != nullptr) throw std::invalid_argument("SYCL gdn_step_norm_qkreg: fused q8_1 output is not implemented");
+    if (!state || !h || !gate || !beta || !z || !gamma || !y || h_k <= 0 || h_v % h_k || n_tok < 1 ||
+        n_tok > kVerifyMaxT) {
+        std::fprintf(stderr, "gdn_step_norm_qkreg: invalid arguments\n");
+        std::exit(1);
+    }
+    /*
+    DPCT1049: The work-group size passed to the SYCL kernel may exceed the
+    limit. To get the device limit, query info::device::max_work_group_size.
+    Adjust the work-group size if needed.
+    */
+    {
+        auto exp_props = sycl::ext::oneapi::experimental::properties{
+            sycl::ext::oneapi::experimental::use_root_sync,sycl::ext::intel::experimental::grf_size<256>};
+
+        strata::q_of(stream)
+            ->parallel_for<
+                dpct_kernel_name<class gdn_step_norm_qkreg_kernel_42ae26>>(
+                sycl::nd_range<3>(sycl::range(1, 1, (unsigned)h_v) *
+                                      sycl::range(1, RG, S),
+                                  sycl::range(1, RG, S)),
+                exp_props,
+                [=](sycl::nd_item<3> item_ct1)
+                    [[sycl::reqd_sub_group_size(32)]] {
+                        gdn_step_norm_qkreg_kernel(
+                            state, h, conv_channels, gate, beta, z, gamma, eps,
+                            y, h_k, h_v, n_tok, n_keep, t_out_begin);
+                    });
+    }
+    check("gdn_step_norm_qkreg");
 }
 
 }  // namespace strata::kernels
