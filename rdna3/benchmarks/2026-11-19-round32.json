@@ -1,0 +1,41 @@
+{
+ "date": "2026-11-19",
+ "purpose": "final window-efficiency knob screen (pw3/spec-min-p/mtp-max-t/spec5); all negative, current args confirmed optimal",
+ "binary": "5614920c (round-27 build)",
+ "context": "r29 service-mode: rollback rates parity (30% vs 29%), tokens/window 2.39 vs 2.53 - window efficiency near-parity, gap is per-window overlap cost",
+ "arms": {
+  "r32-control": {
+   "zh1": 109.86,
+   "zh2": 159.67,
+   "code1": 147.95,
+   "code2": 206.54
+  },
+  "r32-pw3": {
+   "zh1": 106.67,
+   "zh2": 157.38,
+   "code1": 142.15,
+   "code2": 206.73
+  },
+  "r32-specmin045": {
+   "zh1": 110.74,
+   "zh2": 158.41,
+   "code1": 140.11,
+   "code2": 198.86
+  },
+  "r32-mtpmaxt4": {
+   "zh1": 108.77,
+   "zh2": 148.2,
+   "code1": 145.72,
+   "code2": 209.17
+  },
+  "r32-spec5": {
+   "zh1": 113.05,
+   "zh2": 147.0,
+   "code1": 146.35,
+   "code2": 206.56
+  }
+ },
+ "verdict": "none adopted; --pipeline-windows 2 / --spec 4 / --spec-min-p 0.5 / --mtp-max-t 3 confirmed optimal on this build",
+ "completed": true,
+ "restored": true
+}
