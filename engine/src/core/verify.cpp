@@ -1413,6 +1413,22 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
         return g_lfuse() && ar_on() && native_moe_combine_enabled() && dec_batch && n > 1 && n <= 8 &&
                shared_expert_native_bf16_enabled();
     };
+    // Independent default-off switch: inherited STRATA_COMBINE_CPU=1 must not
+    // silently enable an unvalidated development experiment.
+    auto cfuse_on = [&](int n) {
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+        static const bool enabled = [] {
+            const char* v = std::getenv("STRATA_LAB_RDNA_COMBINE_CPU");
+            return v && v[0] == '1';
+        }();
+        return enabled && !ar_on() && !device_plan_ && !remote_opt_ && !peer_portable() &&
+               K == 10 && native_moe_combine_enabled() && dec_batch && n > 1 && n <= 8 &&
+               shared_expert_native_bf16_enabled() && strata::kernels::cpu::expert_layout().native &&
+               (N & 3) == 0 && !prof_on_ && trace_m_ == nullptr && m_bal_ == nullptr;
+#else
+        return false;
+#endif
+    };
     bool sg_gated_[2] = {false, false};   // per group: the combine applies the shared gate
     if (!batch_rec_) groups_[T] = G;
     // Programmatic dependent launch (pdl.hpp; sm_90+, opt-in: STRATA_DF_PDL=1): the window's quantizations and dense
@@ -2482,6 +2498,12 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
                 wait_flag_ge_or(m_flag_, ring, skip_ + grp, cs);
                 copy_or_zero_from_mapped(parts_out, m_ymiss_ + (size_t) tb * K * N, (long long) n * K * N,
                                          skip_ + grp, ring, cs);
+            } else if (cfuse_on(n)) {
+                static thread_local bool reported[9] = {};
+                if (!reported[n]) { reported[n] = true; std::fprintf(stderr, "strata rdna3: CPU mapped combine selected T=%d\n", n); }
+                // Preserve the existing mapped-memory publication boundary.
+                wait_flag_ge(m_flag_, ring, cs);
+                stamp(l, 23, grp);
             } else {
                 const bool fuse_rows = fuse_rows_on() && !prof_on_ && !remote_opt_ && dec_batch && m_bal_ == nullptr;   // 143-amdk
                 if (!fuse_rows) {
@@ -2503,11 +2525,11 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
                     copy_from_mapped(parts_out, m_ymiss_ + (size_t) tb * K * N, (int64_t) n * K * N, cs);
             }
             // 143-amdk: the add of the GPU's hit rows is done by the combine that follows (one launch fewer)
-            hits_in_combine = fuse_hits_on() && !prof_on_ && !remote_opt_ && !sg_gated_[grp] && dec_batch && n > 1 &&
+            hits_in_combine = !cfuse_on(n) && fuse_hits_on() && !prof_on_ && !remote_opt_ && !sg_gated_[grp] && dec_batch && n > 1 &&
                               native_moe_combine_enabled() && n <= 8 &&
                               native_moe_combine_hits_supported(parts_ + (size_t) tb * K * N, shared_ + tb * N, bo_ + tb * N, N, K, n);
             strata::dispatch::notef("experts layer: cpu rows via %ld (1 = fused wait+copy, 0 = wait then copy), hits in combine=%ld", (long) (fuse_rows_on() && !prof_on_ && !remote_opt_ && dec_batch && m_bal_ == nullptr), (long) hits_in_combine);
-            if (!hits_in_combine) moe_hit_add(parts_out, hit_out, p_dst, p_counts + 1, cap, N, cs);
+            if (!cfuse_on(n) && !hits_in_combine) moe_hit_add(parts_out, hit_out, p_dst, p_counts + 1, cap, N, cs);
         }
         // Same condition as `sh_fork` above, which is per group and out of scope here: wait only when the fork
         // actually ran (a wait on an event never recorded is a no-op, but saying it outright reads better).
@@ -2515,6 +2537,14 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
             cudaStreamWaitEvent(cs, ev_join_, 0);
         }
         strata::dispatch::notef("combine layer: kind %ld (0 per-token, 1 multi, 2 multi+hits, 3 multi+hits gated)", (long) (sg_gated_[grp] ? 3 : hits_in_combine ? 2 : (dec_batch && n > 1 && native_moe_combine_enabled()) ? 1 : 0));
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+        if (cfuse_on(n)) {
+            try {
+                native_moe_combine_multi_cpu(m_ymiss_ + size_t(tb) * K * N, hit_out, p_dst, p_counts + 1,
+                                            w_ + tb * K, shared_ + tb * N, bo_ + tb * N, N, n, cs);
+            } catch (const std::exception& e) { err = "verify CPU combine: " + std::string(e.what()); return false; }
+        } else
+#endif
         if (sg_gated_[grp]) {   // STRATA_LFUSE: the shared expert's gate was not applied: the combine applies it (all rows are hits)
             try {
                 native_moe_combine_multi_hits_gated(parts_out, w_ + tb * K, shared_ + tb * N, sh_g_ + tb, bo_ + tb * N, N, K, n, cs);

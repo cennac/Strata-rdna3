@@ -75,3 +75,20 @@ done
 ```
 
 `q32plain`／`q32` 对T=1…8、apply与inject开关检查五个浮点输出与旧16列核逐位一致；`q32`另将图像字节与旧核后单独运行的原生q8_1量化逐位比较，并检查缓冲尾部哨兵及图重放。零输入检查量化零值边界。微基准两臂包含的量化工作可能不同，不能从其顺序计时推算整机收益。
+
+## CPU mapped-row combine 实验
+
+开发版配置继承的 `STRATA_COMBINE_CPU=1` 没有对应实现，不会打开现役旧版的CPU结果合并优化。新增独立、默认关闭的 `STRATA_LAB_RDNA_COMBINE_CPU=1`，在普通HIP部分驻留路径中直接从映射内存读取CPU专家结果、从显存读取GPU命中结果，保持专家顺序合并。省去独立的CPU行复制与GPU命中行加和；CPU发布等待和shared gate仍使用开发版原实现，本实验不融合等待或门控。
+
+限定top-k=10、原生专家格式、原生BF16 shared expert、vec4宽度、窗口2…8。全驻留、设备计划、远端专家、peer专家层、阶段计时／trace和负载平衡计时均回退原路径；窗口1也回退。API检查输入跨度、对齐、输出别名与窗口边界。开关须在构造／捕获会话前设置，已有计算图不会因修改环境变量而重写。
+
+```sh
+cmake --build build --target strata rdna_cpu_combine_probe -j 4
+export LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib/llvm/lib
+build/rdna_cpu_combine_probe 0
+build/rdna_cpu_combine_probe 1
+# In the controller profile, before loading:
+# "env": {"STRATA_LAB_RDNA_COMBINE_CPU": "1"}
+```
+
+探针对照实际 `wait_flag_ge`→`copy_rows_from_mapped`→`moe_hit_add`→`native_moe_combine_multi` 流程，检查不同宽度、T=1…8、全CPU／全GPU及混合命中、正负输入、大数、有符号零、延迟CPU发布后的图重放和缓冲哨兵。最终探针第三次重放使用全零CPU／GPU／shared结果，避免零符号差异被其他非零项掩盖。CPU每次重放改写映射结果，避免只用已就绪数据掩盖发布或复用问题。图捕获时的首次选中日志仅证明选择入口，不是执行次数或全层覆盖统计。整机收益需看同二进制关闭／开启后的单路、双路复测。
