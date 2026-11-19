@@ -24,3 +24,7 @@ Q8/A8 HC 的独立标量参考、Q8工作区首次失败及修正理由见[第�
 第七轮新增实际Q5_K头，当前MMVQ探针每卡400组。结果见 `round7-kernel-q5-gpu*.txt`。small-format与Q5_K头分别在冻结条件下通过中文、代码的串行重复／流水线／强制回滚文本对照；三次整机结果分别见[第六轮](../benchmarks/2026-11-19-round6.md)、[第七轮](../benchmarks/2026-11-19-round7.md)。
 
 第十轮另增改变归约顺序的K-quant投影核，每卡400组容差检查通过，最大相对L2误差`1.69e-7`。适用格式的单列／多列、成对发射、图重放检查通过；输出为`round10-kernel-kquant-gpu*.txt`。冻结专家自适应与后缀草稿后，中文、代码各384输出的串行重复、流水线及强制回滚文本一致。这不表示其输出逐位等同未优化上游，也不表示完整质量通过。
+
+第十一轮选择器验证为[round11-format-selector.json](round11-format-selector.json)：两GPU分别检查全部、IQ4_XS、IQ4_XS＋Q6_K，GPU0另检空值／非法／未知／末尾逗号，十进程各400组、各10组图重放通过。最大相对L2为`1.69e-7`；未选格式逐位回退。诊断日志包含图捕获注册，不是执行计数。
+
+第十二轮正常路径的窗口计数见[round12-decode-windows.json](round12-decode-windows.json)，逐条匹配测速请求的token/s与草稿计数。它说明中文退化表现为验证窗口增多，不是固定token路由的算子对照。冻结惩罚／回滚文本一致性及三题冒烟见[整机记录](../benchmarks/2026-11-19-round12.json)；服务恢复核验见[round12-restoration.json](round12-restoration.json)。

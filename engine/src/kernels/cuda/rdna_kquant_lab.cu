@@ -264,9 +264,29 @@ bool lab_on() {
     static const bool on = [] { const char* v = std::getenv("STRATA_LAB_RDNA_KQUANTS"); return v && v[0] == '1'; }();
     return on;
 }
-bool gfx1100_now() {
+uint64_t selected_types() {
+    static const uint64_t mask = [] {
+        constexpr uint64_t all = (1ull << 12) | (1ull << 13) | (1ull << 14) | (1ull << 21) | (1ull << 23);
+        const char* p = std::getenv("STRATA_LAB_RDNA_KQUANT_TYPES");
+        if (!p) return all;
+        uint64_t result = 0;
+        // Explicit empty or malformed lists fail closed. Unset retains the original all-format experiment.
+        for (;;) {
+            char* end = nullptr;
+            const long type = std::strtol(p, &end, 10);
+            if (end == p || type < 0 || type >= 64 || !(all & (1ull << type))) return uint64_t(0);
+            result |= 1ull << type;
+            while (*end == ' ' || *end == '\t') ++end;
+            if (!*end) return result;
+            if (*end != ',') return uint64_t(0);
+            p = end + 1;
+        }
+    }();
+    return mask;
+}
+bool gfx1100_now(int& dev) {
     static thread_local int cache[64] = {};
-    int dev = 0;
+    dev = 0;
     if (cudaGetDevice(&dev) != cudaSuccess || dev < 0 || dev >= 64) return false;
     if (!cache[dev]) {
         cudaDeviceProp p;
@@ -278,11 +298,19 @@ bool gfx1100_now() {
 void native_mmvq_rdna_kquant_probe_mode(int mode) { probe_mode = mode; }
 bool rdna_kquant_lab(int type, const void* w, const void* x, float* y,
                      int n_in, int n_out, int ncols, void* stream, const void* w2, float* y2) {
+    int dev = -1;
     if (!lab_on() || !w || !x || !y || !stream || n_in <= 0 || n_in % 256 != 0 || n_out <= 0 ||
-        ncols < 1 || ncols > 8 || (w2 && (!y2 || n_out % 8 != 0)) || !gfx1100_now()) return false;
-    if (type == 14) return rdna_q6k_mmvq2(w, x, y, n_in, n_out, ncols, stream, w2, y2, n_out);
-    if (type == 12 || type == 13 || type == 21 || type == 23)
-        return rdna_kq_mmvq2(type, w, x, y, n_in, n_out, ncols, stream, w2, y2, n_out);
-    return false;
+        ncols < 1 || ncols > 8 || (w2 && (!y2 || n_out % 8 != 0)) || type < 0 || type >= 64 ||
+        !(selected_types() & (1ull << type)) || !gfx1100_now(dev)) return false;
+    const bool used = type == 14 ? rdna_q6k_mmvq2(w, x, y, n_in, n_out, ncols, stream, w2, y2, n_out)
+                                : rdna_kq_mmvq2(type, w, x, y, n_in, n_out, ncols, stream, w2, y2, n_out);
+    if (used && probe_mode < 0) {
+        static thread_local uint64_t seen[64] = {};
+        if (!(seen[dev] & (1ull << type))) {
+            seen[dev] |= 1ull << type;
+            std::fprintf(stderr, "strata rdna3: legacy K-quant GPU%d type=%d in=%d out=%d cols=%d\n", dev, type, n_in, n_out, ncols);
+        }
+    }
+    return used;
 }
 }  // namespace strata::kernels

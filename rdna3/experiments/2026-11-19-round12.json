@@ -1,0 +1,53 @@
+{
+  "purpose": "Confirm selected internal IQ4_XS/Q6_K projections with normal single/dual requests",
+  "output_tokens": 1024,
+  "repeats": 3,
+  "common_env": {
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_PIPELINE_DEBUG": "1",
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_GR_V3": "0",
+    "STRATA_HC_Q8": "0",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_MMVQ": "0",
+    "STRATA_Q6_PACKED": "0",
+    "STRATA_LAB_RDNA_Q5_HEAD": "0"
+  },
+  "candidates": [
+    {
+      "name": "select-control",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "0"
+      },
+      "repeats": 3,
+      "quality_probe": true
+    },
+    {
+      "name": "select-iq4-q6",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "1",
+        "STRATA_LAB_RDNA_KQUANT_TYPES": "14,23"
+      },
+      "repeats": 3,
+      "quality_probe": true
+    },
+    {
+      "name": "select-iq4-q6-parity",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "1",
+        "STRATA_LAB_RDNA_KQUANT_TYPES": "14,23"
+      },
+      "repeats": 0,
+      "args": {
+        "--adapt-every": 0,
+        "--adapt-swaps": 0,
+        "--suffix-draft": 0
+      },
+      "penalty_probe": true
+    }
+  ],
+  "correctness": "Use round11 selector numerical evidence; format smoke in both normal arms; separate frozen adaptation/suffix serial-repeat/pipeline/forced-rollback comparison."
+}

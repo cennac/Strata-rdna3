@@ -5,7 +5,7 @@
   "engine/src/kernels/cuda/native_mmvq.cu": "bf654b07774458e6090faeecb6462aa75c4921e268392054ccaae7cc7bb86033",
   "engine/src/kernels/rdna_hc_probe.cpp": "7cee61ca6ebeb885697a0e3e42888b4b2b1b7f80c2a25ae206b01175ee1ea88c",
   "engine/src/kernels/rdna_mmvq_probe.cpp": "de447b90c8ca9a07be1fab88d6453d3bdda91f3526fec7f5550517c499824ed0",
-  "engine/src/kernels/cuda/rdna_kquant_lab.cu": "219f8c099d5adced600c9c827a22d505c86e70a4373b79b1bb6926e256f05198",
-  "engine/include/strata/kernels/rdna_kquant_lab.hpp": "b1d5f585a89eefb7a3c3a8abd539a15e01a977d24eb6e86196bf9498cb15bad8",
-  "engine/src/kernels/rdna_kquant_probe.cpp": "da39b2498817b48f3769e68c85a5ea5c48c1bee82e9c959a2b476df5a0d22c1e"
+  "engine/src/kernels/cuda/rdna_kquant_lab.cu": "0faf6d784ced0931b06e9dd4dbff1d540d617c93634ba476fa976ea3c2db3f45",
+  "engine/include/strata/kernels/rdna_kquant_lab.hpp": "e6b2641322b70b89f8e9f3ae7e29bc4fbc68ce0b94b61a78b6f829fb4d66a34e",
+  "engine/src/kernels/rdna_kquant_probe.cpp": "10be19b5403c80aa0a57a58679b41d29a50f983c82352432e7eccfa9039c2f6c"
 }

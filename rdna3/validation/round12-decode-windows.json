@@ -1,0 +1,215 @@
+{
+  "date": "2026-11-19",
+  "source": "normal decode timing counters; STRATA_VERIFY_PROFILE is not enabled",
+  "scope": "Single-request records from both normal arms, same requests as round12 throughput table. Different floating reduction order can change outputs/routes; these are not fixed-token operator timings.",
+  "arms": [
+    {
+      "name": "select-control",
+      "log_sha256": "4b77ba9d9408170efd96404114b74b8e6e272d1cce3f2be8c3731db475a18f88",
+      "samples": [
+        {
+          "kind": "zh",
+          "repeat": 0,
+          "windows": 515,
+          "average_t": 2.5,
+          "tokens_per_window": 1.99,
+          "ms_per_window": 17.47,
+          "tokens": 1024,
+          "decode_ms": 8996,
+          "decode_tps": 113.8,
+          "draft_accepted": 509,
+          "draft_count": 770,
+          "text_sha256": "c8a3d87e5fdaddfbe505fa2c453b8a1056c5a3b6602bd205d09af4429512c5b2"
+        },
+        {
+          "kind": "code",
+          "repeat": 0,
+          "windows": 419,
+          "average_t": 2.82,
+          "tokens_per_window": 2.44,
+          "ms_per_window": 16.42,
+          "tokens": 1024,
+          "decode_ms": 6882,
+          "decode_tps": 148.8,
+          "draft_accepted": 605,
+          "draft_count": 764,
+          "text_sha256": "63cc52a08cc9375390d588c99d8440fbf9ba9b20a0bf9b95f1b350a7c76a0283"
+        },
+        {
+          "kind": "code",
+          "repeat": 1,
+          "windows": 405,
+          "average_t": 2.83,
+          "tokens_per_window": 2.53,
+          "ms_per_window": 16.15,
+          "tokens": 1024,
+          "decode_ms": 6539,
+          "decode_tps": 156.6,
+          "draft_accepted": 619,
+          "draft_count": 743,
+          "text_sha256": "5fc5af35870cf59dfac8cad277a2dd9c7d2286636df52a678d5079d6fc8f71e3"
+        },
+        {
+          "kind": "zh",
+          "repeat": 1,
+          "windows": 518,
+          "average_t": 2.42,
+          "tokens_per_window": 1.98,
+          "ms_per_window": 17.13,
+          "tokens": 1024,
+          "decode_ms": 8873,
+          "decode_tps": 115.4,
+          "draft_accepted": 506,
+          "draft_count": 733,
+          "text_sha256": "093d953fab569ba08cad4e94a1869c25b2c4d95874754a29b52ae225cfb5c44b"
+        },
+        {
+          "kind": "zh",
+          "repeat": 2,
+          "windows": 510,
+          "average_t": 2.5,
+          "tokens_per_window": 2.01,
+          "ms_per_window": 17.23,
+          "tokens": 1024,
+          "decode_ms": 8788,
+          "decode_tps": 116.5,
+          "draft_accepted": 514,
+          "draft_count": 766,
+          "text_sha256": "9af1a2f23b339d10e799b040ba1d7a60ff439c20c0849626333ff90275aa9c65"
+        },
+        {
+          "kind": "code",
+          "repeat": 2,
+          "windows": 413,
+          "average_t": 2.84,
+          "tokens_per_window": 2.48,
+          "ms_per_window": 16.02,
+          "tokens": 1024,
+          "decode_ms": 6616,
+          "decode_tps": 154.8,
+          "draft_accepted": 611,
+          "draft_count": 758,
+          "text_sha256": "030fd6b7e607eed53148ecabde738d7c8a9be6c64df0892f9059277c58c0f09a"
+        }
+      ],
+      "medians": {
+        "zh": {
+          "windows": 515,
+          "tokens_per_window": 1.99,
+          "ms_per_window": 17.23,
+          "decode_tps": 115.4
+        },
+        "code": {
+          "windows": 413,
+          "tokens_per_window": 2.48,
+          "ms_per_window": 16.15,
+          "decode_tps": 154.8
+        }
+      }
+    },
+    {
+      "name": "select-iq4-q6",
+      "log_sha256": "9a744ea84b55c491a411ae02ad1e417fe343a911eed9ce1021a8904c199eebed",
+      "samples": [
+        {
+          "kind": "zh",
+          "repeat": 0,
+          "windows": 537,
+          "average_t": 2.41,
+          "tokens_per_window": 1.91,
+          "ms_per_window": 17.07,
+          "tokens": 1024,
+          "decode_ms": 9168,
+          "decode_tps": 111.7,
+          "draft_accepted": 487,
+          "draft_count": 759,
+          "text_sha256": "67b7352608ee77099c94bc3d051aedfd9810574be3aa77be7c4bf225defb1b32"
+        },
+        {
+          "kind": "code",
+          "repeat": 0,
+          "windows": 416,
+          "average_t": 2.82,
+          "tokens_per_window": 2.46,
+          "ms_per_window": 16.28,
+          "tokens": 1024,
+          "decode_ms": 6772,
+          "decode_tps": 151.2,
+          "draft_accepted": 608,
+          "draft_count": 759,
+          "text_sha256": "7d7809f21f4c87a7b351879f4295e2d2efcd182112bc87f14c54d8dbe1486784"
+        },
+        {
+          "kind": "code",
+          "repeat": 1,
+          "windows": 407,
+          "average_t": 2.85,
+          "tokens_per_window": 2.52,
+          "ms_per_window": 15.74,
+          "tokens": 1024,
+          "decode_ms": 6407,
+          "decode_tps": 159.8,
+          "draft_accepted": 617,
+          "draft_count": 753,
+          "text_sha256": "9156518e23a6461695bc6c8b0265cd2a71deb884acb4615c295287ba1d5d7598"
+        },
+        {
+          "kind": "zh",
+          "repeat": 1,
+          "windows": 511,
+          "average_t": 2.47,
+          "tokens_per_window": 2.0,
+          "ms_per_window": 17.14,
+          "tokens": 1024,
+          "decode_ms": 8756,
+          "decode_tps": 116.9,
+          "draft_accepted": 513,
+          "draft_count": 751,
+          "text_sha256": "8278d829a81f927027e2806a000f779d6f31844aae3315b0a05ad08301bebe97"
+        },
+        {
+          "kind": "zh",
+          "repeat": 2,
+          "windows": 532,
+          "average_t": 2.45,
+          "tokens_per_window": 1.92,
+          "ms_per_window": 17.48,
+          "tokens": 1024,
+          "decode_ms": 9298,
+          "decode_tps": 110.1,
+          "draft_accepted": 492,
+          "draft_count": 772,
+          "text_sha256": "71f4da088663f0de60920712952d652f10bbfcd3a5733a1c2cb5f175ab8e91fe"
+        },
+        {
+          "kind": "code",
+          "repeat": 2,
+          "windows": 420,
+          "average_t": 2.79,
+          "tokens_per_window": 2.44,
+          "ms_per_window": 15.6,
+          "tokens": 1024,
+          "decode_ms": 6553,
+          "decode_tps": 156.3,
+          "draft_accepted": 604,
+          "draft_count": 753,
+          "text_sha256": "63cc52a08cc9375390d588c99d8440fbf9ba9b20a0bf9b95f1b350a7c76a0283"
+        }
+      ],
+      "medians": {
+        "zh": {
+          "windows": 532,
+          "tokens_per_window": 1.92,
+          "ms_per_window": 17.14,
+          "decode_tps": 111.7
+        },
+        "code": {
+          "windows": 416,
+          "tokens_per_window": 2.46,
+          "ms_per_window": 15.74,
+          "decode_tps": 156.3
+        }
+      }
+    }
+  ]
+}

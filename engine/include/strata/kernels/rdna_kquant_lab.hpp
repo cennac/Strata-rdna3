@@ -2,6 +2,7 @@
 
 namespace strata::kernels {
 // Legacy gfx1100 decode layouts. Opt-in: STRATA_LAB_RDNA_KQUANTS=1.
+// STRATA_LAB_RDNA_KQUANT_TYPES selects GGML types as a comma-separated list (unset: all supported).
 // Products match the native contract, but the summation order is different.
 bool rdna_kquant_lab(int type, const void* w, const void* x, float* y,
                      int n_in, int n_out, int ncols, void* stream,

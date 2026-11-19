@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdint>
 #include <random>
 #include <vector>
 namespace K = strata::kernels;
@@ -15,6 +16,9 @@ static void check(cudaError_t e) {
 template<class T> T* alloc(size_t n) { T* p; check(cudaMalloc((void**)&p, n*sizeof(T))); return p; }
 int main(int argc, char** argv) {
     check(cudaSetDevice(argc > 1 ? std::atoi(argv[1]) : 0));
+    const uint64_t expected_mask = argc > 2 ? std::strtoull(argv[2], nullptr, 0) : ~uint64_t(0);
+    const char* bench_env = std::getenv("STRATA_RDNA_PROBE_BENCH");
+    const bool bench = bench_env && bench_env[0] == '1';
     cudaStream_t s; check(cudaStreamCreate(&s));
     std::mt19937 rng(191119); std::normal_distribution<float> normal;
     int bad = 0, cases = 0;
@@ -55,7 +59,7 @@ int main(int argc, char** argv) {
             bool near=finite&&rel<=2e-5&&ma<=1e-5+2e-5*mr;
             // Each optimized column must match an independent optimized single-column call.
             bool column=true;
-            if(nc<=8 && (type!=12 && type!=13)) {
+            if((expected_mask & (1ull << type)) && nc<=8 && (type!=12 && type!=13)) {
                 for(int c=0;c<nc;++c) K::native_mmvq(type,dw,dq+size_t(c)*K::native_q8_1_bytes(ni,1),dz+size_t(c)*no,ni,no,1,s);
                 check(cudaStreamSynchronize(s)); std::vector<float> v(out[1].size());
                 check(cudaMemcpy(v.data(),dz,v.size()*4,cudaMemcpyDeviceToHost));
@@ -72,10 +76,12 @@ int main(int argc, char** argv) {
                 }
             }
             bool zero=true; if(nc==16) for(int i=15*no;i<16*no;++i) zero=zero&&out[1][i]==0.f;
-            bool ok=near&&column&&pair&&zero; ++cases; bad+=!ok;
-            std::printf("type=%d in=%d out=%d cols=%d rel_l2=%.3g max_abs=%.3g column=%d pair=%d zero=%d passed=%d\n",type,ni,no,nc,rel,ma,column,pair,zero,ok);
+            const bool fallback = (expected_mask & (1ull << type)) ||
+                                  std::memcmp(out[0].data(),out[1].data(),out[0].size()*4)==0;
+            bool ok=near&&column&&pair&&zero&&fallback; ++cases; bad+=!ok;
+            std::printf("type=%d in=%d out=%d cols=%d rel_l2=%.3g max_abs=%.3g column=%d pair=%d zero=%d fallback=%d passed=%d\n",type,ni,no,nc,rel,ma,column,pair,zero,fallback,ok);
             if(no==10240 && (nc==1 || nc==4)) {
-                for(int alt=0;alt<2;++alt) {
+                if (bench) for(int alt=0;alt<2;++alt) {
                     K::native_mmvq_rdna_kquant_probe_mode(alt); cudaEvent_t a,b;
                     check(cudaEventCreate(&a)); check(cudaEventCreate(&b));
                     for(int i=0;i<10;++i) K::native_mmvq(type,dw,dq,dy,ni,no,nc,s);
@@ -88,7 +94,8 @@ int main(int argc, char** argv) {
                 K::native_mmvq_rdna_kquant_probe_mode(1); cudaGraph_t g; cudaGraphExec_t exec;
                 check(cudaStreamBeginCapture(s,cudaStreamCaptureModeThreadLocal)); K::native_mmvq(type,dw,dq,dy,ni,no,nc,s);
                 check(cudaStreamEndCapture(s,&g)); check(cudaGraphInstantiate(&exec,g,nullptr,nullptr,0));
-                for(int i=0;i<3;++i) check(cudaGraphLaunch(exec,s)); check(cudaStreamSynchronize(s));
+                for(int i=0;i<3;++i) check(cudaGraphLaunch(exec,s));
+                check(cudaStreamSynchronize(s));
                 std::vector<float> v(out[1].size()); check(cudaMemcpy(v.data(),dy,v.size()*4,cudaMemcpyDeviceToHost));
                 bool graph=std::memcmp(v.data(),out[1].data(),v.size()*4)==0; bad+=!graph;
                 std::printf("GRAPH type=%d cols=%d bitwise=%d\n",type,nc,graph);
