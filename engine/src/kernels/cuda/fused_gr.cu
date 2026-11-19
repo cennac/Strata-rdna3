@@ -33,6 +33,7 @@ namespace strata::kernels {
 #if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
 bool rdna_gr_enabled();
 bool rdna_gr_q8_enabled();
+bool rdna_gr_q32_enabled();
 void rdna_gr_read_multi(const FusedGrArgs*, int, float*, void*, unsigned long long*, int);
 #endif
 
@@ -2867,7 +2868,9 @@ static bool fused_gr_read_multi_slice(const FusedGrArgs* a, int n_tok, float* xn
     const bool rdna_bf16 = a[0].q8_down == nullptr && a[0].w_down != nullptr && a[0].w_up != nullptr;
     const bool rdna_q8 = rdna_gr_q8_enabled() && a[0].q8_down != nullptr && a[0].q8_up != nullptr;
     if (rdna_gr_enabled() && (rdna_bf16 || rdna_q8) && a[0].s_down == nullptr && a[0].q8_inject == nullptr) {
-        bool rq = a[0].q8_cnt != nullptr;
+        // q8 also observes the caller's HC quantization policy. If that policy
+        // cleared the image pointers above, never report an image as produced.
+        bool rq = q8 && (a[0].q8_cnt != nullptr || (rdna_bf16 && rdna_gr_q32_enabled()));
         for (int t = 0; t < n_tok; ++t) rq = rq && a[t].q8_mixed != nullptr;
         if (!rq) for (int t = 0; t < n_tok; ++t) m.a[t].q8_mixed = nullptr;
         rdna_gr_read_multi(m.a, n_tok, xn_scratch, stream, stamp_buf, stamp_i0);

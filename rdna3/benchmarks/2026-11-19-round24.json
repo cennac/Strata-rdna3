@@ -1,0 +1,1792 @@
+{
+  "date": "2026-11-19",
+  "round": 24,
+  "model": "Qwen3.8-Flash-Next-IQ3_XXS",
+  "weights": "GSQ-RCO, unchanged",
+  "hardware": "10900TES, Z490, 96GB DDR4, two RX 7900 XTX; upstream CPU links PCIe 3.0 x8 each",
+  "presence_penalty": 1.5,
+  "temperature": 0,
+  "seed": 42,
+  "capacity_per_request": 131072,
+  "actual_long_input": false,
+  "prompt_cache": false,
+  "conversation_cache": false,
+  "single_metric": "engine decode token/s",
+  "dual_metric": "total tokens divided by whole batch wall time, including TTFT",
+  "completed": true,
+  "restored": true,
+  "source_config_unchanged": true,
+  "length_mismatches": [],
+  "arms": [
+    {
+      "name": "r24-control",
+      "engine_sha256": "52916a3254a06499f2541dd12b845e054bfc9b02e78db0340cb7eb81d999dc31",
+      "completed": true,
+      "metrics": {
+        "zh1": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 114.07992245777446,
+              "requests": [
+                {
+                  "decode_tps": 117.8,
+                  "ttft_s": 0.302948558004573,
+                  "wall_s": 8.976163184008328,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 746,
+                  "draft_n_accepted": 507,
+                  "text_sha256": "e466f7e464a78c8cba14042f9e6c95108cad1f40884b8c994838ec38c24386c7"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "valid": true,
+              "batch_tps": 112.15050857786046,
+              "requests": [
+                {
+                  "decode_tps": 115.8,
+                  "ttft_s": 0.3030046339990804,
+                  "wall_s": 9.130587216990534,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 757,
+                  "draft_n_accepted": 503,
+                  "text_sha256": "890d971790c8205436245240cabba9a55940632609e8f3e2fe9cc76a54ed5788"
+                }
+              ]
+            },
+            {
+              "repeat": 2,
+              "valid": true,
+              "batch_tps": 111.06696560781829,
+              "requests": [
+                {
+                  "decode_tps": 114.6,
+                  "ttft_s": 0.3035113030055072,
+                  "wall_s": 9.219663059993763,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 752,
+                  "draft_n_accepted": 495,
+                  "text_sha256": "963ba67ca79105f3a0c81b3dc8f579374a85a71f5404e3851559bd3b3e63fe6a"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 3,
+          "length_mismatches": 0,
+          "decode_tps_median": 115.8,
+          "batch_tps_median": 112.15050857786046,
+          "ttft_s_median": 0.3030046339990804
+        },
+        "zh2": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 158.77464432780016,
+              "requests": [
+                {
+                  "decode_tps": 90.0,
+                  "ttft_s": 0.3015053069975693,
+                  "wall_s": 11.943509424003423,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "f934dd1dca21269cb46b2be9e48ca695596ad0c59762077bf8eeb6ffa4872697"
+                },
+                {
+                  "decode_tps": 85.4,
+                  "ttft_s": 0.9269150519976392,
+                  "wall_s": 12.898784995995811,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "4d733fb1ce59b8f28b54eabdb6e0040dae185daf78bb4a3dc828556167f3517b"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "valid": true,
+              "batch_tps": 162.84261877966142,
+              "requests": [
+                {
+                  "decode_tps": 85.8,
+                  "ttft_s": 0.3049327920016367,
+                  "wall_s": 12.50394298300671,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "ee3270449ac20f8720ec0e30ff67c549d106e833419b6041cc46b859d4c705c5"
+                },
+                {
+                  "decode_tps": 87.8,
+                  "ttft_s": 0.9268378919950919,
+                  "wall_s": 12.576560211004107,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "a29dfd1952db6f432274c533135e9422dcaaf87a47464fadbe26ce4bd4778186"
+                }
+              ]
+            },
+            {
+              "repeat": 2,
+              "valid": true,
+              "batch_tps": 162.84857162963428,
+              "requests": [
+                {
+                  "decode_tps": 89.5,
+                  "ttft_s": 0.9278031499998178,
+                  "wall_s": 12.35710854100762,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "a6ce048ec79866884fc4d1fb400b4ab749f18969f9650c661410740cee0eb3bf"
+                },
+                {
+                  "decode_tps": 85.3,
+                  "ttft_s": 0.3069117099948926,
+                  "wall_s": 12.576100480990135,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "36ab0d7e78e3c7b98031d6fb9c6cf9cd3565459bbcf9a0456767ac853abd2dc0"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 3,
+          "length_mismatches": 0,
+          "decode_tps_median": 86.8,
+          "batch_tps_median": 162.84261877966142,
+          "ttft_s_median": 0.6168748009949923
+        },
+        "code1": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 147.59784083067171,
+              "requests": [
+                {
+                  "decode_tps": 153.5,
+                  "ttft_s": 0.283545130994753,
+                  "wall_s": 6.93777086600312,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 758,
+                  "draft_n_accepted": 605,
+                  "text_sha256": "2244b8a27cf2ff91f1951d83c1b5c551a6faeadbcb9f4c08e3a99d8d3e4cbe94"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "valid": true,
+              "batch_tps": 152.18509444467935,
+              "requests": [
+                {
+                  "decode_tps": 158.3,
+                  "ttft_s": 0.2758562590024667,
+                  "wall_s": 6.728648450996843,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 748,
+                  "draft_n_accepted": 605,
+                  "text_sha256": "f3378500e4e98d08bb51b25d1660bbfe30baf54f97005ab36f01d90b61713ad0"
+                }
+              ]
+            },
+            {
+              "repeat": 2,
+              "valid": true,
+              "batch_tps": 150.38690166701156,
+              "requests": [
+                {
+                  "decode_tps": 156.5,
+                  "ttft_s": 0.2827919019910041,
+                  "wall_s": 6.809103642997798,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 760,
+                  "draft_n_accepted": 611,
+                  "text_sha256": "90f0eaf30bc95438df0cd551eeeee68abfe0281109165657213b3a7a3c179856"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 3,
+          "length_mismatches": 0,
+          "decode_tps_median": 156.5,
+          "batch_tps_median": 150.38690166701156,
+          "ttft_s_median": 0.2827919019910041
+        },
+        "code2": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 216.5946858397765,
+              "requests": [
+                {
+                  "decode_tps": 114.8,
+                  "ttft_s": 0.2771026249974966,
+                  "wall_s": 9.446828283005743,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "f3378500e4e98d08bb51b25d1660bbfe30baf54f97005ab36f01d90b61713ad0"
+                },
+                {
+                  "decode_tps": 118.9,
+                  "ttft_s": 0.8540161500131944,
+                  "wall_s": 9.455448974011233,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "e9cf01c288a17d2931e3b587d429a088f8a07a222408dd156d91cf02d9e5503d"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "valid": true,
+              "batch_tps": 216.3511894822789,
+              "requests": [
+                {
+                  "decode_tps": 118.7,
+                  "ttft_s": 0.8508689139998751,
+                  "wall_s": 9.4657684279955,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "ec3df31785aa77f16382fa43dfdfed850d4de005c4d1e9fe2509f27885ee74cf"
+                },
+                {
+                  "decode_tps": 115.0,
+                  "ttft_s": 0.2771711390087148,
+                  "wall_s": 9.426856523001334,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "635985dc32cc35dcd0c0732a1bcf5f996dad9c8c6662b27ffb2206f56285103d"
+                }
+              ]
+            },
+            {
+              "repeat": 2,
+              "valid": true,
+              "batch_tps": 216.61893874695437,
+              "requests": [
+                {
+                  "decode_tps": 120.0,
+                  "ttft_s": 0.8713150840048911,
+                  "wall_s": 9.394387341002584,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "193fb1a1ce0e757ae8bfaaaf4a281b93e418e80baf9de7a582192bbb9cc29d6e"
+                },
+                {
+                  "decode_tps": 114.9,
+                  "ttft_s": 0.28122177699697204,
+                  "wall_s": 9.45439033099683,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "e5247106714380fdb265970fe09be2f6b5352ae82782785f46a7757544a66103"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 3,
+          "length_mismatches": 0,
+          "decode_tps_median": 116.85,
+          "batch_tps_median": 216.5946858397765,
+          "ttft_s_median": 0.5660453454984236
+        }
+      },
+      "quality_smoke": [
+        {
+          "key": "json",
+          "passed": false,
+          "response": "{\"total\":94.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}",
+          "tokens": 21,
+          "finish": "stop"
+        },
+        {
+          "key": "order",
+          "passed": true,
+          "response": "根据题目条件，我们可以逐步推导甲、乙、丙、丁的排列顺序。\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序为“甲丁”。我们将这个组合视为一个整体块 $[甲丁]$。\n\n2.  **分析“甲不在第1位”**：\n    由于 $[甲丁]$ 是一个整体，如果甲在第1位，那么丁就在第2位。但题目规定甲不能在第1位，所以 $[甲丁]$ 这个块不能占据位置 (1, 2)。\n    可能的 $[甲丁]$ 位置组合有：\n    *   位置 (2, 3)：即第2位是甲，第3位是丁。\n    *   位置 (3, 4)：即第3位是甲，第4位是丁。\n\n3.  **分析“乙在丙左边且不相邻”**：\n    剩下的两个位置将由乙和丙占据。我们需要检查上述两种 $[甲丁]$ 的位置情况，看哪种情况下乙和丙能满足“乙在左、丙在右、且不相邻”的条件。\n\n    **情况一：$[甲丁]$ 在位置 (2, 3)**\n    *   排列结构：_ 甲 丁 _\n    *   剩余位置是第1位和第4位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第4位。\n    *   排列结果：**乙 甲 丁 丙**\n    *   检查条件：\n        *   甲在第2位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲2，丁3）。\n        *   乙(1)在丙(4)左边？是。\n        *   乙和丙不相邻？是（中间隔了甲和丁）。\n    *   此排列符合所有条件。\n\n    **情况二：$[甲丁]$ 在位置 (3, 4)**\n    *   排列结构：_ _ 甲 丁\n    *   剩余位置是第1位和第2位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第2位。\n    *   排列结果：**乙 丙 甲 丁**\n    *   检查条件：\n        *   甲在第3位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲3，丁4）。\n        *   乙(1)在丙(2)左边？是。\n        *   乙和丙不相邻？**否**。乙在第1位，丙在第2位，他们是相邻的。\n    *   此排列不符合“乙丙不相邻”的条件，排除。\n\n4.  **结论**：\n    唯一符合所有条件的排列是：乙、甲、丁、丙。\n\n答案=乙甲丁丙",
+          "tokens": 703,
+          "finish": "stop"
+        },
+        {
+          "key": "extract",
+          "passed": true,
+          "response": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}",
+          "tokens": 18,
+          "finish": "stop"
+        }
+      ],
+      "min_available_gib": 31.555099487304688,
+      "gpu_resources": {
+        "platinum": {
+          "hotspot_max_c": 94.0,
+          "vram_peak_gib": 22.5504150390625,
+          "power_peak_w": 271.0
+        },
+        "blower": {
+          "hotspot_max_c": 77.0,
+          "vram_peak_gib": 22.388404846191406,
+          "power_peak_w": 235.0
+        }
+      },
+      "engine_log_sha256": "d266f557ae9c8f2c11130c99cb69fe4c2bb4d7189220a130af66c2847e3ce91d"
+    },
+    {
+      "name": "r24-hc-q32",
+      "engine_sha256": "52916a3254a06499f2541dd12b845e054bfc9b02e78db0340cb7eb81d999dc31",
+      "completed": true,
+      "metrics": {
+        "zh1": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 110.98619263484792,
+              "requests": [
+                {
+                  "decode_tps": 114.5,
+                  "ttft_s": 0.3026785169931827,
+                  "wall_s": 9.226372899996932,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 760,
+                  "draft_n_accepted": 492,
+                  "text_sha256": "0a4d34932e61f8668498d2378abe83349ed0fa0c5f2b41780bf32a16f89ed893"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "valid": true,
+              "batch_tps": 117.24504219621998,
+              "requests": [
+                {
+                  "decode_tps": 121.2,
+                  "ttft_s": 0.30512550799176097,
+                  "wall_s": 8.733844781992957,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 751,
+                  "draft_n_accepted": 512,
+                  "text_sha256": "217f3b686949546cc092bdd79d9b58dba494181d5bfac28611fad791284ba67b"
+                }
+              ]
+            },
+            {
+              "repeat": 2,
+              "valid": true,
+              "batch_tps": 112.87035818855296,
+              "requests": [
+                {
+                  "decode_tps": 116.6,
+                  "ttft_s": 0.3049947409890592,
+                  "wall_s": 9.07235536799999,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 719,
+                  "draft_n_accepted": 495,
+                  "text_sha256": "b8d68646c37bebd9c3202ae0a9698134734c59aa6e5d7b76cde927cf2cf3e23d"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 3,
+          "length_mismatches": 0,
+          "decode_tps_median": 116.6,
+          "batch_tps_median": 112.87035818855296,
+          "ttft_s_median": 0.3049947409890592
+        },
+        "zh2": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 159.8538562344065,
+              "requests": [
+                {
+                  "decode_tps": 83.7,
+                  "ttft_s": 0.30141830700449646,
+                  "wall_s": 12.811457251009415,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "83681eca35ecdfcc90b8315b25c687551f88608758bc7089ac2c23f83fe08cf9"
+                },
+                {
+                  "decode_tps": 90.2,
+                  "ttft_s": 0.9322668690001592,
+                  "wall_s": 12.267426114005502,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "44e526fcefd6fa4f2cfe16807775d873996be07946766a5fd4ceb8643d8d67ed"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "valid": true,
+              "batch_tps": 153.53307524720745,
+              "requests": [
+                {
+                  "decode_tps": 89.3,
+                  "ttft_s": 0.9252731590095209,
+                  "wall_s": 12.374339068002882,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "23bab91b67df808bd126d8d56034876e7aea9e020c0cecd426eb446fcfe4093b"
+                },
+                {
+                  "decode_tps": 80.2,
+                  "ttft_s": 0.304584508005064,
+                  "wall_s": 13.339145306003047,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "d2fbe43073dac5d6c3a5c3e9867540537f8dc88b5f204a68ed2e9c413fa28029"
+                }
+              ]
+            },
+            {
+              "repeat": 2,
+              "valid": true,
+              "batch_tps": 164.426365109347,
+              "requests": [
+                {
+                  "decode_tps": 88.7,
+                  "ttft_s": 0.9229341399914119,
+                  "wall_s": 12.45533426599286,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "e187f010c48616ffc7e2ec1f52b4700262877be1186ed69653adf0a9b4b8cafe"
+                },
+                {
+                  "decode_tps": 87.4,
+                  "ttft_s": 0.3060547810018761,
+                  "wall_s": 12.283142722008051,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "b018c8bc67219128d2f3eeb0a650148012bb019b9ea202e706ca8c8e55f8d053"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 3,
+          "length_mismatches": 0,
+          "decode_tps_median": 88.05000000000001,
+          "batch_tps_median": 159.8538562344065,
+          "ttft_s_median": 0.614494460496644
+        },
+        "code1": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 146.33609420722297,
+              "requests": [
+                {
+                  "decode_tps": 152.2,
+                  "ttft_s": 0.2879411979956785,
+                  "wall_s": 6.997590072001913,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 758,
+                  "draft_n_accepted": 606,
+                  "text_sha256": "ee042b2a283a1f85d8fad5f40dde18283937ad6398523e20c1c7f1c7ae069857"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "valid": true,
+              "batch_tps": 153.8782790114767,
+              "requests": [
+                {
+                  "decode_tps": 160.2,
+                  "ttft_s": 0.2778247480018763,
+                  "wall_s": 6.654610427009175,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 753,
+                  "draft_n_accepted": 613,
+                  "text_sha256": "f71122990e5aefa8babb3afcc9c783a87a732447ca406e1e67b038e3bb63412f"
+                }
+              ]
+            },
+            {
+              "repeat": 2,
+              "valid": true,
+              "batch_tps": 151.65105973473675,
+              "requests": [
+                {
+                  "decode_tps": 157.8,
+                  "ttft_s": 0.2813813529937761,
+                  "wall_s": 6.752343186992221,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 745,
+                  "draft_n_accepted": 604,
+                  "text_sha256": "f00a2aa68ea57e20b5d67f4240d697b2611d72bb9c78cafbb491cd6e6164793d"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 3,
+          "length_mismatches": 0,
+          "decode_tps_median": 157.8,
+          "batch_tps_median": 151.65105973473675,
+          "ttft_s_median": 0.2813813529937761
+        },
+        "code2": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 209.8015105339726,
+              "requests": [
+                {
+                  "decode_tps": 115.5,
+                  "ttft_s": 0.277170136992936,
+                  "wall_s": 9.425720714993076,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "c4a2ede52bb13a41cd86244540e3044aea499bff955fde160a963b758100ae2d"
+                },
+                {
+                  "decode_tps": 115.2,
+                  "ttft_s": 0.8886792420089478,
+                  "wall_s": 9.76160750600684,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "2e5cc8337199d537d93d0fed319838f1ce6f12a484a4c1181b4e78b767dad025"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "valid": true,
+              "batch_tps": 213.71789633660518,
+              "requests": [
+                {
+                  "decode_tps": 117.4,
+                  "ttft_s": 0.2814289359957911,
+                  "wall_s": 9.248518168998999,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "941717aede7bc5c566a517a51ad6a58482aacd98f3780b9b6f521da19f42434e"
+                },
+                {
+                  "decode_tps": 117.2,
+                  "ttft_s": 0.8591154909954639,
+                  "wall_s": 9.582725803993526,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "b2cf2716221e33195aa80d3a2af04965b6ddf85cca1ea10fe6cd78f421ca87f4"
+                }
+              ]
+            },
+            {
+              "repeat": 2,
+              "valid": true,
+              "batch_tps": 214.29736875309177,
+              "requests": [
+                {
+                  "decode_tps": 113.5,
+                  "ttft_s": 0.2813710269983858,
+                  "wall_s": 9.540432378998958,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "4e072f007efc59914c33782220791095d3fe734fa2df7039f095ed0410aaa4f7"
+                },
+                {
+                  "decode_tps": 117.4,
+                  "ttft_s": 0.8491593880025903,
+                  "wall_s": 9.556813561997842,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "c8c54ff465c1f79ba4643d3b2b4af1bb8d41bd8f526b5b4c6cbdaad5492067f3"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 3,
+          "length_mismatches": 0,
+          "decode_tps_median": 116.35,
+          "batch_tps_median": 213.71789633660518,
+          "ttft_s_median": 0.5652941619991907
+        }
+      },
+      "quality_smoke": [
+        {
+          "key": "json",
+          "passed": false,
+          "response": "{\"total\":94.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}",
+          "tokens": 21,
+          "finish": "stop"
+        },
+        {
+          "key": "order",
+          "passed": true,
+          "response": "根据题目条件，我们可以逐步推导甲、乙、丙、丁的排列顺序。\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序为“甲丁”。我们将这个组合视为一个整体块 $[甲丁]$。\n\n2.  **分析“甲不在第1位”**：\n    由于 $[甲丁]$ 是一个整体，如果甲在第1位，那么丁就在第2位。但题目规定甲不能在第1位，所以 $[甲丁]$ 这个块不能占据位置 (1, 2)。\n    可能的 $[甲丁]$ 位置组合有：\n    *   位置 (2, 3)：即第2位是甲，第3位是丁。\n    *   位置 (3, 4)：即第3位是甲，第4位是丁。\n\n3.  **分析“乙在丙左边且不相邻”**：\n    剩下的两个位置将由乙和丙占据。我们需要检查上述两种 $[甲丁]$ 的位置情况，看哪种情况下乙和丙能满足“乙在左、丙在右、且不相邻”的条件。\n\n    **情况一：$[甲丁]$ 在位置 (2, 3)**\n    *   排列结构：_ 甲 丁 _\n    *   剩余位置是第1位和第4位。\n    *   乙和丙必须填入这两个空位。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第4位。\n    *   排列结果：**乙 甲 丁 丙**\n    *   检查条件：\n        *   甲在第2位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲2，丁3）。\n        *   乙(1)在丙(4)左边？是。\n        *   乙和丙不相邻？是（中间隔了甲和丁）。\n    *   此排列符合所有条件。\n\n    **情况二：$[甲丁]$ 在位置 (3, 4)**\n    *   排列结构：_ _ 甲 丁\n    *   剩余位置是第1位和第2位。\n    *   乙和丙必须填入这两个空位。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第2位。\n    *   排列结果：**乙 丙 甲 丁**\n    *   检查条件：\n        *   甲在第3位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲3，丁4）。\n        *   乙(1)在丙(2)左边？是。\n        *   乙和丙不相邻？**否**。乙在第1位，丙在第2位，他们是相邻的。\n    *   此排列不符合“乙丙不相邻”的条件，排除。\n\n4.  **结论**：\n    唯一符合所有条件的排列是：乙、甲、丁、丙。\n\n答案=乙甲丁丙",
+          "tokens": 705,
+          "finish": "stop"
+        },
+        {
+          "key": "extract",
+          "passed": true,
+          "response": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}",
+          "tokens": 18,
+          "finish": "stop"
+        }
+      ],
+      "min_available_gib": 31.511131286621094,
+      "gpu_resources": {
+        "platinum": {
+          "hotspot_max_c": 95.0,
+          "vram_peak_gib": 22.546096801757812,
+          "power_peak_w": 273.0
+        },
+        "blower": {
+          "hotspot_max_c": 80.0,
+          "vram_peak_gib": 22.384044647216797,
+          "power_peak_w": 238.0
+        }
+      },
+      "engine_log_sha256": "6322ca37ded82494a2928777f961211a1020d5312f63f0f845d36d60a323c88e"
+    },
+    {
+      "name": "r24-hc-q32-parity",
+      "engine_sha256": "52916a3254a06499f2541dd12b845e054bfc9b02e78db0340cb7eb81d999dc31",
+      "completed": true,
+      "metrics": {},
+      "parity": [
+        {
+          "kind": "zh",
+          "serial_repeat_equal": true,
+          "equal": true,
+          "samples": {
+            "serial": {
+              "text_sha256": "e057bf2babc2544db4a183b23fa6626ab01bd7e29bdbe99b0cc9890e9d612b50",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "serial_again": {
+              "text_sha256": "e057bf2babc2544db4a183b23fa6626ab01bd7e29bdbe99b0cc9890e9d612b50",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "piped": {
+              "text_sha256": "e057bf2babc2544db4a183b23fa6626ab01bd7e29bdbe99b0cc9890e9d612b50",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "forced": {
+              "text_sha256": "e057bf2babc2544db4a183b23fa6626ab01bd7e29bdbe99b0cc9890e9d612b50",
+              "tokens": 384,
+              "finish": "length"
+            }
+          }
+        },
+        {
+          "kind": "code",
+          "serial_repeat_equal": true,
+          "equal": true,
+          "samples": {
+            "serial": {
+              "text_sha256": "2cd9dbdbdb3039e738517d7a132bac04cdc562b2938dfeeaf16dab3fd67d8d1c",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "serial_again": {
+              "text_sha256": "2cd9dbdbdb3039e738517d7a132bac04cdc562b2938dfeeaf16dab3fd67d8d1c",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "piped": {
+              "text_sha256": "2cd9dbdbdb3039e738517d7a132bac04cdc562b2938dfeeaf16dab3fd67d8d1c",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "forced": {
+              "text_sha256": "2cd9dbdbdb3039e738517d7a132bac04cdc562b2938dfeeaf16dab3fd67d8d1c",
+              "tokens": 384,
+              "finish": "length"
+            }
+          }
+        }
+      ],
+      "min_available_gib": 31.1920166015625,
+      "gpu_resources": {
+        "platinum": {
+          "hotspot_max_c": 89.0,
+          "vram_peak_gib": 22.532520294189453,
+          "power_peak_w": 256.0
+        },
+        "blower": {
+          "hotspot_max_c": 66.0,
+          "vram_peak_gib": 22.373985290527344,
+          "power_peak_w": 212.0
+        }
+      },
+      "engine_log_sha256": "e84b516e10980c6d89f13cc53f1699bb9663dd2c495911b03462a59bc8a81d53"
+    },
+    {
+      "name": "r24-control-parity",
+      "engine_sha256": "52916a3254a06499f2541dd12b845e054bfc9b02e78db0340cb7eb81d999dc31",
+      "completed": true,
+      "metrics": {},
+      "parity": [
+        {
+          "kind": "zh",
+          "serial_repeat_equal": true,
+          "equal": true,
+          "samples": {
+            "serial": {
+              "text_sha256": "e057bf2babc2544db4a183b23fa6626ab01bd7e29bdbe99b0cc9890e9d612b50",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "serial_again": {
+              "text_sha256": "e057bf2babc2544db4a183b23fa6626ab01bd7e29bdbe99b0cc9890e9d612b50",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "piped": {
+              "text_sha256": "e057bf2babc2544db4a183b23fa6626ab01bd7e29bdbe99b0cc9890e9d612b50",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "forced": {
+              "text_sha256": "e057bf2babc2544db4a183b23fa6626ab01bd7e29bdbe99b0cc9890e9d612b50",
+              "tokens": 384,
+              "finish": "length"
+            }
+          }
+        },
+        {
+          "kind": "code",
+          "serial_repeat_equal": true,
+          "equal": true,
+          "samples": {
+            "serial": {
+              "text_sha256": "2cd9dbdbdb3039e738517d7a132bac04cdc562b2938dfeeaf16dab3fd67d8d1c",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "serial_again": {
+              "text_sha256": "2cd9dbdbdb3039e738517d7a132bac04cdc562b2938dfeeaf16dab3fd67d8d1c",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "piped": {
+              "text_sha256": "2cd9dbdbdb3039e738517d7a132bac04cdc562b2938dfeeaf16dab3fd67d8d1c",
+              "tokens": 384,
+              "finish": "length"
+            },
+            "forced": {
+              "text_sha256": "2cd9dbdbdb3039e738517d7a132bac04cdc562b2938dfeeaf16dab3fd67d8d1c",
+              "tokens": 384,
+              "finish": "length"
+            }
+          }
+        }
+      ],
+      "min_available_gib": 31.805198669433594,
+      "gpu_resources": {
+        "platinum": {
+          "hotspot_max_c": 87.0,
+          "vram_peak_gib": 22.532569885253906,
+          "power_peak_w": 258.0
+        },
+        "blower": {
+          "hotspot_max_c": 65.0,
+          "vram_peak_gib": 22.37398910522461,
+          "power_peak_w": 229.0
+        }
+      },
+      "engine_log_sha256": "de84a0df1425bf3735da03ab6875178d19d491f35910fb7e589e14f91a230cbe"
+    },
+    {
+      "name": "r24-control-repeat",
+      "engine_sha256": "52916a3254a06499f2541dd12b845e054bfc9b02e78db0340cb7eb81d999dc31",
+      "completed": true,
+      "metrics": {
+        "zh1": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 111.02210277838921,
+              "requests": [
+                {
+                  "decode_tps": 114.6,
+                  "ttft_s": 0.30590699599997606,
+                  "wall_s": 9.223388625992811,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 742,
+                  "draft_n_accepted": 493,
+                  "text_sha256": "2083bd58873eee7449e0bb9b55ee210afa32ae4baf2e087add6f688e1615207e"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 1,
+          "length_mismatches": 0,
+          "decode_tps_median": 114.6,
+          "batch_tps_median": 111.02210277838921,
+          "ttft_s_median": 0.30590699599997606
+        },
+        "zh2": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 166.40524144574178,
+              "requests": [
+                {
+                  "decode_tps": 90.8,
+                  "ttft_s": 0.9382537420024164,
+                  "wall_s": 12.206361251999624,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "55a34e01517707d0cd1641b23a8ccd482b8793f86dac5a4ac77fd91aa6c6b454"
+                },
+                {
+                  "decode_tps": 87.3,
+                  "ttft_s": 0.30418208199262153,
+                  "wall_s": 12.307304639005451,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 92,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "fc2fe15840e3539ac9bf8eb6941a6d90e1a530ae9ecefe5db511ea1316538a39"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 1,
+          "length_mismatches": 0,
+          "decode_tps_median": 89.05,
+          "batch_tps_median": 166.40524144574178,
+          "ttft_s_median": 0.621217911997519
+        },
+        "code1": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 145.00846072604983,
+              "requests": [
+                {
+                  "decode_tps": 151.2,
+                  "ttft_s": 0.3045647620019736,
+                  "wall_s": 7.0616569190024165,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 765,
+                  "draft_n_accepted": 603,
+                  "text_sha256": "a9da65e742730e4598b2e535bb3c35347dc5004366d759d93ce65559bb8f6bbb"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 1,
+          "length_mismatches": 0,
+          "decode_tps_median": 151.2,
+          "batch_tps_median": 145.00846072604983,
+          "ttft_s_median": 0.3045647620019736
+        },
+        "code2": {
+          "samples": [
+            {
+              "repeat": 0,
+              "valid": true,
+              "batch_tps": 212.75663360671777,
+              "requests": [
+                {
+                  "decode_tps": 116.6,
+                  "ttft_s": 0.8554980600019917,
+                  "wall_s": 9.625799597997684,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "90f0eaf30bc95438df0cd551eeeee68abfe0281109165657213b3a7a3c179856"
+                },
+                {
+                  "decode_tps": 113.9,
+                  "ttft_s": 0.28161818798980676,
+                  "wall_s": 9.516471873997943,
+                  "tokens": 1024,
+                  "requested_tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "prompt_n": 82,
+                  "draft_n": 0,
+                  "draft_n_accepted": 0,
+                  "text_sha256": "b2cf2716221e33195aa80d3a2af04965b6ddf85cca1ea10fe6cd78f421ca87f4"
+                }
+              ]
+            }
+          ],
+          "valid_bursts": 1,
+          "length_mismatches": 0,
+          "decode_tps_median": 115.25,
+          "batch_tps_median": 212.75663360671777,
+          "ttft_s_median": 0.5685581239958992
+        }
+      },
+      "min_available_gib": 31.476165771484375,
+      "gpu_resources": {
+        "platinum": {
+          "hotspot_max_c": 94.0,
+          "vram_peak_gib": 22.50986099243164,
+          "power_peak_w": 277.0
+        },
+        "blower": {
+          "hotspot_max_c": 74.0,
+          "vram_peak_gib": 22.387832641601562,
+          "power_peak_w": 243.0
+        }
+      },
+      "engine_log_sha256": "4f5c551c5a9817682dc4b2b0aa487546ab6a3920245b70cef59fcd7bbefe5498"
+    }
+  ],
+  "evidence_sha256": "12749d3da7cb8ea4309ad7d2f4ea350a9104d6ded76d302d4314b8f6ca9cb005",
+  "telemetry_sha256": "96040d1f4b25e235168bc51dd968cdc3e8d95a4031a9343e5d9e8a5f4d0ee570",
+  "aer_counter_deltas": {
+    "0000:03:00.0/aer_dev_correctable/RxErr": 0,
+    "0000:03:00.0/aer_dev_correctable/BadTLP": 0,
+    "0000:03:00.0/aer_dev_correctable/BadDLLP": 0,
+    "0000:03:00.0/aer_dev_correctable/Rollover": 0,
+    "0000:03:00.0/aer_dev_correctable/Timeout": 0,
+    "0000:03:00.0/aer_dev_correctable/NonFatalErr": 0,
+    "0000:03:00.0/aer_dev_correctable/CorrIntErr": 0,
+    "0000:03:00.0/aer_dev_correctable/HeaderOF": 0,
+    "0000:03:00.0/aer_dev_correctable/TOTAL_ERR_COR": 0,
+    "0000:03:00.0/aer_dev_nonfatal/Undefined": 0,
+    "0000:03:00.0/aer_dev_nonfatal/DLP": 0,
+    "0000:03:00.0/aer_dev_nonfatal/SDES": 0,
+    "0000:03:00.0/aer_dev_nonfatal/TLP": 0,
+    "0000:03:00.0/aer_dev_nonfatal/FCP": 0,
+    "0000:03:00.0/aer_dev_nonfatal/CmpltTO": 0,
+    "0000:03:00.0/aer_dev_nonfatal/CmpltAbrt": 0,
+    "0000:03:00.0/aer_dev_nonfatal/UnxCmplt": 0,
+    "0000:03:00.0/aer_dev_nonfatal/RxOF": 0,
+    "0000:03:00.0/aer_dev_nonfatal/MalfTLP": 0,
+    "0000:03:00.0/aer_dev_nonfatal/ECRC": 0,
+    "0000:03:00.0/aer_dev_nonfatal/UnsupReq": 0,
+    "0000:03:00.0/aer_dev_nonfatal/ACSViol": 0,
+    "0000:03:00.0/aer_dev_nonfatal/UncorrIntErr": 0,
+    "0000:03:00.0/aer_dev_nonfatal/BlockedTLP": 0,
+    "0000:03:00.0/aer_dev_nonfatal/AtomicOpBlocked": 0,
+    "0000:03:00.0/aer_dev_nonfatal/TLPBlockedErr": 0,
+    "0000:03:00.0/aer_dev_nonfatal/PoisonTLPBlocked": 0,
+    "0000:03:00.0/aer_dev_nonfatal/DMWrReqBlocked": 0,
+    "0000:03:00.0/aer_dev_nonfatal/IDECheck": 0,
+    "0000:03:00.0/aer_dev_nonfatal/MisIDETLP": 0,
+    "0000:03:00.0/aer_dev_nonfatal/PCRC_CHECK": 0,
+    "0000:03:00.0/aer_dev_nonfatal/TLPXlatBlocked": 0,
+    "0000:03:00.0/aer_dev_nonfatal/TOTAL_ERR_NONFATAL": 0,
+    "0000:03:00.0/aer_dev_fatal/Undefined": 0,
+    "0000:03:00.0/aer_dev_fatal/DLP": 0,
+    "0000:03:00.0/aer_dev_fatal/SDES": 0,
+    "0000:03:00.0/aer_dev_fatal/TLP": 0,
+    "0000:03:00.0/aer_dev_fatal/FCP": 0,
+    "0000:03:00.0/aer_dev_fatal/CmpltTO": 0,
+    "0000:03:00.0/aer_dev_fatal/CmpltAbrt": 0,
+    "0000:03:00.0/aer_dev_fatal/UnxCmplt": 0,
+    "0000:03:00.0/aer_dev_fatal/RxOF": 0,
+    "0000:03:00.0/aer_dev_fatal/MalfTLP": 0,
+    "0000:03:00.0/aer_dev_fatal/ECRC": 0,
+    "0000:03:00.0/aer_dev_fatal/UnsupReq": 0,
+    "0000:03:00.0/aer_dev_fatal/ACSViol": 0,
+    "0000:03:00.0/aer_dev_fatal/UncorrIntErr": 0,
+    "0000:03:00.0/aer_dev_fatal/BlockedTLP": 0,
+    "0000:03:00.0/aer_dev_fatal/AtomicOpBlocked": 0,
+    "0000:03:00.0/aer_dev_fatal/TLPBlockedErr": 0,
+    "0000:03:00.0/aer_dev_fatal/PoisonTLPBlocked": 0,
+    "0000:03:00.0/aer_dev_fatal/DMWrReqBlocked": 0,
+    "0000:03:00.0/aer_dev_fatal/IDECheck": 0,
+    "0000:03:00.0/aer_dev_fatal/MisIDETLP": 0,
+    "0000:03:00.0/aer_dev_fatal/PCRC_CHECK": 0,
+    "0000:03:00.0/aer_dev_fatal/TLPXlatBlocked": 0,
+    "0000:03:00.0/aer_dev_fatal/TOTAL_ERR_FATAL": 0,
+    "0000:02:00.0/aer_dev_correctable/RxErr": 0,
+    "0000:02:00.0/aer_dev_correctable/BadTLP": 0,
+    "0000:02:00.0/aer_dev_correctable/BadDLLP": 0,
+    "0000:02:00.0/aer_dev_correctable/Rollover": 0,
+    "0000:02:00.0/aer_dev_correctable/Timeout": 0,
+    "0000:02:00.0/aer_dev_correctable/NonFatalErr": 0,
+    "0000:02:00.0/aer_dev_correctable/CorrIntErr": 0,
+    "0000:02:00.0/aer_dev_correctable/HeaderOF": 0,
+    "0000:02:00.0/aer_dev_correctable/TOTAL_ERR_COR": 0,
+    "0000:02:00.0/aer_dev_nonfatal/Undefined": 0,
+    "0000:02:00.0/aer_dev_nonfatal/DLP": 0,
+    "0000:02:00.0/aer_dev_nonfatal/SDES": 0,
+    "0000:02:00.0/aer_dev_nonfatal/TLP": 0,
+    "0000:02:00.0/aer_dev_nonfatal/FCP": 0,
+    "0000:02:00.0/aer_dev_nonfatal/CmpltTO": 0,
+    "0000:02:00.0/aer_dev_nonfatal/CmpltAbrt": 0,
+    "0000:02:00.0/aer_dev_nonfatal/UnxCmplt": 0,
+    "0000:02:00.0/aer_dev_nonfatal/RxOF": 0,
+    "0000:02:00.0/aer_dev_nonfatal/MalfTLP": 0,
+    "0000:02:00.0/aer_dev_nonfatal/ECRC": 0,
+    "0000:02:00.0/aer_dev_nonfatal/UnsupReq": 0,
+    "0000:02:00.0/aer_dev_nonfatal/ACSViol": 0,
+    "0000:02:00.0/aer_dev_nonfatal/UncorrIntErr": 0,
+    "0000:02:00.0/aer_dev_nonfatal/BlockedTLP": 0,
+    "0000:02:00.0/aer_dev_nonfatal/AtomicOpBlocked": 0,
+    "0000:02:00.0/aer_dev_nonfatal/TLPBlockedErr": 0,
+    "0000:02:00.0/aer_dev_nonfatal/PoisonTLPBlocked": 0,
+    "0000:02:00.0/aer_dev_nonfatal/DMWrReqBlocked": 0,
+    "0000:02:00.0/aer_dev_nonfatal/IDECheck": 0,
+    "0000:02:00.0/aer_dev_nonfatal/MisIDETLP": 0,
+    "0000:02:00.0/aer_dev_nonfatal/PCRC_CHECK": 0,
+    "0000:02:00.0/aer_dev_nonfatal/TLPXlatBlocked": 0,
+    "0000:02:00.0/aer_dev_nonfatal/TOTAL_ERR_NONFATAL": 0,
+    "0000:02:00.0/aer_dev_fatal/Undefined": 0,
+    "0000:02:00.0/aer_dev_fatal/DLP": 0,
+    "0000:02:00.0/aer_dev_fatal/SDES": 0,
+    "0000:02:00.0/aer_dev_fatal/TLP": 0,
+    "0000:02:00.0/aer_dev_fatal/FCP": 0,
+    "0000:02:00.0/aer_dev_fatal/CmpltTO": 0,
+    "0000:02:00.0/aer_dev_fatal/CmpltAbrt": 0,
+    "0000:02:00.0/aer_dev_fatal/UnxCmplt": 0,
+    "0000:02:00.0/aer_dev_fatal/RxOF": 0,
+    "0000:02:00.0/aer_dev_fatal/MalfTLP": 0,
+    "0000:02:00.0/aer_dev_fatal/ECRC": 0,
+    "0000:02:00.0/aer_dev_fatal/UnsupReq": 0,
+    "0000:02:00.0/aer_dev_fatal/ACSViol": 0,
+    "0000:02:00.0/aer_dev_fatal/UncorrIntErr": 0,
+    "0000:02:00.0/aer_dev_fatal/BlockedTLP": 0,
+    "0000:02:00.0/aer_dev_fatal/AtomicOpBlocked": 0,
+    "0000:02:00.0/aer_dev_fatal/TLPBlockedErr": 0,
+    "0000:02:00.0/aer_dev_fatal/PoisonTLPBlocked": 0,
+    "0000:02:00.0/aer_dev_fatal/DMWrReqBlocked": 0,
+    "0000:02:00.0/aer_dev_fatal/IDECheck": 0,
+    "0000:02:00.0/aer_dev_fatal/MisIDETLP": 0,
+    "0000:02:00.0/aer_dev_fatal/PCRC_CHECK": 0,
+    "0000:02:00.0/aer_dev_fatal/TLPXlatBlocked": 0,
+    "0000:02:00.0/aer_dev_fatal/TOTAL_ERR_FATAL": 0,
+    "0000:01:00.0/aer_dev_correctable/RxErr": 0,
+    "0000:01:00.0/aer_dev_correctable/BadTLP": 0,
+    "0000:01:00.0/aer_dev_correctable/BadDLLP": 0,
+    "0000:01:00.0/aer_dev_correctable/Rollover": 0,
+    "0000:01:00.0/aer_dev_correctable/Timeout": 0,
+    "0000:01:00.0/aer_dev_correctable/NonFatalErr": 0,
+    "0000:01:00.0/aer_dev_correctable/CorrIntErr": 0,
+    "0000:01:00.0/aer_dev_correctable/HeaderOF": 0,
+    "0000:01:00.0/aer_dev_correctable/TOTAL_ERR_COR": 0,
+    "0000:01:00.0/aer_dev_nonfatal/Undefined": 0,
+    "0000:01:00.0/aer_dev_nonfatal/DLP": 0,
+    "0000:01:00.0/aer_dev_nonfatal/SDES": 0,
+    "0000:01:00.0/aer_dev_nonfatal/TLP": 0,
+    "0000:01:00.0/aer_dev_nonfatal/FCP": 0,
+    "0000:01:00.0/aer_dev_nonfatal/CmpltTO": 0,
+    "0000:01:00.0/aer_dev_nonfatal/CmpltAbrt": 0,
+    "0000:01:00.0/aer_dev_nonfatal/UnxCmplt": 0,
+    "0000:01:00.0/aer_dev_nonfatal/RxOF": 0,
+    "0000:01:00.0/aer_dev_nonfatal/MalfTLP": 0,
+    "0000:01:00.0/aer_dev_nonfatal/ECRC": 0,
+    "0000:01:00.0/aer_dev_nonfatal/UnsupReq": 0,
+    "0000:01:00.0/aer_dev_nonfatal/ACSViol": 0,
+    "0000:01:00.0/aer_dev_nonfatal/UncorrIntErr": 0,
+    "0000:01:00.0/aer_dev_nonfatal/BlockedTLP": 0,
+    "0000:01:00.0/aer_dev_nonfatal/AtomicOpBlocked": 0,
+    "0000:01:00.0/aer_dev_nonfatal/TLPBlockedErr": 0,
+    "0000:01:00.0/aer_dev_nonfatal/PoisonTLPBlocked": 0,
+    "0000:01:00.0/aer_dev_nonfatal/DMWrReqBlocked": 0,
+    "0000:01:00.0/aer_dev_nonfatal/IDECheck": 0,
+    "0000:01:00.0/aer_dev_nonfatal/MisIDETLP": 0,
+    "0000:01:00.0/aer_dev_nonfatal/PCRC_CHECK": 0,
+    "0000:01:00.0/aer_dev_nonfatal/TLPXlatBlocked": 0,
+    "0000:01:00.0/aer_dev_nonfatal/TOTAL_ERR_NONFATAL": 0,
+    "0000:01:00.0/aer_dev_fatal/Undefined": 0,
+    "0000:01:00.0/aer_dev_fatal/DLP": 0,
+    "0000:01:00.0/aer_dev_fatal/SDES": 0,
+    "0000:01:00.0/aer_dev_fatal/TLP": 0,
+    "0000:01:00.0/aer_dev_fatal/FCP": 0,
+    "0000:01:00.0/aer_dev_fatal/CmpltTO": 0,
+    "0000:01:00.0/aer_dev_fatal/CmpltAbrt": 0,
+    "0000:01:00.0/aer_dev_fatal/UnxCmplt": 0,
+    "0000:01:00.0/aer_dev_fatal/RxOF": 0,
+    "0000:01:00.0/aer_dev_fatal/MalfTLP": 0,
+    "0000:01:00.0/aer_dev_fatal/ECRC": 0,
+    "0000:01:00.0/aer_dev_fatal/UnsupReq": 0,
+    "0000:01:00.0/aer_dev_fatal/ACSViol": 0,
+    "0000:01:00.0/aer_dev_fatal/UncorrIntErr": 0,
+    "0000:01:00.0/aer_dev_fatal/BlockedTLP": 0,
+    "0000:01:00.0/aer_dev_fatal/AtomicOpBlocked": 0,
+    "0000:01:00.0/aer_dev_fatal/TLPBlockedErr": 0,
+    "0000:01:00.0/aer_dev_fatal/PoisonTLPBlocked": 0,
+    "0000:01:00.0/aer_dev_fatal/DMWrReqBlocked": 0,
+    "0000:01:00.0/aer_dev_fatal/IDECheck": 0,
+    "0000:01:00.0/aer_dev_fatal/MisIDETLP": 0,
+    "0000:01:00.0/aer_dev_fatal/PCRC_CHECK": 0,
+    "0000:01:00.0/aer_dev_fatal/TLPXlatBlocked": 0,
+    "0000:01:00.0/aer_dev_fatal/TOTAL_ERR_FATAL": 0,
+    "0000:00:01.0/aer_dev_correctable/RxErr": 0,
+    "0000:00:01.0/aer_dev_correctable/BadTLP": 0,
+    "0000:00:01.0/aer_dev_correctable/BadDLLP": 0,
+    "0000:00:01.0/aer_dev_correctable/Rollover": 0,
+    "0000:00:01.0/aer_dev_correctable/Timeout": 0,
+    "0000:00:01.0/aer_dev_correctable/NonFatalErr": 0,
+    "0000:00:01.0/aer_dev_correctable/CorrIntErr": 0,
+    "0000:00:01.0/aer_dev_correctable/HeaderOF": 0,
+    "0000:00:01.0/aer_dev_correctable/TOTAL_ERR_COR": 0,
+    "0000:00:01.0/aer_dev_nonfatal/Undefined": 0,
+    "0000:00:01.0/aer_dev_nonfatal/DLP": 0,
+    "0000:00:01.0/aer_dev_nonfatal/SDES": 0,
+    "0000:00:01.0/aer_dev_nonfatal/TLP": 0,
+    "0000:00:01.0/aer_dev_nonfatal/FCP": 0,
+    "0000:00:01.0/aer_dev_nonfatal/CmpltTO": 0,
+    "0000:00:01.0/aer_dev_nonfatal/CmpltAbrt": 0,
+    "0000:00:01.0/aer_dev_nonfatal/UnxCmplt": 0,
+    "0000:00:01.0/aer_dev_nonfatal/RxOF": 0,
+    "0000:00:01.0/aer_dev_nonfatal/MalfTLP": 0,
+    "0000:00:01.0/aer_dev_nonfatal/ECRC": 0,
+    "0000:00:01.0/aer_dev_nonfatal/UnsupReq": 0,
+    "0000:00:01.0/aer_dev_nonfatal/ACSViol": 0,
+    "0000:00:01.0/aer_dev_nonfatal/UncorrIntErr": 0,
+    "0000:00:01.0/aer_dev_nonfatal/BlockedTLP": 0,
+    "0000:00:01.0/aer_dev_nonfatal/AtomicOpBlocked": 0,
+    "0000:00:01.0/aer_dev_nonfatal/TLPBlockedErr": 0,
+    "0000:00:01.0/aer_dev_nonfatal/PoisonTLPBlocked": 0,
+    "0000:00:01.0/aer_dev_nonfatal/DMWrReqBlocked": 0,
+    "0000:00:01.0/aer_dev_nonfatal/IDECheck": 0,
+    "0000:00:01.0/aer_dev_nonfatal/MisIDETLP": 0,
+    "0000:00:01.0/aer_dev_nonfatal/PCRC_CHECK": 0,
+    "0000:00:01.0/aer_dev_nonfatal/TLPXlatBlocked": 0,
+    "0000:00:01.0/aer_dev_nonfatal/TOTAL_ERR_NONFATAL": 0,
+    "0000:00:01.0/aer_dev_fatal/Undefined": 0,
+    "0000:00:01.0/aer_dev_fatal/DLP": 0,
+    "0000:00:01.0/aer_dev_fatal/SDES": 0,
+    "0000:00:01.0/aer_dev_fatal/TLP": 0,
+    "0000:00:01.0/aer_dev_fatal/FCP": 0,
+    "0000:00:01.0/aer_dev_fatal/CmpltTO": 0,
+    "0000:00:01.0/aer_dev_fatal/CmpltAbrt": 0,
+    "0000:00:01.0/aer_dev_fatal/UnxCmplt": 0,
+    "0000:00:01.0/aer_dev_fatal/RxOF": 0,
+    "0000:00:01.0/aer_dev_fatal/MalfTLP": 0,
+    "0000:00:01.0/aer_dev_fatal/ECRC": 0,
+    "0000:00:01.0/aer_dev_fatal/UnsupReq": 0,
+    "0000:00:01.0/aer_dev_fatal/ACSViol": 0,
+    "0000:00:01.0/aer_dev_fatal/UncorrIntErr": 0,
+    "0000:00:01.0/aer_dev_fatal/BlockedTLP": 0,
+    "0000:00:01.0/aer_dev_fatal/AtomicOpBlocked": 0,
+    "0000:00:01.0/aer_dev_fatal/TLPBlockedErr": 0,
+    "0000:00:01.0/aer_dev_fatal/PoisonTLPBlocked": 0,
+    "0000:00:01.0/aer_dev_fatal/DMWrReqBlocked": 0,
+    "0000:00:01.0/aer_dev_fatal/IDECheck": 0,
+    "0000:00:01.0/aer_dev_fatal/MisIDETLP": 0,
+    "0000:00:01.0/aer_dev_fatal/PCRC_CHECK": 0,
+    "0000:00:01.0/aer_dev_fatal/TLPXlatBlocked": 0,
+    "0000:00:01.0/aer_dev_fatal/TOTAL_ERR_FATAL": 0,
+    "0000:00:01.0/aer_rootport_total_err_cor": 0,
+    "0000:00:01.0/aer_rootport_total_err_nonfatal": 0,
+    "0000:00:01.0/aer_rootport_total_err_fatal": 0,
+    "0000:06:00.0/aer_dev_correctable/RxErr": 0,
+    "0000:06:00.0/aer_dev_correctable/BadTLP": 0,
+    "0000:06:00.0/aer_dev_correctable/BadDLLP": 0,
+    "0000:06:00.0/aer_dev_correctable/Rollover": 0,
+    "0000:06:00.0/aer_dev_correctable/Timeout": 0,
+    "0000:06:00.0/aer_dev_correctable/NonFatalErr": 0,
+    "0000:06:00.0/aer_dev_correctable/CorrIntErr": 0,
+    "0000:06:00.0/aer_dev_correctable/HeaderOF": 0,
+    "0000:06:00.0/aer_dev_correctable/TOTAL_ERR_COR": 0,
+    "0000:06:00.0/aer_dev_nonfatal/Undefined": 0,
+    "0000:06:00.0/aer_dev_nonfatal/DLP": 0,
+    "0000:06:00.0/aer_dev_nonfatal/SDES": 0,
+    "0000:06:00.0/aer_dev_nonfatal/TLP": 0,
+    "0000:06:00.0/aer_dev_nonfatal/FCP": 0,
+    "0000:06:00.0/aer_dev_nonfatal/CmpltTO": 0,
+    "0000:06:00.0/aer_dev_nonfatal/CmpltAbrt": 0,
+    "0000:06:00.0/aer_dev_nonfatal/UnxCmplt": 0,
+    "0000:06:00.0/aer_dev_nonfatal/RxOF": 0,
+    "0000:06:00.0/aer_dev_nonfatal/MalfTLP": 0,
+    "0000:06:00.0/aer_dev_nonfatal/ECRC": 0,
+    "0000:06:00.0/aer_dev_nonfatal/UnsupReq": 0,
+    "0000:06:00.0/aer_dev_nonfatal/ACSViol": 0,
+    "0000:06:00.0/aer_dev_nonfatal/UncorrIntErr": 0,
+    "0000:06:00.0/aer_dev_nonfatal/BlockedTLP": 0,
+    "0000:06:00.0/aer_dev_nonfatal/AtomicOpBlocked": 0,
+    "0000:06:00.0/aer_dev_nonfatal/TLPBlockedErr": 0,
+    "0000:06:00.0/aer_dev_nonfatal/PoisonTLPBlocked": 0,
+    "0000:06:00.0/aer_dev_nonfatal/DMWrReqBlocked": 0,
+    "0000:06:00.0/aer_dev_nonfatal/IDECheck": 0,
+    "0000:06:00.0/aer_dev_nonfatal/MisIDETLP": 0,
+    "0000:06:00.0/aer_dev_nonfatal/PCRC_CHECK": 0,
+    "0000:06:00.0/aer_dev_nonfatal/TLPXlatBlocked": 0,
+    "0000:06:00.0/aer_dev_nonfatal/TOTAL_ERR_NONFATAL": 0,
+    "0000:06:00.0/aer_dev_fatal/Undefined": 0,
+    "0000:06:00.0/aer_dev_fatal/DLP": 0,
+    "0000:06:00.0/aer_dev_fatal/SDES": 0,
+    "0000:06:00.0/aer_dev_fatal/TLP": 0,
+    "0000:06:00.0/aer_dev_fatal/FCP": 0,
+    "0000:06:00.0/aer_dev_fatal/CmpltTO": 0,
+    "0000:06:00.0/aer_dev_fatal/CmpltAbrt": 0,
+    "0000:06:00.0/aer_dev_fatal/UnxCmplt": 0,
+    "0000:06:00.0/aer_dev_fatal/RxOF": 0,
+    "0000:06:00.0/aer_dev_fatal/MalfTLP": 0,
+    "0000:06:00.0/aer_dev_fatal/ECRC": 0,
+    "0000:06:00.0/aer_dev_fatal/UnsupReq": 0,
+    "0000:06:00.0/aer_dev_fatal/ACSViol": 0,
+    "0000:06:00.0/aer_dev_fatal/UncorrIntErr": 0,
+    "0000:06:00.0/aer_dev_fatal/BlockedTLP": 0,
+    "0000:06:00.0/aer_dev_fatal/AtomicOpBlocked": 0,
+    "0000:06:00.0/aer_dev_fatal/TLPBlockedErr": 0,
+    "0000:06:00.0/aer_dev_fatal/PoisonTLPBlocked": 0,
+    "0000:06:00.0/aer_dev_fatal/DMWrReqBlocked": 0,
+    "0000:06:00.0/aer_dev_fatal/IDECheck": 0,
+    "0000:06:00.0/aer_dev_fatal/MisIDETLP": 0,
+    "0000:06:00.0/aer_dev_fatal/PCRC_CHECK": 0,
+    "0000:06:00.0/aer_dev_fatal/TLPXlatBlocked": 0,
+    "0000:06:00.0/aer_dev_fatal/TOTAL_ERR_FATAL": 0,
+    "0000:05:00.0/aer_dev_correctable/RxErr": 0,
+    "0000:05:00.0/aer_dev_correctable/BadTLP": 0,
+    "0000:05:00.0/aer_dev_correctable/BadDLLP": 0,
+    "0000:05:00.0/aer_dev_correctable/Rollover": 0,
+    "0000:05:00.0/aer_dev_correctable/Timeout": 0,
+    "0000:05:00.0/aer_dev_correctable/NonFatalErr": 0,
+    "0000:05:00.0/aer_dev_correctable/CorrIntErr": 0,
+    "0000:05:00.0/aer_dev_correctable/HeaderOF": 0,
+    "0000:05:00.0/aer_dev_correctable/TOTAL_ERR_COR": 0,
+    "0000:05:00.0/aer_dev_nonfatal/Undefined": 0,
+    "0000:05:00.0/aer_dev_nonfatal/DLP": 0,
+    "0000:05:00.0/aer_dev_nonfatal/SDES": 0,
+    "0000:05:00.0/aer_dev_nonfatal/TLP": 0,
+    "0000:05:00.0/aer_dev_nonfatal/FCP": 0,
+    "0000:05:00.0/aer_dev_nonfatal/CmpltTO": 0,
+    "0000:05:00.0/aer_dev_nonfatal/CmpltAbrt": 0,
+    "0000:05:00.0/aer_dev_nonfatal/UnxCmplt": 0,
+    "0000:05:00.0/aer_dev_nonfatal/RxOF": 0,
+    "0000:05:00.0/aer_dev_nonfatal/MalfTLP": 0,
+    "0000:05:00.0/aer_dev_nonfatal/ECRC": 0,
+    "0000:05:00.0/aer_dev_nonfatal/UnsupReq": 0,
+    "0000:05:00.0/aer_dev_nonfatal/ACSViol": 0,
+    "0000:05:00.0/aer_dev_nonfatal/UncorrIntErr": 0,
+    "0000:05:00.0/aer_dev_nonfatal/BlockedTLP": 0,
+    "0000:05:00.0/aer_dev_nonfatal/AtomicOpBlocked": 0,
+    "0000:05:00.0/aer_dev_nonfatal/TLPBlockedErr": 0,
+    "0000:05:00.0/aer_dev_nonfatal/PoisonTLPBlocked": 0,
+    "0000:05:00.0/aer_dev_nonfatal/DMWrReqBlocked": 0,
+    "0000:05:00.0/aer_dev_nonfatal/IDECheck": 0,
+    "0000:05:00.0/aer_dev_nonfatal/MisIDETLP": 0,
+    "0000:05:00.0/aer_dev_nonfatal/PCRC_CHECK": 0,
+    "0000:05:00.0/aer_dev_nonfatal/TLPXlatBlocked": 0,
+    "0000:05:00.0/aer_dev_nonfatal/TOTAL_ERR_NONFATAL": 0,
+    "0000:05:00.0/aer_dev_fatal/Undefined": 0,
+    "0000:05:00.0/aer_dev_fatal/DLP": 0,
+    "0000:05:00.0/aer_dev_fatal/SDES": 0,
+    "0000:05:00.0/aer_dev_fatal/TLP": 0,
+    "0000:05:00.0/aer_dev_fatal/FCP": 0,
+    "0000:05:00.0/aer_dev_fatal/CmpltTO": 0,
+    "0000:05:00.0/aer_dev_fatal/CmpltAbrt": 0,
+    "0000:05:00.0/aer_dev_fatal/UnxCmplt": 0,
+    "0000:05:00.0/aer_dev_fatal/RxOF": 0,
+    "0000:05:00.0/aer_dev_fatal/MalfTLP": 0,
+    "0000:05:00.0/aer_dev_fatal/ECRC": 0,
+    "0000:05:00.0/aer_dev_fatal/UnsupReq": 0,
+    "0000:05:00.0/aer_dev_fatal/ACSViol": 0,
+    "0000:05:00.0/aer_dev_fatal/UncorrIntErr": 0,
+    "0000:05:00.0/aer_dev_fatal/BlockedTLP": 0,
+    "0000:05:00.0/aer_dev_fatal/AtomicOpBlocked": 0,
+    "0000:05:00.0/aer_dev_fatal/TLPBlockedErr": 0,
+    "0000:05:00.0/aer_dev_fatal/PoisonTLPBlocked": 0,
+    "0000:05:00.0/aer_dev_fatal/DMWrReqBlocked": 0,
+    "0000:05:00.0/aer_dev_fatal/IDECheck": 0,
+    "0000:05:00.0/aer_dev_fatal/MisIDETLP": 0,
+    "0000:05:00.0/aer_dev_fatal/PCRC_CHECK": 0,
+    "0000:05:00.0/aer_dev_fatal/TLPXlatBlocked": 0,
+    "0000:05:00.0/aer_dev_fatal/TOTAL_ERR_FATAL": 0,
+    "0000:04:00.0/aer_dev_correctable/RxErr": 0,
+    "0000:04:00.0/aer_dev_correctable/BadTLP": 0,
+    "0000:04:00.0/aer_dev_correctable/BadDLLP": 0,
+    "0000:04:00.0/aer_dev_correctable/Rollover": 0,
+    "0000:04:00.0/aer_dev_correctable/Timeout": 0,
+    "0000:04:00.0/aer_dev_correctable/NonFatalErr": 0,
+    "0000:04:00.0/aer_dev_correctable/CorrIntErr": 0,
+    "0000:04:00.0/aer_dev_correctable/HeaderOF": 0,
+    "0000:04:00.0/aer_dev_correctable/TOTAL_ERR_COR": 0,
+    "0000:04:00.0/aer_dev_nonfatal/Undefined": 0,
+    "0000:04:00.0/aer_dev_nonfatal/DLP": 0,
+    "0000:04:00.0/aer_dev_nonfatal/SDES": 0,
+    "0000:04:00.0/aer_dev_nonfatal/TLP": 0,
+    "0000:04:00.0/aer_dev_nonfatal/FCP": 0,
+    "0000:04:00.0/aer_dev_nonfatal/CmpltTO": 0,
+    "0000:04:00.0/aer_dev_nonfatal/CmpltAbrt": 0,
+    "0000:04:00.0/aer_dev_nonfatal/UnxCmplt": 0,
+    "0000:04:00.0/aer_dev_nonfatal/RxOF": 0,
+    "0000:04:00.0/aer_dev_nonfatal/MalfTLP": 0,
+    "0000:04:00.0/aer_dev_nonfatal/ECRC": 0,
+    "0000:04:00.0/aer_dev_nonfatal/UnsupReq": 0,
+    "0000:04:00.0/aer_dev_nonfatal/ACSViol": 0,
+    "0000:04:00.0/aer_dev_nonfatal/UncorrIntErr": 0,
+    "0000:04:00.0/aer_dev_nonfatal/BlockedTLP": 0,
+    "0000:04:00.0/aer_dev_nonfatal/AtomicOpBlocked": 0,
+    "0000:04:00.0/aer_dev_nonfatal/TLPBlockedErr": 0,
+    "0000:04:00.0/aer_dev_nonfatal/PoisonTLPBlocked": 0,
+    "0000:04:00.0/aer_dev_nonfatal/DMWrReqBlocked": 0,
+    "0000:04:00.0/aer_dev_nonfatal/IDECheck": 0,
+    "0000:04:00.0/aer_dev_nonfatal/MisIDETLP": 0,
+    "0000:04:00.0/aer_dev_nonfatal/PCRC_CHECK": 0,
+    "0000:04:00.0/aer_dev_nonfatal/TLPXlatBlocked": 0,
+    "0000:04:00.0/aer_dev_nonfatal/TOTAL_ERR_NONFATAL": 0,
+    "0000:04:00.0/aer_dev_fatal/Undefined": 0,
+    "0000:04:00.0/aer_dev_fatal/DLP": 0,
+    "0000:04:00.0/aer_dev_fatal/SDES": 0,
+    "0000:04:00.0/aer_dev_fatal/TLP": 0,
+    "0000:04:00.0/aer_dev_fatal/FCP": 0,
+    "0000:04:00.0/aer_dev_fatal/CmpltTO": 0,
+    "0000:04:00.0/aer_dev_fatal/CmpltAbrt": 0,
+    "0000:04:00.0/aer_dev_fatal/UnxCmplt": 0,
+    "0000:04:00.0/aer_dev_fatal/RxOF": 0,
+    "0000:04:00.0/aer_dev_fatal/MalfTLP": 0,
+    "0000:04:00.0/aer_dev_fatal/ECRC": 0,
+    "0000:04:00.0/aer_dev_fatal/UnsupReq": 0,
+    "0000:04:00.0/aer_dev_fatal/ACSViol": 0,
+    "0000:04:00.0/aer_dev_fatal/UncorrIntErr": 0,
+    "0000:04:00.0/aer_dev_fatal/BlockedTLP": 0,
+    "0000:04:00.0/aer_dev_fatal/AtomicOpBlocked": 0,
+    "0000:04:00.0/aer_dev_fatal/TLPBlockedErr": 0,
+    "0000:04:00.0/aer_dev_fatal/PoisonTLPBlocked": 0,
+    "0000:04:00.0/aer_dev_fatal/DMWrReqBlocked": 0,
+    "0000:04:00.0/aer_dev_fatal/IDECheck": 0,
+    "0000:04:00.0/aer_dev_fatal/MisIDETLP": 0,
+    "0000:04:00.0/aer_dev_fatal/PCRC_CHECK": 0,
+    "0000:04:00.0/aer_dev_fatal/TLPXlatBlocked": 0,
+    "0000:04:00.0/aer_dev_fatal/TOTAL_ERR_FATAL": 0,
+    "0000:00:01.1/aer_dev_correctable/RxErr": 0,
+    "0000:00:01.1/aer_dev_correctable/BadTLP": 0,
+    "0000:00:01.1/aer_dev_correctable/BadDLLP": 0,
+    "0000:00:01.1/aer_dev_correctable/Rollover": 0,
+    "0000:00:01.1/aer_dev_correctable/Timeout": 0,
+    "0000:00:01.1/aer_dev_correctable/NonFatalErr": 0,
+    "0000:00:01.1/aer_dev_correctable/CorrIntErr": 0,
+    "0000:00:01.1/aer_dev_correctable/HeaderOF": 0,
+    "0000:00:01.1/aer_dev_correctable/TOTAL_ERR_COR": 0,
+    "0000:00:01.1/aer_dev_nonfatal/Undefined": 0,
+    "0000:00:01.1/aer_dev_nonfatal/DLP": 0,
+    "0000:00:01.1/aer_dev_nonfatal/SDES": 0,
+    "0000:00:01.1/aer_dev_nonfatal/TLP": 0,
+    "0000:00:01.1/aer_dev_nonfatal/FCP": 0,
+    "0000:00:01.1/aer_dev_nonfatal/CmpltTO": 0,
+    "0000:00:01.1/aer_dev_nonfatal/CmpltAbrt": 0,
+    "0000:00:01.1/aer_dev_nonfatal/UnxCmplt": 0,
+    "0000:00:01.1/aer_dev_nonfatal/RxOF": 0,
+    "0000:00:01.1/aer_dev_nonfatal/MalfTLP": 0,
+    "0000:00:01.1/aer_dev_nonfatal/ECRC": 0,
+    "0000:00:01.1/aer_dev_nonfatal/UnsupReq": 0,
+    "0000:00:01.1/aer_dev_nonfatal/ACSViol": 0,
+    "0000:00:01.1/aer_dev_nonfatal/UncorrIntErr": 0,
+    "0000:00:01.1/aer_dev_nonfatal/BlockedTLP": 0,
+    "0000:00:01.1/aer_dev_nonfatal/AtomicOpBlocked": 0,
+    "0000:00:01.1/aer_dev_nonfatal/TLPBlockedErr": 0,
+    "0000:00:01.1/aer_dev_nonfatal/PoisonTLPBlocked": 0,
+    "0000:00:01.1/aer_dev_nonfatal/DMWrReqBlocked": 0,
+    "0000:00:01.1/aer_dev_nonfatal/IDECheck": 0,
+    "0000:00:01.1/aer_dev_nonfatal/MisIDETLP": 0,
+    "0000:00:01.1/aer_dev_nonfatal/PCRC_CHECK": 0,
+    "0000:00:01.1/aer_dev_nonfatal/TLPXlatBlocked": 0,
+    "0000:00:01.1/aer_dev_nonfatal/TOTAL_ERR_NONFATAL": 0,
+    "0000:00:01.1/aer_dev_fatal/Undefined": 0,
+    "0000:00:01.1/aer_dev_fatal/DLP": 0,
+    "0000:00:01.1/aer_dev_fatal/SDES": 0,
+    "0000:00:01.1/aer_dev_fatal/TLP": 0,
+    "0000:00:01.1/aer_dev_fatal/FCP": 0,
+    "0000:00:01.1/aer_dev_fatal/CmpltTO": 0,
+    "0000:00:01.1/aer_dev_fatal/CmpltAbrt": 0,
+    "0000:00:01.1/aer_dev_fatal/UnxCmplt": 0,
+    "0000:00:01.1/aer_dev_fatal/RxOF": 0,
+    "0000:00:01.1/aer_dev_fatal/MalfTLP": 0,
+    "0000:00:01.1/aer_dev_fatal/ECRC": 0,
+    "0000:00:01.1/aer_dev_fatal/UnsupReq": 0,
+    "0000:00:01.1/aer_dev_fatal/ACSViol": 0,
+    "0000:00:01.1/aer_dev_fatal/UncorrIntErr": 0,
+    "0000:00:01.1/aer_dev_fatal/BlockedTLP": 0,
+    "0000:00:01.1/aer_dev_fatal/AtomicOpBlocked": 0,
+    "0000:00:01.1/aer_dev_fatal/TLPBlockedErr": 0,
+    "0000:00:01.1/aer_dev_fatal/PoisonTLPBlocked": 0,
+    "0000:00:01.1/aer_dev_fatal/DMWrReqBlocked": 0,
+    "0000:00:01.1/aer_dev_fatal/IDECheck": 0,
+    "0000:00:01.1/aer_dev_fatal/MisIDETLP": 0,
+    "0000:00:01.1/aer_dev_fatal/PCRC_CHECK": 0,
+    "0000:00:01.1/aer_dev_fatal/TLPXlatBlocked": 0,
+    "0000:00:01.1/aer_dev_fatal/TOTAL_ERR_FATAL": 0,
+    "0000:00:01.1/aer_rootport_total_err_cor": 0,
+    "0000:00:01.1/aer_rootport_total_err_nonfatal": 0,
+    "0000:00:01.1/aer_rootport_total_err_fatal": 0
+  },
+  "faults": [],
+  "kernel_probes": [
+    {
+      "mode": "bf16",
+      "zero": false,
+      "gpu": 0,
+      "returncode": 0,
+      "output": "probe-bf16-zero0-gpu0.txt",
+      "sha256": "783ea16bdc7a00e2edb5a2798973c18023415a6a15725e80ba11dad61fcf55de",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 0,
+        "graph": 2,
+        "dispatch": 0,
+        "fallback": 0
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "bf16",
+      "zero": false,
+      "gpu": 1,
+      "returncode": 0,
+      "output": "probe-bf16-zero0-gpu1.txt",
+      "sha256": "ac6a8cb595f184f933c4fca50e096bd41a07cbfd9cd1b5dbb5309aa78f238393",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 0,
+        "graph": 2,
+        "dispatch": 0,
+        "fallback": 0
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "q32plain",
+      "zero": false,
+      "gpu": 0,
+      "returncode": 0,
+      "output": "probe-q32plain-zero0-gpu0.txt",
+      "sha256": "7fe9b4f1a606b1139b8c5869e204be6669ca43f4d19e44142825c0946339a6a9",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 0,
+        "graph": 16,
+        "dispatch": 32,
+        "fallback": 0
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "q32plain",
+      "zero": false,
+      "gpu": 1,
+      "returncode": 0,
+      "output": "probe-q32plain-zero0-gpu1.txt",
+      "sha256": "bce61006a08c1fd5db9668b011bb5f590b9542298e8159c0e2f2ff4beb4c8864",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 0,
+        "graph": 16,
+        "dispatch": 32,
+        "fallback": 0
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "q32",
+      "zero": false,
+      "gpu": 0,
+      "returncode": 0,
+      "output": "probe-q32-zero0-gpu0.txt",
+      "sha256": "6f780b0abb8c9e236dd25d488adc2f402c2cd3683028b3fcc5914811c4170602",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 32,
+        "graph": 16,
+        "dispatch": 32,
+        "fallback": 0
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "q32",
+      "zero": false,
+      "gpu": 1,
+      "returncode": 0,
+      "output": "probe-q32-zero0-gpu1.txt",
+      "sha256": "cadb8bb2a821cc745659aa08db96b2ec06046d179f3a32a9c251a574edb53e54",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 32,
+        "graph": 16,
+        "dispatch": 32,
+        "fallback": 0
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "q32",
+      "zero": true,
+      "gpu": 0,
+      "returncode": 0,
+      "output": "probe-q32-zero1-gpu0.txt",
+      "sha256": "4a2e81032c8a313d53ede8cd243a13fd52a75bbe3e480b5e21e8534fdf1a6915",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 32,
+        "graph": 16,
+        "dispatch": 32,
+        "fallback": 0
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "q32",
+      "zero": true,
+      "gpu": 1,
+      "returncode": 0,
+      "output": "probe-q32-zero1-gpu1.txt",
+      "sha256": "d40b0fd875c10fc6ea12d13f15c178a8f9bd5a6fa18034457f5691ddfa783e1c",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 32,
+        "graph": 16,
+        "dispatch": 32,
+        "fallback": 0
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "q32policyoff",
+      "zero": false,
+      "gpu": 0,
+      "returncode": 0,
+      "output": "probe-q32policyoff-zero0-gpu0.txt",
+      "sha256": "dbc71457bc28dfc0d639fea53020b306a4db35a7d5574bd53c4056190b0616f1",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 32,
+        "graph": 16,
+        "dispatch": 32,
+        "fallback": 32
+      },
+      "zero_failures": true
+    },
+    {
+      "mode": "q32policyoff",
+      "zero": false,
+      "gpu": 1,
+      "returncode": 0,
+      "output": "probe-q32policyoff-zero0-gpu1.txt",
+      "sha256": "98a5bff3d6e8220fca4e723ff196ccbf5563ea904d2208452163c32e37119ece",
+      "summary": [
+        "SUMMARY bad=0"
+      ],
+      "checks": {
+        "field": 160,
+        "image": 32,
+        "graph": 16,
+        "dispatch": 32,
+        "fallback": 32
+      },
+      "zero_failures": true
+    }
+  ]
+}

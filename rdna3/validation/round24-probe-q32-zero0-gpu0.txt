@@ -1,0 +1,282 @@
+strata rdna3: BF16 HC up32 selected T=1 q8_image=1 (graph capture also logs)
+strata rdna3: BF16 HC up32 selected T=2 q8_image=1 (graph capture also logs)
+MODE q32 reference=legacy RDNA16 bitwise + separate native q8_1
+DISPATCH T=1 apply=0 inject=0 produced=1 expected=1 passed=1
+Q32 T=1 apply=0 inject=0 image_bitwise=1 guard=1
+T=1 apply=0 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=0 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=0 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=0 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=0 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=1 alt=0 microseconds=30.2321
+BENCH T=1 alt=1 microseconds=18.6722
+GRAPH T=1 relative_l2=0 passed=1
+DISPATCH T=1 apply=0 inject=1 produced=1 expected=1 passed=1
+Q32 T=1 apply=0 inject=1 image_bitwise=1 guard=1
+T=1 apply=0 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=0 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=0 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=0 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=0 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=1 alt=0 microseconds=18.3040
+BENCH T=1 alt=1 microseconds=18.2640
+GRAPH T=1 relative_l2=0 passed=1
+DISPATCH T=1 apply=1 inject=0 produced=1 expected=1 passed=1
+Q32 T=1 apply=1 inject=0 image_bitwise=1 guard=1
+T=1 apply=1 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=1 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=1 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=1 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=1 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=1 apply=1 inject=1 produced=1 expected=1 passed=1
+Q32 T=1 apply=1 inject=1 image_bitwise=1 guard=1
+T=1 apply=1 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=1 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=1 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=1 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=1 apply=1 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=2 apply=0 inject=0 produced=1 expected=1 passed=1
+Q32 T=2 apply=0 inject=0 image_bitwise=1 guard=1
+T=2 apply=0 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=0 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=0 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=0 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=0 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=2 alt=0 microseconds=21.3986
+BENCH T=2 alt=1 microseconds=21.8706
+GRAPH T=2 relative_l2=0 passed=1
+DISPATCH T=2 apply=0 inject=1 produced=1 expected=1 passed=1
+Q32 T=2 apply=0 inject=1 image_bitwise=1 guard=1
+T=2 apply=0 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=0 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=0 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=0 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=0 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=2 alt=0 microseconds=21.0968
+BENCH T=2 alt=1 microseconds=21.1674
+GRAPH T=2 relative_l2=0 passed=1
+DISPATCH T=2 apply=1 inject=0 produced=1 expected=1 passed=1
+Q32 T=2 apply=1 inject=0 image_bitwise=1 guard=1
+T=2 apply=1 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=1 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=1 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=1 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=1 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=2 apply=1 inject=1 produced=1 expected=1 passed=1
+Q32 T=2 apply=1 inject=1 image_bitwise=1 guard=1
+T=2 apply=1 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=1 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=1 inject=strata rdna3: BF16 HC up32 selected T=3 q8_image=1 (graph capture also logs)
+strata rdna3: BF16 HC up32 selected T=4 q8_image=1 (graph capture also logs)
+1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=1 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=2 apply=1 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=3 apply=0 inject=0 produced=1 expected=1 passed=1
+Q32 T=3 apply=0 inject=0 image_bitwise=1 guard=1
+T=3 apply=0 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=0 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=0 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=0 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=0 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=3 alt=0 microseconds=24.1422
+BENCH T=3 alt=1 microseconds=24.1232
+GRAPH T=3 relative_l2=0 passed=1
+DISPATCH T=3 apply=0 inject=1 produced=1 expected=1 passed=1
+Q32 T=3 apply=0 inject=1 image_bitwise=1 guard=1
+T=3 apply=0 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=0 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=0 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=0 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=0 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=3 alt=0 microseconds=24.2044
+BENCH T=3 alt=1 microseconds=24.1620
+GRAPH T=3 relative_l2=0 passed=1
+DISPATCH T=3 apply=1 inject=0 produced=1 expected=1 passed=1
+Q32 T=3 apply=1 inject=0 image_bitwise=1 guard=1
+T=3 apply=1 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=1 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=1 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=1 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=1 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=3 apply=1 inject=1 produced=1 expected=1 passed=1
+Q32 T=3 apply=1 inject=1 image_bitwise=1 guard=1
+T=3 apply=1 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=1 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=1 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=1 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=3 apply=1 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=4 apply=0 inject=0 produced=1 expected=1 passed=1
+Q32 T=4 apply=0 inject=0 image_bitwise=1 guard=1
+T=4 apply=0 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=0 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=0 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=0 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=0 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=4 alt=0 microseconds=26.3092
+BENCH T=4 alt=1 microseconds=26.2330
+GRAPH T=4 relative_l2=0 passed=1
+DISPATCH T=4 apply=0 inject=1 produced=1 expected=1 passed=1
+Q32 T=4 apply=0 inject=1 image_bitwise=1 guard=1
+T=4 apply=0 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=0 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=0 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=0 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=0 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=4 alt=0 microseconds=26.3774
+BENCH T=4 alt=1 microseconds=26.2688
+GRAPH T=4 relative_l2=0 passed=1
+DISPATCH T=4 apply=1 inject=0 produced=1 expected=1 passed=1
+Q32 T=4 apply=1 inject=0 image_bitwise=1 guard=1
+T=4 apply=1 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=1 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=1 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=1 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=1 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=4 apply=1 inject=1 produced=1 expected=1 passed=1
+Q32 T=4 apply=1 inject=1 image_bitwise=1 guard=1
+T=4 apply=1 inject=1 fstrata rdna3: BF16 HC up32 selected T=5 q8_image=1 (graph capture also logs)
+strata rdna3: BF16 HC up32 selected T=6 q8_image=1 (graph capture also logs)
+ield=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=1 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=1 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=1 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=4 apply=1 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=5 apply=0 inject=0 produced=1 expected=1 passed=1
+Q32 T=5 apply=0 inject=0 image_bitwise=1 guard=1
+T=5 apply=0 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=0 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=0 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=0 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=0 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=5 alt=0 microseconds=29.7331
+BENCH T=5 alt=1 microseconds=29.6529
+GRAPH T=5 relative_l2=0 passed=1
+DISPATCH T=5 apply=0 inject=1 produced=1 expected=1 passed=1
+Q32 T=5 apply=0 inject=1 image_bitwise=1 guard=1
+T=5 apply=0 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=0 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=0 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=0 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=0 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=5 alt=0 microseconds=29.8703
+BENCH T=5 alt=1 microseconds=29.7939
+GRAPH T=5 relative_l2=0 passed=1
+DISPATCH T=5 apply=1 inject=0 produced=1 expected=1 passed=1
+Q32 T=5 apply=1 inject=0 image_bitwise=1 guard=1
+T=5 apply=1 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=1 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=1 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=1 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=1 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=5 apply=1 inject=1 produced=1 expected=1 passed=1
+Q32 T=5 apply=1 inject=1 image_bitwise=1 guard=1
+T=5 apply=1 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=1 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=1 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=1 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=5 apply=1 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=6 apply=0 inject=0 produced=1 expected=1 passed=1
+Q32 T=6 apply=0 inject=0 image_bitwise=1 guard=1
+T=6 apply=0 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=0 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=0 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=0 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=0 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=6 alt=0 microseconds=32.2583
+BENCH T=6 alt=1 microseconds=31.9685
+GRAPH T=6 relative_l2=0 passed=1
+DISPATCH T=6 apply=0 inject=1 produced=1 expected=1 passed=1
+Q32 T=6 apply=0 inject=1 image_bitwise=1 guard=1
+T=6 apply=0 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=0 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=0 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=0 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=0 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=6 alt=0 microseconds=32.4319
+BENCH T=6 alt=1 microseconds=32.0867
+GRAPH T=6 relative_l2=0 passed=1
+DISPATCH T=6 apply=1 inject=0 produced=1 expected=1 passed=1
+Q32 T=6 apply=1 inject=0 image_bitwise=1 guard=1
+T=6 apply=1 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=1 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=1 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=1 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=1 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 pstrata rdna3: BF16 HC up32 selected T=7 q8_image=1 (graph capture also logs)
+strata rdna3: BF16 HC up32 selected T=8 q8_image=1 (graph capture also logs)
+assed=1
+DISPATCH T=6 apply=1 inject=1 produced=1 expected=1 passed=1
+Q32 T=6 apply=1 inject=1 image_bitwise=1 guard=1
+T=6 apply=1 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=1 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=1 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=1 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=6 apply=1 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=7 apply=0 inject=0 produced=1 expected=1 passed=1
+Q32 T=7 apply=0 inject=0 image_bitwise=1 guard=1
+T=7 apply=0 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=0 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=0 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=0 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=0 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=7 alt=0 microseconds=37.3889
+BENCH T=7 alt=1 microseconds=37.1609
+GRAPH T=7 relative_l2=0 passed=1
+DISPATCH T=7 apply=0 inject=1 produced=1 expected=1 passed=1
+Q32 T=7 apply=0 inject=1 image_bitwise=1 guard=1
+T=7 apply=0 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=0 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=0 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=0 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=0 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=7 alt=0 microseconds=37.5139
+BENCH T=7 alt=1 microseconds=37.3747
+GRAPH T=7 relative_l2=0 passed=1
+DISPATCH T=7 apply=1 inject=0 produced=1 expected=1 passed=1
+Q32 T=7 apply=1 inject=0 image_bitwise=1 guard=1
+T=7 apply=1 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=1 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=1 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=1 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=1 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=7 apply=1 inject=1 produced=1 expected=1 passed=1
+Q32 T=7 apply=1 inject=1 image_bitwise=1 guard=1
+T=7 apply=1 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=1 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=1 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=1 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=7 apply=1 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=8 apply=0 inject=0 produced=1 expected=1 passed=1
+Q32 T=8 apply=0 inject=0 image_bitwise=1 guard=1
+T=8 apply=0 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=0 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=0 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=0 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=0 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=8 alt=0 microseconds=41.5138
+BENCH T=8 alt=1 microseconds=41.1598
+GRAPH T=8 relative_l2=0 passed=1
+DISPATCH T=8 apply=0 inject=1 produced=1 expected=1 passed=1
+Q32 T=8 apply=0 inject=1 image_bitwise=1 guard=1
+T=8 apply=0 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=0 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=0 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=0 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=0 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+BENCH T=8 alt=0 microseconds=41.5844
+BENCH T=8 alt=1 microseconds=41.1932
+GRAPH T=8 relative_l2=0 passed=1
+DISPATCH T=8 apply=1 inject=0 produced=1 expected=1 passed=1
+Q32 T=8 apply=1 inject=0 image_bitwise=1 guard=1
+T=8 apply=1 inject=0 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=1 inject=0 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=1 inject=0 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=1 inject=0 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=1 inject=0 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+DISPATCH T=8 apply=1 inject=1 produced=1 expected=1 passed=1
+Q32 T=8 apply=1 inject=1 image_bitwise=1 guard=1
+T=8 apply=1 inject=1 field=R relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=1 inject=1 field=lo relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=1 inject=1 field=rs relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=1 inject=1 field=inject relative_l2=0 max_abs=0 finite=1 passed=1
+T=8 apply=1 inject=1 field=mixed relative_l2=0 max_abs=0 finite=1 passed=1
+SUMMARY bad=0
