@@ -19,6 +19,7 @@
 #define STRATA_GR_WPE 8
 #endif
 namespace strata::kernels {
+bool rdna_gr_q32_enabled();
 namespace {
 constexpr int N = 2560, HC = 4, D = N * HC, LR = 320, PR = LR + HC;   // partial rows: 320 down + 4 inject
 constexpr int H = N / 2;                  // half-stream slice, 1280
@@ -471,19 +472,20 @@ __device__ __forceinline__ void q8_tail(const RdnaGr& m, int d0) {
     if (lane == 0) y->ds = q8_1_ds(d, sum);
 }
 
-template <int T, bool Q8 = false, bool A8 = false>
+template <int T, bool Q8 = false, bool A8 = false, int COLS = UC>
 __device__ __forceinline__ void up_body(const RdnaGr& m, const int bx) {
 
     __shared__ __align__(16) uint32_t loq[A8 ? T : 1][LR / 4];
     __shared__ float lod[A8 ? T : 1][LR / 32];
     __shared__ __align__(16) float lo[T][LR];
     __shared__ float rs[T][HC];
-    __shared__ float g[T][HC][UC];
+    __shared__ float g[T][HC][COLS];
+    __shared__ float local_mix[T][COLS];
     const int t = threadIdx.x;
     // four lanes per row: quarter q reads uint4 q, q+4, ..., q+36 (10 of the row's 40) - issued first, so the DRAM
     // latency overlaps the partial folding below
     const int rr = t >> 2, q = t & 3;          // 64 rows: stream c = rr / UC, column dd = rr % UC
-    const int c = rr / UC, dd = rr - c * UC, d = bx * UC + dd, i = c * N + d;
+    const int c = rr / COLS, dd = rr - c * COLS, d = bx * COLS + dd, i = c * N + d;
     uint4 w[10];
     uint2 w8[10];
     float d8[10];
@@ -506,7 +508,7 @@ __device__ __forceinline__ void up_body(const RdnaGr& m, const int bx) {
         if (bx == 0) m.a[k].rs[cs] = rs[k][cs];
     }
     __syncthreads();
-    for (int i = t; i < T * PR; i += TH) {
+    for (int i = t; i < T * PR; i += blockDim.x) {
         const int k = i / PR, j = i - k * PR;
         const float* p = m.part + (size_t) k * 2 * HC * PR + j;
         float s = 0.0f;
@@ -522,7 +524,7 @@ __device__ __forceinline__ void up_body(const RdnaGr& m, const int bx) {
     }
     __syncthreads();
     if constexpr (A8) {   // lo -> int8 per 32 (aligned 8-lane groups of float4)
-        for (int i = t; i < T * (LR / 4); i += TH) {
+        for (int i = t; i < T * (LR / 4); i += blockDim.x) {
             const int k = i / (LR / 4), f = i - k * (LR / 4);
             const float4 v = *reinterpret_cast<const float4*>(&lo[k][4 * f]);
             quant4(v, &loq[k][f], &lod[k][f >> 3], (f & 7) == 0);
@@ -557,19 +559,46 @@ __device__ __forceinline__ void up_body(const RdnaGr& m, const int bx) {
         }
     }
     __syncthreads();
-    if (t < T * UC) {
-        const int k = t / UC, col = t - k * UC;
+    if (t < T * COLS) {
+        const int k = t / COLS, col = t - k * COLS;
         float s = 0.0f;
 #pragma unroll
         for (int cc = 0; cc < HC; ++cc) s += g[k][cc][col];
-        m.a[k].mixed[bx * UC + col] = s / (float) HC;
+        m.a[k].mixed[bx * COLS + col] = s / (float) HC;
+        if constexpr (COLS == 32) local_mix[k][col] = s / (float) HC;
     }
-    if (m.a[0].q8_mixed != nullptr) q8_tail<T>(m, bx * UC);   // STRATA_QFUSE
+    if constexpr (COLS == 32) {
+        // A complete q8_1 block belongs to one workgroup. No cross-workgroup
+        // counter, global spin, or second quantization launch is needed.
+        __syncthreads();
+        const int wave = t >> 5, lane = t & 31;
+        if (m.a[0].q8_mixed != nullptr && wave < T) {
+            const float xi = local_mix[wave][lane];
+            float amax = fabsf(xi), sum = xi;
+#pragma unroll
+            for (int o = 16; o > 0; o >>= 1) amax = fmaxf(amax, __shfl_xor_sync(0xffffffffu, amax, o));
+#pragma unroll
+            for (int o = 16; o > 0; o >>= 1) sum += __shfl_xor_sync(0xffffffffu, sum, o);
+            const float d = q8_1_finite(amax / 127.0f);
+            RdnaQ81* y = reinterpret_cast<RdnaQ81*>(m.a[wave].q8_mixed) + bx;
+            y->qs[lane] = q8_1_quant(xi, d, amax);
+            if (lane == 0) y->ds = q8_1_ds(d, sum);
+        }
+    } else {
+        if (m.a[0].q8_mixed != nullptr) q8_tail<T>(m, bx * UC);   // STRATA_QFUSE
+    }
 }
 
 template <int T, bool Q8 = false, bool A8 = false>
 __global__ void __launch_bounds__(TH) rdna_gr_up(RdnaGr m) {
     up_body<T, Q8, A8>(m, blockIdx.x);
+}
+
+template <int T>
+__global__ void __launch_bounds__(512) rdna_gr_up_q32(RdnaGr m) {
+    // Four lanes per row, as in the 16-column kernel; keep each row's
+    // arithmetic while doubling column ownership and halving workgroups.
+    up_body<T, false, false, 32>(m, blockIdx.x);
 }
 
 // STRATA_GR_FUSED=1: the down and up passes of the A8 read (inject rows in their own blocks) in ONE launch - every
@@ -683,7 +712,16 @@ void launch(const RdnaGr& m, cudaStream_t st, unsigned long long* sb, int si) {
         else rdna_gr_down<T, 2><<<dim3((PR + 2 * WV - 1) / (2 * WV), 2 * HC), TH, 0, st>>>(m);
     }
     if (sb) gpu_stamp(sb, si + 1, st);
-    if (only != 1) rdna_gr_up<T><<<UB, TH, 0, st>>>(m);
+    if (only != 1) {
+        if (rdna_gr_q32_enabled()) {
+            static thread_local bool told = false;
+            if (!told) {
+                told = true;
+                std::fprintf(stderr, "strata rdna3: BF16 HC up32 selected T=%d q8_image=%d (graph capture also logs)\n", T, m.a[0].q8_mixed != nullptr);
+            }
+            rdna_gr_up_q32<T><<<N / 32, 512, 0, st>>>(m);
+        } else rdna_gr_up<T><<<UB, TH, 0, st>>>(m);
+    }
 }
 }  // namespace
 
@@ -736,6 +774,14 @@ bool rdna_gr_enabled() {
 
 bool rdna_gr_q8_enabled() {
     static const bool on = [] { const char* v = std::getenv("STRATA_LAB_RDNA_HC_Q8"); return v != nullptr && v[0] == '1'; }();
+    return on;
+}
+
+namespace { thread_local int q32_probe_mode = -1; }
+void rdna_gr_q32_probe_mode(int mode) { q32_probe_mode = mode; }
+bool rdna_gr_q32_enabled() {
+    if (q32_probe_mode >= 0) return q32_probe_mode != 0;
+    static const bool on = [] { const char* v = std::getenv("STRATA_LAB_RDNA_GR_Q32"); return v && v[0] == '1'; }();
     return on;
 }
 

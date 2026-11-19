@@ -1,6 +1,6 @@
 {
  "date": "2026-11-19",
- "purpose": "CPU expert single-token dispatch screen: MT_MIN=1 vs STRATA_CPU_IQ_ALL_EXACT1 vs ggml (local cennac-rdna3-dev worktree, fa6d445 upstream-intake check)",
+ "purpose": "CPU expert single-token dispatch screen: MT_MIN=1 vs STRATA_CPU_IQ_ALL_EXACT1 vs ggml (Codex fa6d445 upstream-intake check)",
  "method": {
   "output_tokens": 768,
   "repeats": 1,
@@ -355,13 +355,13 @@
    ]
   }
  ],
+ "codex_source": {
+  "worktree": "C:/Users/Cennac/.codex/worktrees/cennac-rdna3/repository",
+  "commit": "fa6d445a2c92901efb65544d2fcc23788286246f",
+  "patch_export": "E:/AIPorject/66/artifacts/strata-optimize-0216b-20261119/evidence/codex-fa6d445-iq3s-exact1.patch"
+ },
  "completed": true,
  "restored": true,
  "faults": [],
- "verdict_note_20261119_evening": "original parity-based rejection evidence invalidated by round18-20 finding; speed rejection stands independently",
- "source_worktree": {
-  "branch": "cennac-rdna3-dev",
-  "commit": "fa6d445a2c92901efb65544d2fcc23788286246f",
-  "repository": "E:/AIPorject/66/artifacts/strata_full_source_20261101/repository (worktree of nicejunjie/Strata-rdna3 clone)"
- }
+ "verdict_note_20261119_evening": "original parity-based rejection evidence invalidated by round18-20 finding; speed rejection stands independently"
 }

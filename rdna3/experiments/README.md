@@ -53,3 +53,42 @@ STRATA_LAB_RDNA_KQUANT_TYPES='23,garbage' build/rdna_kquant_probe 0 0
 探针默认不计微基准时间；仅需局部诊断时设置`STRATA_RDNA_PROBE_BENCH=1`。顺序计时的热状态和频率可导致同一路径也出现差异，不能替代服务对照。
 
 筛选使用768输出、每项1次，适合排除退化组合。采用候选前需要1024输出、至少3次的独立加载复测，并继续核对惩罚历史和回滚行为。单路是一个请求使用两张GPU；双路吞吐使用总输出token除以从请求发出到整批结束的时间，包含首字等待。
+
+## BF16 HC 32列与本地量化实验
+
+`STRATA_LAB_RDNA_GR_Q32=1` 依赖 `STRATA_LAB_RDNA_GR=1`，默认关闭，仅改变本地BF16 HC读取的up阶段。工作组从16列／256线程改为32列／512线程，每组独占一个q8_1块，可在调用方允许时同时产生量化图像，省去独立量化发射。逐行求和顺序保持不变；Q8/A8权重路径不变。没有跨工作组计数或自旋屏障。
+
+关闭 `STRATA_QFUSE_HC_LOCAL` 且未提供计数器时，仍须返回“未融合量化”，交给调用方执行独立量化。新增探针经实际调度入口检查这个回退，避免将未写入图像误报为已生成。
+
+新版草稿层的 `mtp_qfuse_hc_on()` 只读取 `STRATA_QFUSE_HC`，不读取 `STRATA_QFUSE`，gfx1100默认关闭。要测草稿层的无计数器融合，另设 `STRATA_QFUSE_HC=1`；只开32列开关并不能证明草稿层已产生融合量化图像。首次选中日志标明T与图像指针是否存在，图捕获也会记录，同一T后续调用不重复输出，不能据第一条日志推断所有层的路径或执行次数。
+
+```sh
+cmake --build build --target strata rdna_hc_probe -j 4
+export LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib/llvm/lib
+for gpu in 0 1; do
+  build/rdna_hc_probe "$gpu" bf16
+  build/rdna_hc_probe "$gpu" q32plain
+  build/rdna_hc_probe "$gpu" q32
+  STRATA_RDNA_PROBE_ZERO=1 build/rdna_hc_probe "$gpu" q32
+  STRATA_QFUSE_HC_LOCAL=0 build/rdna_hc_probe "$gpu" q32
+done
+```
+
+`q32plain`／`q32` 对T=1…8、apply与inject开关检查五个浮点输出与旧16列核逐位一致；`q32`另将图像字节与旧核后单独运行的原生q8_1量化逐位比较，并检查缓冲尾部哨兵及图重放。零输入检查量化零值边界。微基准两臂包含的量化工作可能不同，不能从其顺序计时推算整机收益。
+
+## CPU mapped-row combine 实验
+
+开发版配置继承的 `STRATA_COMBINE_CPU=1` 没有对应实现，不会打开现役旧版的CPU结果合并优化。新增独立、默认关闭的 `STRATA_LAB_RDNA_COMBINE_CPU=1`，在普通HIP部分驻留路径中直接从映射内存读取CPU专家结果、从显存读取GPU命中结果，保持专家顺序合并。省去独立的CPU行复制与GPU命中行加和；CPU发布等待和shared gate仍使用开发版原实现，本实验不融合等待或门控。
+
+限定top-k=10、原生专家格式、原生BF16 shared expert、vec4宽度、窗口2…8。全驻留、设备计划、远端专家、peer专家层、阶段计时／trace和负载平衡计时均回退原路径；窗口1也回退。API检查输入跨度、对齐、输出别名与窗口边界。开关须在构造／捕获会话前设置，已有计算图不会因修改环境变量而重写。
+
+```sh
+cmake --build build --target strata rdna_cpu_combine_probe -j 4
+export LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib/llvm/lib
+build/rdna_cpu_combine_probe 0
+build/rdna_cpu_combine_probe 1
+# In the controller profile, before loading:
+# "env": {"STRATA_LAB_RDNA_COMBINE_CPU": "1"}
+```
+
+探针对照实际 `wait_flag_ge`→`copy_rows_from_mapped`→`moe_hit_add`→`native_moe_combine_multi` 流程，检查不同宽度、T=1…8、全CPU／全GPU及混合命中、正负输入、大数、有符号零、延迟CPU发布后的图重放和缓冲哨兵。最终探针第三次重放使用全零CPU／GPU／shared结果，避免零符号差异被其他非零项掩盖。CPU每次重放改写映射结果，避免只用已就绪数据掩盖发布或复用问题。图捕获时的首次选中日志仅证明选择入口，不是执行次数或全层覆盖统计。整机收益需看同二进制关闭／开启后的单路、双路复测。

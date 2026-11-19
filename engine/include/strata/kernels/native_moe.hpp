@@ -34,4 +34,11 @@ void native_moe_combine_multi_hits(const float* hits, const float* weights, cons
 void native_moe_combine_multi_hits_gated(const float* hits, const float* weights, const float* shared,
                                          const float* shared_gate, float* output, int64_t n_embd, int64_t k, int n_tok,
                                          void* stream);
+// CPU is mapped pinned memory, already published by the existing CPU/GPU wait.
+// Hit rows are unique indices in [0, n_tok*10), count in [0, n_tok*10].
+// Shared is already gated. First product and ordered FMA match the ordinary path.
+// No allocation/synchronization; stream ordering must keep rows live until done.
+void native_moe_combine_multi_cpu(const float* cpu, const float* hit, const int32_t* hit_rows, const int32_t* count,
+                                  const float* weights, const float* shared, float* output,
+                                  int64_t n_embd, int n_tok, void* stream);
 }

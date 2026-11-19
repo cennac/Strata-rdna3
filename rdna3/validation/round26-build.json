@@ -1,0 +1,31 @@
+{
+  "engine_sha256": "5614920ceb8dbef95b94d901560a4154ad529f5202e6caf57a36e5800b45493d",
+  "probe_sha256": "032bb2a0c6c9ab89143903f6a8d1adf5c53740652201fe6feb7d2f044efd5218",
+  "files": [
+    {
+      "path": "engine/CMakeLists.txt",
+      "before": "c0be1c0b520fff2cb668c960c8862d55927edd1bbfa33ab4be6d17df15b3e1a7",
+      "after": "a14e215e9dd7a45eb27df719fb806f6439deab7a7b3f9ba9ac71ccf9829708df"
+    },
+    {
+      "path": "engine/include/strata/kernels/native_moe.hpp",
+      "before": "4224a4cdc885f91dbea879895ef66cd34b13e3f8d1fcfa90a24b0320b3e61d47",
+      "after": "3f95c91faf72d1009aca0fbaebbdb6ed8dcfddc4ed6661ab8365d5d4d22295d4"
+    },
+    {
+      "path": "engine/src/core/verify.cpp",
+      "before": "6982d86a2b641db94997d15cc4106af7f1c11edda5d998f2d364d8c6dd4017ca",
+      "after": "aec7072783de50e5bc0ecb87693e36aa9ad14b0b0d432e0e5d56e1259d6ab12a"
+    },
+    {
+      "path": "engine/src/kernels/cuda/native_moe.cu",
+      "before": "c5d5b2af2d59379c113c128fcabe6c43c80a8d58b57b614a588fa2c9ec058986",
+      "after": "3c9997de53c00c741759eb7054ea9cb4fe9014b3491ff92ae940a093d4fcc9d6"
+    },
+    {
+      "path": "engine/src/kernels/rdna_cpu_combine_probe.cpp",
+      "before": null,
+      "after": "20efec908e42a10f82a2d1380eeeffd0f5226507c9fb53b1ea67fae79279b161"
+    }
+  ]
+}

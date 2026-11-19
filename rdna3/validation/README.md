@@ -31,8 +31,18 @@ Q8/A8 HC 的独立标量参考、Q8工作区首次失败及修正理由见[第�
 
 第十三轮冻结插桩的逐阶段窗口对照见[round13记录](../benchmarks/2026-11-19-round13.md)：开发版每窗口慢约1.9ms，约45%在等待链（waitB/PCIe grp/waitCPU）、18%在HC读取残余差距，copy+combine开发版更好。插桩数字只用于归因。
 
-第十四轮CPU分发对照见[round14记录](../benchmarks/2026-11-19-round14.md)：`STRATA_CPU_IQ_ALL_EXACT1`（本地工作树 IQ3S_EXACT1 的上游收编版）在本机全量parity零失败（`round14-iq-avx2-parity.txt`，生效日志`round14-exact1-gate.txt`），但整机慢于`STRATA_IQ_MT_MIN=1`，不采纳。开关对照审计见[2026-11-19-switch-audit.md](2026-11-19-switch-audit.md)。
+第十四轮CPU分发对照见[round14记录](../benchmarks/2026-11-19-round14.md)：`STRATA_CPU_IQ_ALL_EXACT1`（上游收编版Codex IQ3S_EXACT1）在本机全量parity零失败（`round14-iq-avx2-parity.txt`，生效日志`round14-exact1-gate.txt`），但整机慢于`STRATA_IQ_MT_MIN=1`，不采纳。开关对照审计见[2026-11-19-switch-audit.md](2026-11-19-switch-audit.md)。
 
 第十五至十七轮采纳`STRATA_SH_STREAM=1`＋`STRATA_AUX_CPUS=auto`（四路+0.7~6.9%，均为调度/放置类开关）。第十八至二十轮发现**冻结串行重复检查当日下午起对纯对照配置也失败**（热/冷加载共4组，6/6中文不一致），该检查在恢复可复现前不用于开关甄别；上午round-12同协议通过，诱因未定位，开放问题。见[round18-20记录](../benchmarks/2026-11-19-round18-20.md)。
 
 第二十一至二十二轮采纳`--pool-workers 12`（zh单+5.0%/双+3.4%/代码持平）；**`STRATA_TSUM=1` 在gfx1100加载期SIGABRT崩溃**，勿启用；swiglu（代码−7.9%）、pool16、lfuse未采纳。见[round21-22记录](../benchmarks/2026-11-19-round21-22.md)。
+
+第二十三轮显式绑核／任务粒度筛选没有全面收益，见[记录](../benchmarks/2026-11-19-round23.md)。第二十四轮新增BF16 HC up32，以旧RDNA16浮点输出＋独立原生q8_1量化作为参照。两卡共1600字段、192图像／哨兵、132图重放、256调度返回值和64禁止融合未写入检查零失败；逐进程原始输出为本目录`round24-probe-*.txt`，统计见[JSON](../benchmarks/2026-11-19-round24.json)。stderr诊断可能插入缓冲stdout中间，统计时仅移除已知选择日志再数行，原始文件不改写。
+
+本轮对照和Q32的冻结串行重复、流水线、强制回滚均一致，但第十八至二十轮曾失败，根因尚未定位，不能认定已修复。三题冒烟均2/3。Q32默认关闭，1024×3服务结果没有全面收益，见[记录](../benchmarks/2026-11-19-round24.md)。源码／构建哈希见[清单](round24-build.json)，现役配置、运行中可执行文件、端口与故障日志的恢复核对见[恢复记录](round24-restoration.json)。
+
+第二十五轮另设`STRATA_QFUSE_HC=1`，首次选中的T=1…8均收到量化图像指针，见[选择记录](round25-q32-selection.json)。复用同二进制数值验证，768输出初筛没有全面收益，见[记录](../benchmarks/2026-11-19-round25.md)。未对该入口组合重新做冻结文本／质量检查，未将其设为默认；测后[恢复核对](round25-restoration.json)通过。
+
+第二十六轮新增默认关闭的CPU mapped-row combine。参照实际独立等待／复制／命中加和／合并流程，两GPU各600次逐位和图重放／哨兵检查、240次非法参数拒绝零失败；原始输出为`round26-probe-cpu-combine-gpu*.txt`。第27轮最终探针第三次重放另用全零CPU／GPU／shared结果，重新通过同样检查。具体宽度、命中比例、T和重放序号逐条保留，不以抽样误差容限代替逐位比较。
+
+第26轮1024×3没有全面性能收益，见[数据与决定](../benchmarks/2026-11-19-round26.md)。第27轮最终非HIP调用隔离不改变HIP引擎二进制哈希，GPU核库也未改变；对照／实验分别在冻结专家自适应和后缀草稿后完成中文、代码的串行重复／流水线／强制回滚文本一致检查，见[记录](../benchmarks/2026-11-19-round27.md)。普通自适应测速的重复文本差异另外保留，不将它用作冻结检查。默认不开启新路径，现役恢复核对见`round26-restoration.json`和`round27-restoration.json`；全天结论见[总结](../benchmarks/2026-11-19-summary.md)。

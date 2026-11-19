@@ -1,0 +1,15 @@
+{
+  "scope": "first selection per T per host thread, includes graph capture; not execution count",
+  "logs": {
+    "r27-cpu-combine-frozen-engine.log": [
+      "strata rdna3: CPU mapped combine selected T=2",
+      "strata rdna3: CPU mapped combine selected T=3",
+      "strata rdna3: CPU mapped combine selected T=4"
+    ],
+    "r27-cpu-combine-guard-check-engine.log": [
+      "strata rdna3: CPU mapped combine selected T=2",
+      "strata rdna3: CPU mapped combine selected T=3",
+      "strata rdna3: CPU mapped combine selected T=4"
+    ]
+  }
+}

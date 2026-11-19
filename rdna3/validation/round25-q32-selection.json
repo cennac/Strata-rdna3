@@ -1,0 +1,15 @@
+{
+  "scope": "first selection per T per host thread, includes graph capture; not execution counts or all later image-pointer states",
+  "logs": {
+    "r25-q32-hc-policy-engine.log": [
+      "strata rdna3: BF16 HC up32 selected T=1 q8_image=1 (graph capture also logs)",
+      "strata rdna3: BF16 HC up32 selected T=2 q8_image=1 (graph capture also logs)",
+      "strata rdna3: BF16 HC up32 selected T=3 q8_image=1 (graph capture also logs)",
+      "strata rdna3: BF16 HC up32 selected T=4 q8_image=1 (graph capture also logs)",
+      "strata rdna3: BF16 HC up32 selected T=5 q8_image=1 (graph capture also logs)",
+      "strata rdna3: BF16 HC up32 selected T=6 q8_image=1 (graph capture also logs)",
+      "strata rdna3: BF16 HC up32 selected T=7 q8_image=1 (graph capture also logs)",
+      "strata rdna3: BF16 HC up32 selected T=8 q8_image=1 (graph capture also logs)"
+    ]
+  }
+}

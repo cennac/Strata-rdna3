@@ -1,0 +1,26 @@
+{
+  "engine_sha256": "52916a3254a06499f2541dd12b845e054bfc9b02e78db0340cb7eb81d999dc31",
+  "probe_sha256": "6a2b47deb5bc44713ddc0dacb9d662ff4736bd4195b906f4d4d58e1fcb04e4e8",
+  "files": [
+    {
+      "path": "engine/src/kernels/cuda/fused_gr.cu",
+      "before": "1b93fa0d7996c507fa0ad3b0a34b2a8d01c725ab1189729fd2f8b8943174d12a",
+      "after": "c91e987a52d862f6bd698833c7219615ba924ec9d3d5791ee45dab3ba7eedb7c"
+    },
+    {
+      "path": "engine/src/kernels/cuda/rdna_gr_local.cu",
+      "before": "dbb2d440fe8b68f2e6ad65d20b3d65881490bb676a323c7acc643d623ae6c6ce",
+      "after": "213c9c5b9999d8b366ee1c8ace61f5095753bbc437b517a2ebc8f04633754b23"
+    },
+    {
+      "path": "engine/src/kernels/rdna_hc_probe.cpp",
+      "before": "7cee61ca6ebeb885697a0e3e42888b4b2b1b7f80c2a25ae206b01175ee1ea88c",
+      "after": "2884fd42ab17761ce56f3a64e0e088e831329ab798ec678fad4d3dfa800bf1d3"
+    }
+  ],
+  "base_commit": "63829d5",
+  "runtime": "ROCm 10.1",
+  "architecture": "gfx1100",
+  "build_type": "Release",
+  "scope": "BF16 HC up32 and dispatch fallback probe; source-only opt-in experiment"
+}
