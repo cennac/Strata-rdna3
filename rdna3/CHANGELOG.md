@@ -1,5 +1,12 @@
 # 更新记录
 
+## dev/0.2.16 冻结归因与CPU分发对照（2026-11-19）
+
+- 核对Codex工作树两候选：`STRATA_IQ3S_EXACT1`已被上游收编为`STRATA_CPU_IQ_ALL_EXACT1`（五格式ggml逐位路径，默认关），其速度收益经`STRATA_IQ_MT_MIN=1`已在当前组合兑现；`STRATA_PIPED_ADAPT_EVERY`的上游等价物在layer-split上被排除，不移植。对照审计见`validation/2026-11-19-switch-audit.md`。
+- 第十三轮冻结插桩逐阶段对照（512输出单路）：现役重建10.27/10.87、开发版12.20/12.81 ms/窗口；开发版慢约1.9ms，约45%为等待链（waitB+PCIe grp+waitCPU 0.21→1.04），18%为HC读取残余，copy+combine开发版更好。剩余差距指向未移植的重叠调度与HC内核，不是CPU分发内核。
+- 第十四轮768输出对照：MT_MIN=1对照组中文单/双108.8/155.3、代码143.4/201.8 tok/s；ALL_EXACT1臂−3.4%/−3.9%/−4.1%/持平且中文冻结串行重复文本不一致（nt=1与成组舍入不同，违反窗口不变性），不采纳；无MT_MIN的ggml臂更慢，确认MT_MIN=1最优。
+- `iq_avx2_parity`在本机CPU全量零失败（含exact行）；exact1开关生效日志、引擎阶段表、逐次数据保留在`validation/round14-*`与`benchmarks/2026-11-19-round13/14.json`。无源码改动，模板与main不变，测后恢复现役。
+
 ## dev/0.2.16 分格式迁移与MTP窗口核对（2026-11-19）
 
 - 增加默认关闭的K-quant实验类型选择，支持只启用模型内部的IQ4_XS／Q6_K投影；空值、非法列表或未知类型完全回退，不更换IQ3_XXS权重。
