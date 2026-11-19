@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-19",
+ "purpose": "frozen-consistency probe became unpassable on this machine for ALL configs incl. control; methodology finding",
+ "r18_aux_hot": [
+  {
+   "kind": "zh",
+   "serial_repeat_equal": false,
+   "equal": false
+  },
+  {
+   "kind": "code",
+   "serial_repeat_equal": false,
+   "equal": true
+  }
+ ],
+ "r19_control_hot": [
+  {
+   "kind": "zh",
+   "serial_repeat_equal": false,
+   "equal": false
+  },
+  {
+   "kind": "code",
+   "serial_repeat_equal": false,
+   "equal": false
+  }
+ ],
+ "r20_fresh": {
+  "r20-ctl-fresh": [
+   {
+    "kind": "zh",
+    "serial_repeat_equal": false,
+    "equal": false
+   },
+   {
+    "kind": "code",
+    "serial_repeat_equal": false,
+    "equal": false
+   }
+  ],
+  "r20-aux-fresh": [
+   {
+    "kind": "zh",
+    "serial_repeat_equal": false,
+    "equal": false
+   },
+   {
+    "kind": "code",
+    "serial_repeat_equal": false,
+    "equal": false
+   }
+  ],
+  "r20-shaux-fresh": [
+   {
+    "kind": "zh",
+    "serial_repeat_equal": false,
+    "equal": false
+   },
+   {
+    "kind": "code",
+    "serial_repeat_equal": true,
+    "equal": false
+   }
+  ]
+ },
+ "conclusion": "probe cannot discriminate switches until reproducibility is restored; round-12 morning run of the same protocol passed"
+}

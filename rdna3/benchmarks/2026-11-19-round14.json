@@ -8,7 +8,7 @@
   "penalty_probe_tokens": 384,
   "binary": "fd9335314ceb2b3daa9b26fdfa7a549bbd6b09e1155c64e40c357ac1c32642a8 (no source change)"
  },
- "verdict": "STRATA_IQ_MT_MIN=1 stays; ALL_EXACT1 not adopted (slower and breaks window-invariant rounding: zh frozen serial repeat differs)",
+ "verdict": "STRATA_IQ_MT_MIN=1 stays; ALL_EXACT1 not adopted (slower on 3 of 4 lanes; the same-day frozen-parity failure was later shown to affect the control config too, see round18-20)",
  "arms": [
   {
    "name": "r14-control",
@@ -362,5 +362,6 @@
  },
  "completed": true,
  "restored": true,
- "faults": []
+ "faults": [],
+ "verdict_note_20261119_evening": "original parity-based rejection evidence invalidated by round18-20 finding; speed rejection stands independently"
 }
