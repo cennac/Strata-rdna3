@@ -638,6 +638,9 @@ private:
     static constexpr int kProfPer = 33;              // stamps per layer (32 left the hc-read second
                                       // half's up-stamp at slot 32 = the next layer's slot 0: D8)
     bool prof_on_ = false;
+    bool prof_light_ = false;   // STRATA_VERIFY_PROFILE_LIGHT: stage stamps without disabling the fused paths
+    // the fused paths are disabled only by the full profile mode: light profiling keeps production execution
+    bool prof_blocks_fusion() const { return prof_on_ && !prof_light_; }
     unsigned long long* prof_ = nullptr;              // device: n_layers * kProfPer + 4 stamps
     std::vector<unsigned long long> prof_h_;
     double prof_sum_[2][kProfPer] = {};   // [GDN / QSA layers][stage]
