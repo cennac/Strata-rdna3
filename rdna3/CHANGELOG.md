@@ -1,5 +1,10 @@
 # 更新记录
 
+## dev/0.2.16 草稿层HC融合确认收口（2026-11-19）
+
+- 第28轮以第27轮最终构建(`5614920c`)1024×3确认第25轮筛选候选:`STRATA_QFUSE_HC=1`各路噪声内(对照114.08/155.18/148.84/212.62,-1.6%/+0.2%/+0.2%/-0.2%);Q32+QFUSE_HC为-1.3%/-0.5%/+1.9%/+2.0%,代码两路受益但中文单路退化,均不采纳,维持默认关闭。开关级候选至此全部筛完。
+- 增加英文`rdna3/README.md`总览(与中文日总结互补);工作树来源表述统一为`cennac-rdna3-dev`分支。无源码改动,所有流达到1024预算,测后现役恢复。见`benchmarks/2026-11-19-round28.md`。
+
 ## dev/0.2.16 CPU结果合并迁移与全天总结（2026-11-19）
 
 - 确认开发版继承的 `STRATA_COMBINE_CPU=1` 没有实现；新增独立默认关闭的 `STRATA_LAB_RDNA_COMBINE_CPU=1`，直接合并CPU映射结果与GPU命中结果，省去复制／命中加和，保留原等待与shared gate。限制适用路径并保留回退，非HIP后端不引用新API。
@@ -32,7 +37,7 @@
 
 ## dev/0.2.16 冻结归因与CPU分发对照（2026-11-19）
 
-- 核对Codex工作树两候选：`STRATA_IQ3S_EXACT1`已被上游收编为`STRATA_CPU_IQ_ALL_EXACT1`（五格式ggml逐位路径，默认关），其速度收益经`STRATA_IQ_MT_MIN=1`已在当前组合兑现；`STRATA_PIPED_ADAPT_EVERY`的上游等价物在layer-split上被排除，不移植。对照审计见`validation/2026-11-19-switch-audit.md`。
+- 核对本地工作树两候选：`STRATA_IQ3S_EXACT1`已被上游收编为`STRATA_CPU_IQ_ALL_EXACT1`（五格式ggml逐位路径，默认关），其速度收益经`STRATA_IQ_MT_MIN=1`已在当前组合兑现；`STRATA_PIPED_ADAPT_EVERY`的上游等价物在layer-split上被排除，不移植。对照审计见`validation/2026-11-19-switch-audit.md`。
 - 第十三轮冻结插桩逐阶段对照（512输出单路）：现役重建10.27/10.87、开发版12.20/12.81 ms/窗口；开发版慢约1.9ms，约45%为等待链（waitB+PCIe grp+waitCPU 0.21→1.04），18%为HC读取残余，copy+combine开发版更好。剩余差距指向未移植的重叠调度与HC内核，不是CPU分发内核。
 - 第十四轮768输出对照：MT_MIN=1对照组中文单/双108.8/155.3、代码143.4/201.8 tok/s；ALL_EXACT1臂−3.4%/−3.9%/−4.1%/持平且中文冻结串行重复文本不一致（nt=1与成组舍入不同，违反窗口不变性），不采纳；无MT_MIN的ggml臂更慢，确认MT_MIN=1最优。
 - `iq_avx2_parity`在本机CPU全量零失败（含exact行）；exact1开关生效日志、引擎阶段表、逐次数据保留在`validation/round14-*`与`benchmarks/2026-11-19-round13/14.json`。无源码改动，模板与main不变，测后恢复现役。
