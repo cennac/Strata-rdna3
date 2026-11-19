@@ -1,0 +1,360 @@
+{
+  "phase": "parameter screen",
+  "output_tokens": 768,
+  "repeats": 1,
+  "capacity_per_request": 131072,
+  "actual_long_input": false,
+  "results": [
+    {
+      "name": "round2-baseline",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            113.1
+          ],
+          "batch_tps": 108.43602337452482,
+          "ttft_s": [
+            0.30953665501147043
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            86.8,
+            81.0
+          ],
+          "batch_tps": 152.71525197610254,
+          "ttft_s": [
+            1.0032247959898086,
+            0.3065321159956511
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            151.5
+          ],
+          "batch_tps": 143.41774457319977,
+          "ttft_s": [
+            0.3021601469954476
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            120.6,
+            108.5
+          ],
+          "batch_tps": 201.90756329494195,
+          "ttft_s": [
+            0.9014599270012695,
+            0.2826916100020753
+          ]
+        }
+      },
+      "completed": true,
+      "min_mem_available_gib": 31.47295379638672
+    },
+    {
+      "name": "round2-fusion",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            111.6
+          ],
+          "batch_tps": 107.05773871299894,
+          "ttft_s": [
+            0.3070902390027186
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            82.0,
+            83.0
+          ],
+          "batch_tps": 149.98433404826744,
+          "ttft_s": [
+            0.30942157900426537,
+            1.0018320350063732
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            146.9
+          ],
+          "batch_tps": 139.6331020355521,
+          "ttft_s": [
+            0.2898538369918242
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            112.2,
+            116.4
+          ],
+          "batch_tps": 205.4035380648957,
+          "ttft_s": [
+            0.28378527899621986,
+            0.8960097660019528
+          ]
+        }
+      },
+      "completed": true,
+      "min_mem_available_gib": 31.62987518310547
+    },
+    {
+      "name": "round2-rw1",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            108.7
+          ],
+          "batch_tps": 104.26564663841748,
+          "ttft_s": [
+            0.317048070995952
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            83.2,
+            84.3
+          ],
+          "batch_tps": 151.72334860318654,
+          "ttft_s": [
+            0.3176751190039795,
+            1.030055948998779
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            143.0
+          ],
+          "batch_tps": 135.95801975786648,
+          "ttft_s": [
+            0.29591190299834125
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            107.0,
+            114.0
+          ],
+          "batch_tps": 198.98858063508052,
+          "ttft_s": [
+            0.2908812189998571,
+            0.9210306460008724
+          ]
+        }
+      },
+      "completed": true,
+      "min_mem_available_gib": 31.667240142822266
+    },
+    {
+      "name": "round2-rw4",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            105.1
+          ],
+          "batch_tps": 100.89183810610736,
+          "ttft_s": [
+            0.32617051000124775
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            82.8,
+            80.4
+          ],
+          "batch_tps": 149.53415371007623,
+          "ttft_s": [
+            1.0075427259871503,
+            0.3326152309891768
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            138.0
+          ],
+          "batch_tps": 131.20747819977964,
+          "ttft_s": [
+            0.30734830399160273
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            106.8,
+            109.1
+          ],
+          "batch_tps": 192.62351086772654,
+          "ttft_s": [
+            0.29991438500292134,
+            0.9519122199999401
+          ]
+        }
+      },
+      "completed": true,
+      "min_mem_available_gib": 31.735889434814453
+    },
+    {
+      "name": "round2-fusion-rw4",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            106.3
+          ],
+          "batch_tps": 101.97695002315186,
+          "ttft_s": [
+            0.3273924820095999
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            76.3,
+            85.9
+          ],
+          "batch_tps": 143.7955659742054,
+          "ttft_s": [
+            0.3234114880033303,
+            0.9957595460000448
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            144.1
+          ],
+          "batch_tps": 136.60698737654855,
+          "ttft_s": [
+            0.30792353399738204
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            105.3,
+            109.3
+          ],
+          "batch_tps": 192.98723842460413,
+          "ttft_s": [
+            0.2982536030031042,
+            0.9453811409912305
+          ]
+        }
+      },
+      "completed": true,
+      "min_mem_available_gib": 31.70525360107422
+    }
+  ],
+  "completed": true,
+  "restored": true,
+  "faults": [],
+  "source_config_unchanged": true,
+  "kernel_probe_rc": [
+    {
+      "rw": 1,
+      "gpu": 0,
+      "rc": 0
+    },
+    {
+      "rw": 1,
+      "gpu": 1,
+      "rc": 0
+    },
+    {
+      "rw": 4,
+      "gpu": 0,
+      "rc": 0
+    },
+    {
+      "rw": 4,
+      "gpu": 1,
+      "rc": 0
+    }
+  ]
+}

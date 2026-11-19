@@ -34,6 +34,8 @@ GGML来自历史构建使用的llama.cpp源码；其量化布局参考记录为 
 
 本地改动为默认关闭的惩罚历史流水线，以及实验性的BF16 RDNA3 HC read。RDNA3参考实现来自[nicejunjie/Strata-rdna3](https://github.com/nicejunjie/Strata-rdna3)及历史本地移植，MTP与调度也基于上游及本地回移工作。不是将旧版静态库链接进新版。
 
+后续实验增加了复用上游Q8_0权重的HC Q8/A8适配，以及保持上游求和顺序的稠密矩阵wave32及Q5_K输出头路径。它们均默认关闭；来源仍为上述参考实现、仓库main与上游计算布局。`source-snapshot.json`记录开发首版，后续实验的精确源码哈希另存于[2026-11-19实验清单](validation/2026-11-19-lab-source-sha256.json)，变更由Git追踪。
+
 源码、模板和公开提示词测试脚本可公开复用；模型权重、密钥、实际服务配置与私有调用记录不在此仓库中。
 
 ## 首版全量重建结果

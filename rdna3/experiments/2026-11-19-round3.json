@@ -1,0 +1,21 @@
+{
+  "purpose": "Port legacy RDNA3 HC split-K kernels to upstream-owned Q8_0 weights without a second custom weight image",
+  "screen_output_tokens": 768,
+  "confirmation_output_tokens": 1024,
+  "common_env": {
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_PIPELINE_DEBUG": "1",
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_GR_V3": "0",
+    "STRATA_LAB_RDNA_GR": "1"
+  },
+  "candidates": [
+    {"name": "round3-bf16", "env": {"STRATA_HC_Q8": "0"}},
+    {"name": "round3-q8", "env": {"STRATA_HC_Q8": "1", "STRATA_LAB_RDNA_HC_Q8": "1", "STRATA_GR_RDNA_A8": "0"}},
+    {"name": "round3-a8", "env": {"STRATA_HC_Q8": "1", "STRATA_LAB_RDNA_HC_Q8": "1", "STRATA_GR_RDNA_A8": "1", "STRATA_GR_INJ_UP": "1"}}
+  ],
+  "correctness": "BF16 and Q8 against upstream GPU reads; A8 against independent scalar per-32 Q8/A8 reference. T=1..8, pending write and inject on/off, graph replay. Numerical proximity does not establish language quality parity."
+}

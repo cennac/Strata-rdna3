@@ -1,0 +1,34 @@
+{
+  "purpose": "Exact-order wave32 Q5_K output-head layout on the actual IQ3_XXS head",
+  "screen_output_tokens": 1024,
+  "confirmation_output_tokens": 1024,
+  "common_env": {
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_PIPELINE_DEBUG": "1",
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_GR_V3": "0",
+    "STRATA_HC_Q8": "0",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_MMVQ": "0",
+    "STRATA_Q6_PACKED": "0"
+  },
+  "candidates": [
+    {
+      "name": "q5-control",
+      "env": {
+        "STRATA_LAB_RDNA_Q5_HEAD": "0"
+      }
+    },
+    {
+      "name": "q5-wave",
+      "env": {
+        "STRATA_LAB_RDNA_Q5_HEAD": "1"
+      }
+    }
+  ],
+  "correctness": "400 bitwise cases per GPU across Q4_0/Q5_0/Q8_0/IQ4_NL/Q5_K; actual output-head dimensions, odd rows, fallback shapes, 1..16 columns and graph replay. Frozen penalty/rollback parity and three-question smoke checks.",
+  "repeats": 3
+}

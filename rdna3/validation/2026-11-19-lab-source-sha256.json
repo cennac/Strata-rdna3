@@ -1,0 +1,8 @@
+{
+  "engine/CMakeLists.txt": "871855b40eba9e1344c9179ce8dd6c183f7311aa8c896af49f912e116b0c160d",
+  "engine/src/kernels/cuda/fused_gr.cu": "1b93fa0d7996c507fa0ad3b0a34b2a8d01c725ab1189729fd2f8b8943174d12a",
+  "engine/src/kernels/cuda/rdna_gr_local.cu": "dbb2d440fe8b68f2e6ad65d20b3d65881490bb676a323c7acc643d623ae6c6ce",
+  "engine/src/kernels/cuda/native_mmvq.cu": "f2fce60319b41495433f6e949fd74f214245558391ae74609dbde431f125e363",
+  "engine/src/kernels/rdna_hc_probe.cpp": "7cee61ca6ebeb885697a0e3e42888b4b2b1b7f80c2a25ae206b01175ee1ea88c",
+  "engine/src/kernels/rdna_mmvq_probe.cpp": "de447b90c8ca9a07be1fab88d6453d3bdda91f3526fec7f5550517c499824ed0"
+}

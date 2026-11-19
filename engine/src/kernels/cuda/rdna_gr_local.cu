@@ -28,8 +28,7 @@ constexpr int UC = 16;                    // up: columns per block (x 4 streams 
 constexpr int UB = N / UC;                // 160 blocks
 
 unsigned* g_gr_bar[64] = {};   // STRATA_GR_FUSED: per device {arrived, generation}, zeroed at load (rdna_r8_scratch_init)
-struct RdnaArgs : FusedGrArgs { const int8_t* r8_down = nullptr; const int8_t* r8_up = nullptr; };
-struct RdnaGr { RdnaArgs a[kFusedGrMaxT]; float* part; float* ss; unsigned* bar = nullptr; };   // bar: STRATA_GR_FUSED grid barrier   // part [T][2*HC][PR], ss [T][2*HC]
+struct RdnaGr { FusedGrArgs a[kFusedGrMaxT]; float* part; float* ss; unsigned* bar = nullptr; };   // part [T][2*HC][PR], ss [T][2*HC]
 
 typedef unsigned int u32x4 __attribute__((ext_vector_type(4)));
 __device__ __forceinline__ uint4 ntload(const uint4* p) {
@@ -162,14 +161,23 @@ __device__ __forceinline__ uint2 ntload2(const uint2* p) {
 }
 constexpr size_t r8_soff(size_t n) { return (n + 255) / 256 * 256; }
 
+// Upstream owns the Q8_0 copies: 34 bytes per block, fp16 scale followed by 32 codes.
+// A block payload is only 2-byte aligned. Do not use uint2 loads on it.
+__device__ __forceinline__ uint2 q8_chunk(const uint8_t* weights, size_t element, float& scale) {
+    const uint16_t* block = reinterpret_cast<const uint16_t*>(weights + (element / 32) * 34);
+    scale = h2f(block[0]);
+    const uint16_t* codes = block + 1 + (element % 32) / 2;
+    return make_uint2((uint32_t) codes[0] | ((uint32_t) codes[1] << 16),
+                      (uint32_t) codes[2] | ((uint32_t) codes[3] << 16));
+}
+
 template <int T, int RW>
 __global__ void __launch_bounds__(TH) __attribute__((amdgpu_waves_per_eu(STRATA_GR_WPE, 16))) rdna_gr_down_q8(RdnaGr m) {
     __shared__ __align__(16) float xs[T][H];
     __shared__ float sq[WV][T];
     const int t = threadIdx.x, lane = t & 31, wv = t >> 5;
     const int rg = blockIdx.x, slice = blockIdx.y, c = slice >> 1, h = slice & 1;
-    const int8_t* qd = m.a[0].r8_down;
-    const uint16_t* sd = reinterpret_cast<const uint16_t*>(reinterpret_cast<const uint8_t*>(qd) + r8_soff((size_t) LR * D));
+    const uint8_t* qd = m.a[0].q8_down;
     uint2 wq[RW][HQ];
     float wd[RW][HQ];
     uint4 wb[RW][HQ];   // the BF16 inject rows
@@ -181,10 +189,9 @@ __global__ void __launch_bounds__(TH) __attribute__((amdgpu_waves_per_eu(STRATA_
         act[r] = row < LR || (row < PR && m.a[0].w_inject != nullptr);
         if (!act[r]) continue;
         if (!inj[r]) {
-            const uint2* w2 = reinterpret_cast<const uint2*>(qd + (size_t) row * D + c * N + h * H);
-            const uint16_t* s2 = sd + (size_t) row * (D / 32) + (c * N + h * H) / 32;
 #pragma unroll
-            for (int q = 0; q < HQ; ++q) { wq[r][q] = ntload2(w2 + lane + 32 * q); wd[r][q] = h2f(s2[(lane + 32 * q) >> 2]); }
+            for (int q = 0; q < HQ; ++q)
+                wq[r][q] = q8_chunk(qd, (size_t) row * D + c * N + h * H + (lane + 32 * q) * 8, wd[r][q]);
         } else {
             const uint4* w4 = reinterpret_cast<const uint4*>(m.a[0].w_inject + (size_t) (row - LR) * D + c * N + h * H);
 #pragma unroll
@@ -332,8 +339,7 @@ __device__ __forceinline__ void down_a8_body(const RdnaGr& m, const int bx, cons
     if constexpr (!INJ) {
         if (rg == LR / (RW * WV)) { if (m.a[0].w_inject != nullptr) inject_slice<T>(m, slice); return; }
     }
-    const int8_t* qd = m.a[0].r8_down;
-    const uint16_t* sd = reinterpret_cast<const uint16_t*>(reinterpret_cast<const uint8_t*>(qd) + r8_soff((size_t) LR * D));
+    const uint8_t* qd = m.a[0].q8_down;
     uint2 wq[RW][HQ];
     float wd[RW][HQ];
     uint4 wb[RW][HQ];
@@ -347,10 +353,9 @@ __device__ __forceinline__ void down_a8_body(const RdnaGr& m, const int bx, cons
         any_inj |= inj[r] && act[r];
         if (!act[r]) continue;
         if (!inj[r]) {
-            const uint2* w2 = reinterpret_cast<const uint2*>(qd + (size_t) row * D + c * N + h * H);
-            const uint16_t* s2 = sd + (size_t) row * (D / 32) + (c * N + h * H) / 32;
 #pragma unroll
-            for (int q = 0; q < HQ; ++q) { wq[r][q] = ntload2(w2 + lane + 32 * q); wd[r][q] = h2f(s2[(lane + 32 * q) >> 2]); }
+            for (int q = 0; q < HQ; ++q)
+                wq[r][q] = q8_chunk(qd, (size_t) row * D + c * N + h * H + (lane + 32 * q) * 8, wd[r][q]);
         } else {
             const uint4* w4 = reinterpret_cast<const uint4*>(m.a[0].w_inject + (size_t) (row - LR) * D + c * N + h * H);
 #pragma unroll
@@ -483,11 +488,9 @@ __device__ __forceinline__ void up_body(const RdnaGr& m, const int bx) {
     uint2 w8[10];
     float d8[10];
     if constexpr (Q8) {
-        const int8_t* qu = m.a[0].r8_up;
-        const uint16_t* su = reinterpret_cast<const uint16_t*>(reinterpret_cast<const uint8_t*>(qu) + r8_soff((size_t) D * LR));
-        const uint2* w2 = reinterpret_cast<const uint2*>(qu + (size_t) i * LR);
 #pragma unroll
-        for (int u = 0; u < 10; ++u) { w8[u] = ntload2(w2 + q + 4 * u); d8[u] = h2f(su[(size_t) i * (LR / 32) + ((q + 4 * u) >> 2)]); }
+        for (int u = 0; u < 10; ++u)
+            w8[u] = q8_chunk(m.a[0].q8_up, (size_t) i * LR + (q + 4 * u) * 8, d8[u]);
     } else {
         const uint4* w4 = reinterpret_cast<const uint4*>(m.a[0].w_up + (size_t) i * LR);
 #pragma unroll
@@ -642,7 +645,7 @@ void launch(const RdnaGr& m, cudaStream_t st, unsigned long long* sb, int si) {
     static const int only = [] { const char* v = std::getenv("STRATA_GR_RDNA_ONLY"); return v ? std::atoi(v) : 0; }();   // bench: 1 down, 2 up
     static const int rw = [] { const char* v = std::getenv("STRATA_GR_RDNA_RW"); return v ? std::atoi(v) : 2; }();
     if (sb) gpu_stamp(sb, si, st);
-    if (m.a[0].r8_down != nullptr && m.a[0].r8_up != nullptr) {   // STRATA_GR_RDNA_Q8
+    if (m.a[0].q8_down != nullptr && m.a[0].q8_up != nullptr) {
         static const bool a8 = [] { const char* v = std::getenv("STRATA_GR_RDNA_A8"); return v && v[0] == '1'; }();
         if (a8) {
             static const bool inj_up = [] { const char* v = std::getenv("STRATA_GR_INJ_UP"); return v && v[0] == '1'; }();
@@ -728,6 +731,11 @@ const uint16_t* rdna_r8_to_bf16(const int8_t* r8, long long rows, long long cols
 
 bool rdna_gr_enabled() {
     static const bool on = [] { const char* v = std::getenv("STRATA_LAB_RDNA_GR"); return v != nullptr && v[0] == '1'; }();
+    return on;
+}
+
+bool rdna_gr_q8_enabled() {
+    static const bool on = [] { const char* v = std::getenv("STRATA_LAB_RDNA_HC_Q8"); return v != nullptr && v[0] == '1'; }();
     return on;
 }
 

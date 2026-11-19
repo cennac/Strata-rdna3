@@ -2358,6 +2358,68 @@ void launch_check() {
 }
 
 
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+// Legacy RDNA3 exact layout: keep each of the generic four-warp partials in
+// registers, then sum them in the original order inside one wave per row.
+int rdna_wave_override = -1;   // numeric probe only; serving uses the environment
+bool rdna_wave_on() {
+    static const bool on = [] { const char* v = std::getenv("STRATA_LAB_RDNA_MMVQ"); return v && v[0] == '1'; }();
+    return rdna_wave_override < 0 ? on : rdna_wave_override != 0;
+}
+template<typename F, int NCOLS>
+__launch_bounds__(256)
+__global__ void rdna_mmvq_exact_kernel(const typename F::Block* __restrict__ w, const Q81Block* __restrict__ x,
+                                      float* __restrict__ y, int n_in, int n_out) {
+    const int lane = int(threadIdx.x) & 31;
+    const int row = int(blockIdx.x) * 8 + int(threadIdx.x) / 32;
+    if (row >= n_out) return;
+    const int blocks_per_row = n_in / F::DIV, x_stride = n_in / Q8K;
+    float tmp[NCOLS][WARPS] = {};
+#pragma unroll
+    for (int g = 0; g < WARPS; ++g) {
+        const int tid = lane + g * WARP, kqs = F::kqs(tid);
+        for (int kbx = tid / F::T; kbx < blocks_per_row; kbx += F::BPI) {
+            const typename F::W wv = F::load(w + std::size_t(row) * blocks_per_row + kbx, kqs);
+#pragma unroll
+            for (int j = 0; j < NCOLS; ++j) tmp[j][g] += F::apply(wv, x + std::size_t(j) * x_stride + kbx * F::KBY, kqs);
+        }
+    }
+#pragma unroll
+    for (int j = 0; j < NCOLS; ++j) {
+        float v = tmp[j][0];
+#pragma unroll
+        for (int g = 1; g < WARPS; ++g) v += tmp[j][g];
+        v = warp_sum(v);
+        if (lane == 0) y[std::size_t(j) * n_out + row] = v;
+    }
+}
+template<typename F>
+bool rdna_exact_dispatch(const void* weights, const void* x, float* y, int n_in, int n_out, int ncols, void* stream) {
+    const auto* w = static_cast<const typename F::Block*>(weights);
+    const auto* q = static_cast<const Q81Block*>(x); const auto s = static_cast<cudaStream_t>(stream);
+    const unsigned blocks = (unsigned(n_out) + 7) / 8;
+#define RDNA_EXACT_CASE(n) case n: rdna_mmvq_exact_kernel<F, n><<<blocks, 256, 0, s>>>(w, q, y, n_in, n_out); break
+    switch (ncols) {
+        RDNA_EXACT_CASE(1); RDNA_EXACT_CASE(2); RDNA_EXACT_CASE(3); RDNA_EXACT_CASE(4);
+        RDNA_EXACT_CASE(5); RDNA_EXACT_CASE(6); RDNA_EXACT_CASE(7); RDNA_EXACT_CASE(8);
+        default: return false;
+    }
+#undef RDNA_EXACT_CASE
+    return true;
+}
+template<typename F>
+bool rdna_small_mmvq(const void* weights, const void* x, float* y, int n_in, int n_out, int ncols, void* stream) {
+    // Limit the first port to measured dense shapes. Wide windows and altered
+    // summation layouts retain upstream dispatch; small one-warp rows differ.
+    if (!rdna_wave_on() || !g_multi_exact || s26_tsum_on() || n_in < 2048 || n_in > 2560 || n_out < 1024) return false;
+    return rdna_exact_dispatch<F>(weights, x, y, n_in, n_out, ncols, stream);
+}
+bool rdna_q5_head_on() {
+    static const bool on = [] { const char* v = std::getenv("STRATA_LAB_RDNA_Q5_HEAD"); return v && v[0] == '1'; }();
+    return rdna_wave_override < 0 ? on : rdna_wave_override != 0;
+}
+#endif
+
 #if defined(STRATA_HIP_GFX906)
 // ---- AMD (wave64) layout: one wavefront per R rows, four wavefronts per block, the row's blocks strided over the
 // 64 lanes exactly as the CUDA kernels stride them over a block (kbx = lane / T, stride 64 / T), and a 64-lane
@@ -2449,6 +2511,9 @@ void small_mmvq(const void* weights, const void* x_q8_1, float* y,
     validate_pointer(x_q8_1);
     validate_pointer(y);
     validate_stream(stream);
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+    if (rdna_small_mmvq<SmallTraits<Weight, Qi>>(weights, x_q8_1, y, n_in, n_out, ncols, stream)) { launch_check(); return; }
+#endif
     STRATA_WAVE_MMVQ(SmallTraits<Weight, Qi>)
     if (ncols > 1) {
         launch_multi<SmallTraits<Weight, Qi>>(weights, x_q8_1, y, n_in, n_out, ncols, stream);
@@ -3074,6 +3139,9 @@ void native_q6_k_unpack(const void* weights) {
 }
 
 void native_mmvq_set_multi_exact(bool exact) { g_multi_exact = exact; }
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+void native_mmvq_rdna_probe_mode(int mode) { rdna_wave_override = mode; }
+#endif
 bool native_mmvq_multi_exact() { return g_multi_exact; }
 void native_mmvq_set_b6_rows(int mode) { g_b6_rows = mode; }
 int native_mmvq_b6_rows() { return b6_rows_mode(); }
@@ -3120,6 +3188,12 @@ void native_q5_k_mmvq(const void* weights, const void* x_q8_1, float* y,
     validate_pointer(x_q8_1);
     validate_pointer(y);
     validate_stream(stream);
+#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
+    // The single-column short-row kernel has a different reduction layout.
+    // Keep it, wide windows, and non-head shapes on their upstream dispatch.
+    if (rdna_q5_head_on() && g_multi_exact && !s26_tsum_on() && n_in == 2560 && n_out >= 65536 && ncols >= 2 && ncols <= 8 &&
+        rdna_exact_dispatch<Q5KTraits>(weights, x_q8_1, y, n_in, n_out, ncols, stream)) { launch_check(); return; }
+#endif
     STRATA_WAVE_MMVQ(Q5KTraits)
     if (ncols > 1) {
         launch_multi<Q5KTraits>(weights, x_q8_1, y, n_in, n_out, ncols, stream);

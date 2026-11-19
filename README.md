@@ -26,6 +26,10 @@ MSI MPG Z490 GAMING CARBON WIFI、10900T ES、96GB DDR4，两张 24GB RX 7900 XT
 
 公开源码全量重编也已实测：中文单路 **142.4**、双路合计 **182.9** tok/s；代码单路 **193.3**、双路合计 **236.4** tok/s。每项3次，达到现役量级。
 
+后续筛选与失败结果另存：[融合／行分组](rdna3/benchmarks/2026-11-19-round2.md)、[HC Q8/A8](rdna3/benchmarks/2026-11-19-round3.md)、[精确稠密矩阵路径](rdna3/benchmarks/2026-11-19-round5.md)。这些实验没有改变上表的默认推荐组合；开关、适用形状和数值探针见[实验说明](rdna3/experiments/README.md)。
+
+三次复测见[第六轮](rdna3/benchmarks/2026-11-19-round6.md)与[Q5_K输出头实验](rdna3/benchmarks/2026-11-19-round7.md)。输出头局部耗时改善没有形成明确整机收益；这些默认关闭的实验不代表上表成绩再次提高。
+
 ## 现役版包含什么
 
 - RDNA3 HC read、预填充与量化专家计算核。

@@ -1,0 +1,16 @@
+{
+  "purpose": "Restore the legacy exact-order wave32 dense MMVQ path for selected 2048/2560-input matrices",
+  "screen_output_tokens": 768,
+  "confirmation_output_tokens": 1024,
+  "common_env": {
+    "STRATA_PW_WITH_BATCH": "1", "STRATA_MTP_STAGE0": "0", "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_IQ_MT_MIN": "1", "STRATA_PIPELINE_DEBUG": "1", "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_GR_V3": "0", "STRATA_HC_Q8": "0", "STRATA_LAB_RDNA_GR": "1"
+  },
+  "candidates": [
+    {"name": "round5-control", "env": {"STRATA_LAB_RDNA_MMVQ": "0"}},
+    {"name": "round5-wave", "env": {"STRATA_LAB_RDNA_MMVQ": "1"}},
+    {"name": "round5-wave-a8", "env": {"STRATA_LAB_RDNA_MMVQ": "1", "STRATA_HC_Q8": "1", "STRATA_LAB_RDNA_HC_Q8": "1", "STRATA_GR_RDNA_A8": "1", "STRATA_GR_INJ_UP": "1"}}
+  ],
+  "correctness": "Compare both dispatch modes bitwise on Q4_0, Q5_0, Q8_0, IQ4_NL; 1..16 columns, eligible and fallback shapes, odd output rows, zero activations, graph replay. HC Q8/A8 retains the preceding numeric checks."
+}
