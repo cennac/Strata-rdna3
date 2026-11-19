@@ -1,0 +1,877 @@
+{
+  "date": "2026-11-19",
+  "hardware": {
+    "cpu": "10900T ES",
+    "board": "MSI MPG Z490 GAMING CARBON WIFI",
+    "ram_gb": 96,
+    "gpus": [
+      "RX 7900 XTX platinum",
+      "RX 7900 XTX blower"
+    ],
+    "power_caps_w": [
+      272,
+      231
+    ]
+  },
+  "model": "Qwen3.8-Flash-Next-IQ3_XXS",
+  "metrics": {
+    "confirm-penpipe-stage1": {
+      "zh1": {
+        "decode": 105.5,
+        "end_to_end": 102.23357119902892,
+        "ttft": 0.33101429700036533,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "zh2": {
+        "decode": 82.5,
+        "end_to_end": 148.32715642919283,
+        "ttft": 0.6696570275016711,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "code1": {
+        "decode": 143.7,
+        "end_to_end": 138.12599988977135,
+        "ttft": 0.3070080629986478,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "code2": {
+        "decode": 108.44999999999999,
+        "end_to_end": 199.1948329121867,
+        "ttft": 0.6171745930041652,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      }
+    },
+    "confirm-rdna-stage1": {
+      "zh1": {
+        "decode": 113.2,
+        "end_to_end": 109.59601192546782,
+        "ttft": 0.3168810189963551,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "zh2": {
+        "decode": 84.69999999999999,
+        "end_to_end": 156.89890678702395,
+        "ttft": 0.6393946195021272,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "code1": {
+        "decode": 150.9,
+        "end_to_end": 145.11169942074451,
+        "ttft": 0.2900208110077074,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "code2": {
+        "decode": 113.15,
+        "end_to_end": 208.29118511291622,
+        "ttft": 0.5864461345045129,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      }
+    },
+    "frozen-penalty-parity": {},
+    "confirm-legacy": {
+      "zh1": {
+        "decode": 139.1,
+        "end_to_end": 134.74318652373393,
+        "ttft": 0.25382929800252896,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "zh2": {
+        "decode": 106.0,
+        "end_to_end": 185.7529649753296,
+        "ttft": 0.9608328645044821,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "code1": {
+        "decode": 195.5,
+        "end_to_end": 187.63362142148537,
+        "ttft": 0.2340758159989491,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "code2": {
+        "decode": 138.25,
+        "end_to_end": 235.82933467924576,
+        "ttft": 0.8732315469969762,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      }
+    },
+    "official-0216": {
+      "zh1": {
+        "decode": 60.3,
+        "end_to_end": 57.44573987366813,
+        "ttft": 0.8809526339973672,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "zh2": {
+        "decode": 78.05,
+        "end_to_end": 131.97315167617722,
+        "ttft": 1.7755655630026013,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "code1": {
+        "decode": 75.3,
+        "end_to_end": 71.28989187221487,
+        "ttft": 0.8040570739976829,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      },
+      "code2": {
+        "decode": 105.05000000000001,
+        "end_to_end": 174.41336765529036,
+        "ttft": 1.608504850501049,
+        "length_matched_bursts": 3,
+        "excluded_bursts": 0,
+        "cache_n": [
+          0
+        ]
+      }
+    }
+  },
+  "resources": {
+    "confirm-penpipe-stage1": {
+      "min_available_gib": 30.0963134765625,
+      "max_hotspot": {
+        "96d0ae6934945791": 95.0,
+        "f369b2d7c4c42293": 78.0
+      }
+    },
+    "confirm-rdna-stage1": {
+      "min_available_gib": 30.078506469726562,
+      "max_hotspot": {
+        "96d0ae6934945791": 95.0,
+        "f369b2d7c4c42293": 80.0
+      }
+    },
+    "confirm-legacy": {
+      "min_available_gib": 30.340591430664062,
+      "max_hotspot": {
+        "96d0ae6934945791": 94.0,
+        "f369b2d7c4c42293": 77.0
+      }
+    }
+  },
+  "quality_smoke": {
+    "confirm-penpipe-stage1": [
+      {
+        "case": "json",
+        "passed": false,
+        "tokens": 21,
+        "finish": "stop",
+        "text": "{\"total\":94.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}"
+      },
+      {
+        "case": "order",
+        "passed": false,
+        "tokens": 512,
+        "finish": "length",
+        "text": "根据题目条件，我们可以逐步推导甲、乙、丙、丁的排列顺序。\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序为“甲丁”。我们将这个组合视为一个整体块 $[甲丁]$。\n\n2.  **分析“甲不在第1位”**：\n    由于 $[甲丁]$ 是一个整体，如果甲在第1位，那么丁就在第2位。但题目说甲不在第1位，所以 $[甲丁]$ 这个块不能占据位置 (1, 2)。\n    可能的 $[甲丁]$ 位置组合有：\n    *   位置 (2, 3)：即第2位是甲，第3位是丁。\n    *   位置 (3, 4)：即第3位是甲，第4位是丁。\n\n3.  **分析“乙在丙左边且不相邻”**：\n    剩下的两个位置由乙和丙占据。我们需要检查上述两种 $[甲丁]$ 的位置情况，看哪种情况下乙和丙能满足“乙在左、丙在右、且不相邻”。\n\n    **情况一：$[甲丁]$ 在位置 (2, 3)**\n    *   排列结构：_ 甲 丁 _\n    *   剩余位置是第1位和第4位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第4位。\n    *   排列结果：**乙 甲 丁 丙**\n    *   检查条件：\n        *   甲在第2位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲2，丁3）。\n        *   乙(1)在丙(4)左边？是。\n        *   乙和丙不相邻？是（中间隔了甲和丁）。\n    *   此排列符合所有条件。\n\n    **情况二：$[甲丁]$ 在位置 (3, 4)**\n    *   排列结构：_ _ 甲 丁\n    *   剩余位置是第1位和第2位。\n    *   乙和丙"
+      },
+      {
+        "case": "extract",
+        "passed": true,
+        "tokens": 18,
+        "finish": "stop",
+        "text": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}"
+      }
+    ],
+    "confirm-rdna-stage1": [
+      {
+        "case": "json",
+        "passed": false,
+        "tokens": 21,
+        "finish": "stop",
+        "text": "{\"total\":94.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}"
+      },
+      {
+        "case": "order",
+        "passed": false,
+        "tokens": 512,
+        "finish": "length",
+        "text": "根据题目条件，我们可以逐步推导甲、乙、丙、丁的排列顺序。\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序为“甲丁”。我们将这个组合视为一个整体块 $[甲丁]$。\n\n2.  **分析“甲不在第1位”**：\n    由于 $[甲丁]$ 是一个整体，如果甲在第1位，那么丁就在第2位。但题目说甲不在第1位，所以 $[甲丁]$ 这个块不能占据位置 (1, 2)。\n    可能的 $[甲丁]$ 位置组合有：\n    *   位置 (2, 3)：即第2位是甲，第3位是丁。\n    *   位置 (3, 4)：即第3位是甲，第4位是丁。\n\n3.  **分析“乙在丙左边且不相邻”**：\n    剩下的两个位置将由乙和丙占据。我们需要检查上述两种 $[甲丁]$ 的位置情况，看哪种情况下乙和丙能满足“乙在左、丙在右、且不相邻”。\n\n    **情况一：$[甲丁]$ 在位置 (2, 3)**\n    *   排列结构：_ 甲 丁 _\n    *   剩余位置是第1位和第4位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第4位。\n    *   排列结果：**乙 甲 丁 丙**\n    *   检查条件：\n        *   甲在第2位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲2，丁3）。\n        *   乙(1)在丙(4)左边？是。\n        *   乙和丙不相邻？是（中间隔了甲和丁）。\n    *   此排列符合所有条件。\n\n    **情况二：$[甲丁]$ 在位置 (3, 4)**\n    *   排列结构：_ _ 甲 丁\n    *   剩余位置是第1位和第2位。\n    *   乙和丙"
+      },
+      {
+        "case": "extract",
+        "passed": true,
+        "tokens": 18,
+        "finish": "stop",
+        "text": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}"
+      }
+    ],
+    "confirm-legacy": [
+      {
+        "case": "json",
+        "passed": false,
+        "tokens": 21,
+        "finish": "stop",
+        "text": "{\"total\":90.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}"
+      },
+      {
+        "case": "order",
+        "passed": false,
+        "tokens": 512,
+        "finish": "length",
+        "text": "根据题目条件，我们可以逐步推导四人的排列位置：\n\n1.  **分析甲和丁的关系**：\n    已知“丁紧挨在甲右边”，这意味着甲和丁必须作为一个整体块出现，且顺序固定为 **[甲, 丁]**。\n\n2.  **确定 [甲, 丁] 的可能位置**：\n    四人排成一列，共有4个位置（1, 2, 3, 4）。[甲, 丁] 这个整体块可以占据以下位置组合：\n    *   情况 A：甲在第1位，丁在第2位。\n    *   情况 B：甲在第2位，丁在第3位。\n    *   情况 C：甲在第3位，丁在第4位。\n\n    根据条件“甲不在第1位”，排除 **情况 A**。\n    因此，只剩下 **情况 B** 和 **情况 C**。\n\n3.  **分析乙和丙的关系**：\n    已知“乙在丙左边且不相邻”。这意味着乙的位置编号必须小于丙的位置编号，且两者之间至少隔一个人。\n\n    *   **测试情况 B**：甲在第2位，丁在第3位。\n        剩余位置为第1位和第4位。\n        剩下的两人是乙和丙。\n        若乙在第1位，丙在第4位：乙(1) < 丙(4)，且不相邻（中间隔着甲和丁）。符合条件。\n        此时排列为：**乙, 甲, 丁, 丙**。\n        \n        让我们再检查一下是否有其他可能：\n        若乙在第4位，丙在第1位：乙在丙右边，不符合“乙在丙左边”。\n        所以情况 B 只有一种解：**乙, 甲, 丁, 丙**。\n\n    *   **测试情况 C**：甲在第3位，丁在第4位。\n        剩余位置为第1位和第2位。\n        剩下的两人是乙和丙。\n        若乙在第1位，丙在第2位：乙(1) < 丙(2)，但两者相邻。不符合“不相邻”条件。\n        若乙在第2位，丙在第1位：乙在丙右边，不符合“乙在丙左边”。\n        所以情况 C **无解"
+      },
+      {
+        "case": "extract",
+        "passed": true,
+        "tokens": 18,
+        "finish": "stop",
+        "text": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}"
+      }
+    ]
+  },
+  "length_mismatches": [],
+  "parity": [
+    {
+      "kind": "zh",
+      "serial_repeat_equal": true,
+      "equal": true
+    },
+    {
+      "kind": "code",
+      "serial_repeat_equal": true,
+      "equal": true
+    }
+  ],
+  "production_restored": true,
+  "source_unchanged": true,
+  "public_source_rebuild": {
+    "build_sha256": "be601550af81514e987bc5da3ae7ffcfebd2595a625c8ab15a54d0cd910d4fec",
+    "metrics": {
+      "zh1": {
+        "decode": 142.4,
+        "end_to_end": 137.93979787767967,
+        "ttft": 0.24826269299956039,
+        "length_matched_bursts": 3
+      },
+      "zh2": {
+        "decode": 104.8,
+        "end_to_end": 182.85644083534356,
+        "ttft": 0.9440872295017471,
+        "length_matched_bursts": 3
+      },
+      "code1": {
+        "decode": 193.3,
+        "end_to_end": 185.843914613894,
+        "ttft": 0.2343760929943528,
+        "length_matched_bursts": 3
+      },
+      "code2": {
+        "decode": 137.64999999999998,
+        "end_to_end": 236.44331274545658,
+        "ttft": 0.8693675510003231,
+        "length_matched_bursts": 3
+      }
+    },
+    "bursts": [
+      {
+        "kind": "zh",
+        "n": 1,
+        "repeat": 0,
+        "valid": true,
+        "aggregate_tps": 138.042545507624,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.24826269299956039,
+            "wall_s": 7.418002878999687,
+            "finish": "length",
+            "sha256": "96f3942ff763c62642b5a2f5f87daeac4afdc688e005442bb43f76e69b6e97e0",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 231.3,
+              "prompt_per_token_ms": 2.514,
+              "prompt_per_second": 397.8,
+              "predicted_n": 1024,
+              "predicted_ms": 7183.6,
+              "predicted_per_token_ms": 7.015,
+              "predicted_per_second": 142.5,
+              "draft_n": 755,
+              "draft_n_accepted": 510
+            }
+          }
+        ]
+      },
+      {
+        "kind": "zh",
+        "n": 2,
+        "repeat": 0,
+        "valid": true,
+        "aggregate_tps": 180.6973793080848,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.2466610570118064,
+            "wall_s": 10.892760359012755,
+            "finish": "length",
+            "sha256": "73d0ca9fb6094129136780e27b8aeb653d55a11b112e4ff5ea259c68de4e038a",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 644.4,
+              "prompt_per_token_ms": 7.004,
+              "prompt_per_second": 142.8,
+              "predicted_n": 1024,
+              "predicted_ms": 10005.6,
+              "predicted_per_token_ms": 9.771,
+              "predicted_per_second": 102.3,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          },
+          {
+            "tokens": 1024,
+            "ttft_s": 1.6879647640016628,
+            "wall_s": 11.333866644010413,
+            "finish": "length",
+            "sha256": "c7cfb3e607b4645d4d19f24ce5a1144293fba7775318940cf1006596426b3224",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 679.4,
+              "prompt_per_token_ms": 7.385,
+              "prompt_per_second": 135.4,
+              "predicted_n": 1024,
+              "predicted_ms": 9654.4,
+              "predicted_per_token_ms": 9.428,
+              "predicted_per_second": 106.1,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          }
+        ]
+      },
+      {
+        "kind": "code",
+        "n": 1,
+        "repeat": 0,
+        "valid": true,
+        "aggregate_tps": 182.22631012445135,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.23825223300082143,
+            "wall_s": 5.619386132006184,
+            "finish": "length",
+            "sha256": "324de628407cda97e91e832e4fc9fa1a93e38dc7d7a61d0e8112acbb16c434c7",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 220.7,
+              "prompt_per_token_ms": 2.691,
+              "prompt_per_second": 371.5,
+              "predicted_n": 1024,
+              "predicted_ms": 5394.8,
+              "predicted_per_token_ms": 5.268,
+              "predicted_per_second": 189.8,
+              "draft_n": 749,
+              "draft_n_accepted": 613
+            }
+          }
+        ]
+      },
+      {
+        "kind": "code",
+        "n": 2,
+        "repeat": 0,
+        "valid": true,
+        "aggregate_tps": 237.73773513938292,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.2321021420066245,
+            "wall_s": 8.614353179000318,
+            "finish": "length",
+            "sha256": "b56b2ac4147ed54e53b7dc816fe4db1ac7bc65ae40f80c2a3be8cf958a1ee7d6",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 583.2,
+              "prompt_per_token_ms": 7.112,
+              "prompt_per_second": 140.6,
+              "predicted_n": 1024,
+              "predicted_ms": 7808.2,
+              "predicted_per_token_ms": 7.625,
+              "predicted_per_second": 131.1,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          },
+          {
+            "tokens": 1024,
+            "ttft_s": 1.5376953779923497,
+            "wall_s": 8.579994152998552,
+            "finish": "length",
+            "sha256": "e5af845d97a5ca63403d9443eb32a10cbd66d7fb74138952a202c4d44a430853",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 611.9,
+              "prompt_per_token_ms": 7.462,
+              "prompt_per_second": 134.0,
+              "predicted_n": 1024,
+              "predicted_ms": 7055.6,
+              "predicted_per_token_ms": 6.89,
+              "predicted_per_second": 145.1,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          }
+        ]
+      },
+      {
+        "kind": "code",
+        "n": 2,
+        "repeat": 1,
+        "valid": true,
+        "aggregate_tps": 234.9176921386642,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.22676154899818357,
+            "wall_s": 8.520149100004346,
+            "finish": "length",
+            "sha256": "25606cf61f7909aebea13b7975dbf40200882af7896c92ce053cc099ebddc572",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 571.8,
+              "prompt_per_token_ms": 6.973,
+              "prompt_per_second": 143.4,
+              "predicted_n": 1024,
+              "predicted_ms": 7724.8,
+              "predicted_per_token_ms": 7.544,
+              "predicted_per_second": 132.6,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          },
+          {
+            "tokens": 1024,
+            "ttft_s": 1.5248748260055436,
+            "wall_s": 8.71794704500644,
+            "finish": "length",
+            "sha256": "667473385a1e66ed67e0a099a0c4cbd4837492e812fd2d38c610d90322d45e48",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 606.1,
+              "prompt_per_token_ms": 7.391,
+              "prompt_per_second": 135.3,
+              "predicted_n": 1024,
+              "predicted_ms": 7206.7,
+              "predicted_per_token_ms": 7.038,
+              "predicted_per_second": 142.1,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          }
+        ]
+      },
+      {
+        "kind": "code",
+        "n": 1,
+        "repeat": 1,
+        "valid": true,
+        "aggregate_tps": 185.84780794009907,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.22684204299002886,
+            "wall_s": 5.509884734987281,
+            "finish": "length",
+            "sha256": "51dc5ced9afd20a12546d8f21beac72a90bc23c9696f338243fcb1beeaf3ebec",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 209.8,
+              "prompt_per_token_ms": 2.559,
+              "prompt_per_second": 390.8,
+              "predicted_n": 1024,
+              "predicted_ms": 5297.0,
+              "predicted_per_token_ms": 5.173,
+              "predicted_per_second": 193.3,
+              "draft_n": 744,
+              "draft_n_accepted": 614
+            }
+          }
+        ]
+      },
+      {
+        "kind": "zh",
+        "n": 2,
+        "repeat": 1,
+        "valid": true,
+        "aggregate_tps": 188.29692586477537,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 1.6743119159946218,
+            "wall_s": 10.876304616002017,
+            "finish": "length",
+            "sha256": "9711b06d6c99ea8ea186b761baa827f4a4f8543aefa1e1be6b0c52c755e5e66b",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 671.8,
+              "prompt_per_token_ms": 7.302,
+              "prompt_per_second": 136.9,
+              "predicted_n": 1024,
+              "predicted_ms": 9218.3,
+              "predicted_per_token_ms": 9.002,
+              "predicted_per_second": 111.1,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          },
+          {
+            "tokens": 1024,
+            "ttft_s": 0.2550346259959042,
+            "wall_s": 10.782326482003555,
+            "finish": "length",
+            "sha256": "a527317fad1a80869aee14fb2ffb774718baa13ec07e2963c35089b197688163",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 644.0,
+              "prompt_per_token_ms": 7.0,
+              "prompt_per_second": 142.9,
+              "predicted_n": 1024,
+              "predicted_ms": 9892.5,
+              "predicted_per_token_ms": 9.661,
+              "predicted_per_second": 103.5,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          }
+        ]
+      },
+      {
+        "kind": "zh",
+        "n": 1,
+        "repeat": 1,
+        "valid": true,
+        "aggregate_tps": 131.35297282735823,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.24892826899304055,
+            "wall_s": 7.795788538001943,
+            "finish": "length",
+            "sha256": "d664d679c0f9c98b3c16ee87916097478a92d359300f8112058ab96a09312de1",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 231.4,
+              "prompt_per_token_ms": 2.515,
+              "prompt_per_second": 397.6,
+              "predicted_n": 1024,
+              "predicted_ms": 7561.0,
+              "predicted_per_token_ms": 7.384,
+              "predicted_per_second": 135.4,
+              "draft_n": 699,
+              "draft_n_accepted": 481
+            }
+          }
+        ]
+      },
+      {
+        "kind": "zh",
+        "n": 1,
+        "repeat": 2,
+        "valid": true,
+        "aggregate_tps": 137.93979787767967,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.2481069130008109,
+            "wall_s": 7.423528348997934,
+            "finish": "length",
+            "sha256": "546b6c61e688f254ef70189025cff95c2996d2d4d37d5f32ea591480980f5968",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 230.9,
+              "prompt_per_token_ms": 2.51,
+              "prompt_per_second": 398.4,
+              "predicted_n": 1024,
+              "predicted_ms": 7189.5,
+              "predicted_per_token_ms": 7.021,
+              "predicted_per_second": 142.4,
+              "draft_n": 743,
+              "draft_n_accepted": 507
+            }
+          }
+        ]
+      },
+      {
+        "kind": "zh",
+        "n": 2,
+        "repeat": 2,
+        "valid": true,
+        "aggregate_tps": 182.85644083534356,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 1.63313983300759,
+            "wall_s": 10.912200175996986,
+            "finish": "length",
+            "sha256": "dbe7138276f017a48e53732651ee94313f303af6611a76fd31cfef2cc3418a76",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 672.3,
+              "prompt_per_token_ms": 7.308,
+              "prompt_per_second": 136.8,
+              "predicted_n": 1024,
+              "predicted_ms": 9299.1,
+              "predicted_per_token_ms": 9.081,
+              "predicted_per_second": 110.1,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          },
+          {
+            "tokens": 1024,
+            "ttft_s": 0.2507085779943736,
+            "wall_s": 11.200042999000289,
+            "finish": "length",
+            "sha256": "15ba6ea19e45a20e1ac5f8c8a290524ef87b07346131c06fbc5abef53c57570e",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 92,
+              "prompt_ms": 637.5,
+              "prompt_per_token_ms": 6.929,
+              "prompt_per_second": 144.3,
+              "predicted_n": 1024,
+              "predicted_ms": 10321.3,
+              "predicted_per_token_ms": 10.079,
+              "predicted_per_second": 99.2,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          }
+        ]
+      },
+      {
+        "kind": "code",
+        "n": 1,
+        "repeat": 2,
+        "valid": true,
+        "aggregate_tps": 185.843914613894,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 0.2343760929943528,
+            "wall_s": 5.510000163994846,
+            "finish": "length",
+            "sha256": "febccf29aca31b669c9dcca2e3a66feb613d4ffe1e2276dac6d325d03adb7e0d",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 217.3,
+              "prompt_per_token_ms": 2.65,
+              "prompt_per_second": 377.4,
+              "predicted_n": 1024,
+              "predicted_ms": 5289.5,
+              "predicted_per_token_ms": 5.166,
+              "predicted_per_second": 193.6,
+              "draft_n": 752,
+              "draft_n_accepted": 613
+            }
+          }
+        ]
+      },
+      {
+        "kind": "code",
+        "n": 2,
+        "repeat": 2,
+        "valid": true,
+        "aggregate_tps": 236.44331274545658,
+        "requests": [
+          {
+            "tokens": 1024,
+            "ttft_s": 1.5066329599940218,
+            "wall_s": 8.661508011995465,
+            "finish": "length",
+            "sha256": "8b8ea25cccb0d853658147080d80721e39eee8084ec4c2ffbfafdaf65eae401b",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 607.3,
+              "prompt_per_token_ms": 7.406,
+              "prompt_per_second": 135.0,
+              "predicted_n": 1024,
+              "predicted_ms": 7174.5,
+              "predicted_per_token_ms": 7.006,
+              "predicted_per_second": 142.7,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          },
+          {
+            "tokens": 1024,
+            "ttft_s": 0.23200935999921057,
+            "wall_s": 8.470977188000688,
+            "finish": "length",
+            "sha256": "eeb7bdedcb658970f85cead8658999e86e16b411ccde91e9da9523391190308b",
+            "timings": {
+              "cache_n": 0,
+              "prompt_n": 82,
+              "prompt_ms": 562.5,
+              "prompt_per_token_ms": 6.86,
+              "prompt_per_second": 145.8,
+              "predicted_n": 1024,
+              "predicted_ms": 7685.6,
+              "predicted_per_token_ms": 7.505,
+              "predicted_per_second": 133.2,
+              "draft_n": 0,
+              "draft_n_accepted": 0
+            }
+          }
+        ]
+      }
+    ],
+    "quality_1024": {
+      "public-source-rebuild": [
+        {
+          "case": "json",
+          "passed": false,
+          "tokens": 21,
+          "finish": "stop",
+          "text": "{\"total\":94.0,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}"
+        },
+        {
+          "case": "order",
+          "passed": true,
+          "tokens": 594,
+          "finish": "stop",
+          "text": "根据题目条件，我们可以逐步推导四人的排列顺序：\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序固定为“甲、丁”。我们将这个组合视为一个整体块 [甲丁]。\n\n2.  **分析“甲不在第1位”**：\n    由于 [甲丁] 是一个整体，如果甲在第1位，那么排列就是 [甲丁, ?, ?]。但题目规定甲不能在第1位，所以 [甲丁] 这个块不能占据位置1和2。\n    因此，[甲丁] 可能的位置组合只有：\n    *   情况A：甲在第2位，丁在第3位（即排列形式为 ?, 甲, 丁, ?）\n    *   情况B：甲在第3位，丁在第4位（即排列形式为 ?, ?, 甲, 丁）\n\n3.  **分析“乙在丙左边且不相邻”**：\n    我们需要将剩下的两人（乙、丙）放入剩余的空位中，并满足乙在丙左边且中间至少隔一个人。\n\n    *   **测试情况A：?, 甲, 丁, ?**\n        剩余位置是第1位和第4位。\n        如果乙在第1位，丙在第4位：排列是 **乙, 甲, 丁, 丙**。\n        检查条件：\n        - 甲不在第1位？是的（甲在第2位）。\n        - 丁紧挨在甲右边？是的（甲2, 丁3）。\n        - 乙在丙左边？是的（乙1 < 丙4）。\n        - 乙和丙不相邻？是的（中间隔着甲、丁）。\n        此排列符合所有条件。\n\n    *   **测试情况B：?, ?, 甲, 丁**\n        剩余位置是第1位和第2位。\n        如果乙在第1位，丙在第2位：排列是 **乙, 丙, 甲, 丁**。\n        检查条件：\n        - 乙在丙左边？是的。\n        - 乙和丙不相邻？**不满足**，因为乙(1)和丙(2)相邻。\n        如果丙在第1位，乙在第2位：排列是 **丙, 乙, 甲, 丁**。\n        检查条件：\n        - 乙在丙左边？**不满足**，因为乙(2) > 丙(1)。\n        因此，情况B无解。\n\n4.  **结论**：\n    唯一符合条件的排列是：乙、甲、丁、丙。\n\n答案=乙甲丁丙"
+        },
+        {
+          "case": "extract",
+          "passed": true,
+          "tokens": 18,
+          "finish": "stop",
+          "text": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}"
+        }
+      ],
+      "official-quality-control": [
+        {
+          "case": "json",
+          "passed": false,
+          "tokens": 21,
+          "finish": "stop",
+          "text": "{\"total\":94.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}"
+        },
+        {
+          "case": "order",
+          "passed": true,
+          "tokens": 703,
+          "finish": "stop",
+          "text": "根据题目条件，我们可以逐步推导甲、乙、丙、丁的排列顺序。\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序为“甲丁”。我们将这个组合视为一个整体块 $[甲丁]$。\n\n2.  **分析“甲不在第1位”**：\n    由于 $[甲丁]$ 是一个整体，如果甲在第1位，那么丁就在第2位。但题目规定甲不能在第1位，所以 $[甲丁]$ 这个块不能占据位置 (1, 2)。\n    可能的 $[甲丁]$ 位置组合有：\n    *   位置 (2, 3)：即第2位是甲，第3位是丁。\n    *   位置 (3, 4)：即第3位是甲，第4位是丁。\n\n3.  **分析“乙在丙左边且不相邻”**：\n    剩下的两个位置将由乙和丙占据。我们需要检查上述两种 $[甲丁]$ 的位置情况，看哪种情况下乙和丙能满足“乙在左、丙在右、且不相邻”的条件。\n\n    **情况一：$[甲丁]$ 在位置 (2, 3)**\n    *   排列结构：_ 甲 丁 _\n    *   剩余位置是第1位和第4位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第4位。\n    *   排列结果：**乙 甲 丁 丙**\n    *   检查条件：\n        *   甲在第2位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲2，丁3）。\n        *   乙(1)在丙(4)左边？是。\n        *   乙和丙不相邻？是（中间隔了甲和丁）。\n    *   此排列符合所有条件。\n\n    **情况二：$[甲丁]$ 在位置 (3, 4)**\n    *   排列结构：_ _ 甲 丁\n    *   剩余位置是第1位和第2位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第2位。\n    *   排列结果：**乙 丙 甲 丁**\n    *   检查条件：\n        *   甲在第3位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲3，丁4）。\n        *   乙(1)在丙(2)左边？是。\n        *   乙和丙不相邻？**否**。乙在第1位，丙在第2位，他们是相邻的。\n    *   此排列不符合“乙丙不相邻”的条件，排除。\n\n4.  **结论**：\n    唯一符合所有条件的排列是：乙、甲、丁、丙。\n\n答案=乙甲丁丙"
+        },
+        {
+          "case": "extract",
+          "passed": true,
+          "tokens": 18,
+          "finish": "stop",
+          "text": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}"
+        }
+      ],
+      "rdna-0216-quality-budget1024": [
+        {
+          "case": "json",
+          "passed": false,
+          "tokens": 21,
+          "finish": "stop",
+          "text": "{\"total\":94.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}"
+        },
+        {
+          "case": "order",
+          "passed": true,
+          "tokens": 705,
+          "finish": "stop",
+          "text": "根据题目条件，我们可以逐步推导甲、乙、丙、丁的排列顺序。\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序为“甲丁”。我们将这个组合视为一个整体块 $[甲丁]$。\n\n2.  **分析“甲不在第1位”**：\n    由于 $[甲丁]$ 是一个整体，如果甲在第1位，那么丁就在第2位。但题目规定甲不能在第1位，所以 $[甲丁]$ 这个块不能占据位置 (1, 2)。\n    可能的 $[甲丁]$ 位置组合有：\n    *   位置 (2, 3)：即第2位是甲，第3位是丁。\n    *   位置 (3, 4)：即第3位是甲，第4位是丁。\n\n3.  **分析“乙在丙左边且不相邻”**：\n    剩下的两个位置将由乙和丙占据。我们需要检查上述两种 $[甲丁]$ 的位置情况，看哪种情况下乙和丙能满足“乙在左、丙在右、且不相邻”的条件。\n\n    **情况一：$[甲丁]$ 在位置 (2, 3)**\n    *   排列结构：_ 甲 丁 _\n    *   剩余位置是第1位和第4位。\n    *   乙和丙必须填入这两个空位。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第4位。\n    *   排列结果：**乙 甲 丁 丙**\n    *   检查条件：\n        *   甲在第2位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲2，丁3）。\n        *   乙(1)在丙(4)左边？是。\n        *   乙和丙不相邻？是（中间隔了甲和丁）。\n    *   此排列符合所有条件。\n\n    **情况二：$[甲丁]$ 在位置 (3, 4)**\n    *   排列结构：_ _ 甲 丁\n    *   剩余位置是第1位和第2位。\n    *   乙和丙必须填入这两个空位。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第2位。\n    *   排列结果：**乙 丙 甲 丁**\n    *   检查条件：\n        *   甲在第3位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲3，丁4）。\n        *   乙(1)在丙(2)左边？是。\n        *   乙和丙不相邻？**否**。乙在第1位，丙在第2位，他们是相邻的。\n    *   此排列不符合“乙丙不相邻”的条件，排除。\n\n4.  **结论**：\n    唯一符合所有条件的排列是：乙、甲、丁、丙。\n\n答案=乙甲丁丙"
+        },
+        {
+          "case": "extract",
+          "passed": true,
+          "tokens": 18,
+          "finish": "stop",
+          "text": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}"
+        }
+      ]
+    },
+    "production_restored": true,
+    "source_unchanged": true,
+    "length_mismatches": [],
+    "faults": [],
+    "audit": {
+      "new_pcie_counter_changes": [],
+      "new_kernel_gpu_pcie_faults": [],
+      "test_port_closed": true,
+      "production_engine": "0.1.43"
+    }
+  }
+}
