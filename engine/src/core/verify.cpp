@@ -2273,6 +2273,17 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
         // move into the combine, gate + up share one launch (all bitwise; resident combine path, 2-8 rows only)
         const WeightRef* w_sgi = lfuse_on(n) && g_lfuse_gate() ? v.get("ffn_gate_inp_shexp.weight") : nullptr;
         bool sg_ready = false;
+        // STRATA_LAB_RDNA_ROUTE_PUBLISH (opt-in, ported from the legacy tree): the multi-token top-10 and the resident
+        // doorbell publish in ONE launch, so the CPU pool sees the routing one launch earlier (the waitCPU slice of a
+        // window).  Only the plain path - the resident-plan / doorbell-store / always-publish / route-prior /
+        // route-resident variants below keep their own launches, and the shared-expert late fork still records after
+        // the (now fused) publish in stream order.  The routing bits are route_multi's, the publish bits are
+        // doorbell_publish_res's - together exactly what the two separate calls wrote.
+        static const bool g_rpub_lab = [] { const char* v = std::getenv("STRATA_LAB_RDNA_ROUTE_PUBLISH"); return v != nullptr && v[0] == '1'; }();
+        const bool rpub_lab = g_rpub_lab && dec_batch && n > 1 && n <= 8 && w_router != nullptr && native_router_enabled() &&
+                              NE == 512 && K == 10 && !ar_on() && !device_plan_ && !remote_opt_ && !always_publish_ &&
+                              !g_doorbell_store && g_route_prior() <= 0.0f && route_resident_cfg().margin <= 0.0f && !rs_on_;
+        bool rpub_done = false;
         if (dec_batch && n > 1 && w_router != nullptr && native_router_enabled() && NE == 512 && K == 10) {
             try {
                 if (w_sgi != nullptr)
@@ -2282,7 +2293,14 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
                 if (!sg_ready)
                 bf16_gemv_fp32_mmvf_multi(mixed_ + tb * N, N, (const uint16_t*) w_router->data, logits_ + tb * NE, NE, N,
                                           NE, n, cs);
-                native_router_top10_multi(logits_ + tb * NE, ids_ + tb * K, w_ + tb * K, n, cs);
+                if (rpub_lab) {
+                    native_router_top10_publish_res(logits_ + tb * NE, ids_ + tb * K, w_ + tb * K, n, xm,
+                                                    hits_.d_res != nullptr ? (hits_.d_res + l * g.n_expert) : nullptr,
+                                                    (int) g.n_expert, (int64_t) n * N, m_x_ + tb * N, m_ids_ + tb * K,
+                                                    m_seq_, cs);
+                    rpub_done = true;
+                } else
+                    native_router_top10_multi(logits_ + tb * NE, ids_ + tb * K, w_ + tb * K, n, cs);
             } catch (const std::exception& e) { err = "verify router: " + std::string(e.what()); return false; }
 #if defined(STRATA_HIP_GFX906)
         } else if (dec_batch) {
@@ -2327,6 +2345,7 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
                               hits_.cache_base, slot_off_d_, (long long) hits_.blob,
                               plan_ + (size_t) grp * (size_t) (plan_i32_ + 16), (long long) max_t_ * K, skip_ + grp,
                               (uint32_t) ((l - lb_) * G + grp + 1), cs);
+            if (!rpub_done) {   // STRATA_LAB_RDNA_ROUTE_PUBLISH already published inside the router launch
 #if defined(STRATA_USE_HIP)
             if (g_doorbell_store)   // #649 A/B: the step's ring stored, not incremented over PCIe
                 doorbell_publish_value(xm, ids_ + tb * K, w_ + tb * K, (int64_t) n * N, (int64_t) n * K, m_x_ + tb * N,
@@ -2342,6 +2361,7 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
                 const int32_t* layer_res = hits_.d_res != nullptr ? (hits_.d_res + l * g.n_expert) : nullptr;
                 doorbell_publish_res(xm, ids_ + tb * K, layer_res, (int) g.n_expert, (int64_t) n * N, (int64_t) n * K,
                                      m_x_ + tb * N, m_ids_ + tb * K, m_seq_, cs);
+            }
             }
             if (sh_fork_late) {
                 note_prio_fork(cs);
