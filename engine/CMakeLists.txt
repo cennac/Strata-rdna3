@@ -804,3 +804,15 @@ if(STRATA_BUILD_TESTS)
 else()
   message(STATUS "strata tests: OFF (STRATA_BUILD_TESTS=OFF)")
 endif()
+
+# Local RDNA3 HC read, opt-in and restricted to the HIP gfx1100 test build.
+if(STRATA_ENABLE_HIP)
+  target_sources(strata_kernels PRIVATE src/kernels/cuda/rdna_gr_local.cu)
+  set_source_files_properties(src/kernels/cuda/rdna_gr_local.cu PROPERTIES LANGUAGE HIP INCLUDE_DIRECTORIES "${STRATA_HIP_COMPAT_INCLUDE_DIR}")
+endif()
+
+if(STRATA_ENABLE_HIP)
+ add_executable(rdna_hc_probe src/kernels/rdna_hc_probe.cpp)
+ target_include_directories(rdna_hc_probe PRIVATE ${STRATA_HIP_COMPAT_INCLUDE_DIR})
+ target_link_libraries(rdna_hc_probe PRIVATE strata_kernels)
+endif()

@@ -1,0 +1,6 @@
+{
+  "reference": "nicejunjie/Strata-rdna3 HC kernel retained in local 20261103 optimized source",
+  "source_sha256": "fae52b2da5194cce44bb4a4f80ff087db867020bc580d27644755c0b93a55906",
+  "import": "BF16 split-K down and partial-folding up only; no new weight quantization",
+  "switch": "STRATA_LAB_RDNA_GR=1; off by default"
+}

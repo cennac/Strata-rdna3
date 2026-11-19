@@ -102,7 +102,7 @@
     "STRATA_GR_RDNA_Q8": "1",
     "STRATA_RDNA_Q6K": "1",
     "STRATA_GR_RDNA_A8": "1",
-    "GPU_MAX_HW_QUEUES": "4",
+    "GPU_MAX_HW_QUEUES": "3",
     "STRATA_PREFILL_SMALL_RING": "96",
     "STRATA_PREFILL_SMALL_MAX": "4096",
     "STRATA_QFUSE": "1",
@@ -139,7 +139,13 @@
     "ROCM_PATH": "@ROCM@",
     "HIP_PATH": "@ROCM@",
     "STRATA_PIPED_ADAPT_EVERY": "0",
-    "HIP_VISIBLE_DEVICES": "0,1"
+    "HIP_VISIBLE_DEVICES": "0,1",
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_PIPELINE_DEBUG": "1",
+    "STRATA_GR_V3": "0",
+    "STRATA_LAB_RDNA_GR": "1"
   },
   "lib_dirs": [
     "@ROCM@/lib",
@@ -155,10 +161,12 @@
   "max_active_requests": 2,
   "deployment": {
     "framework": "Strata",
-    "version": "0.2.16",
+    "version": "0.2.16-rdna3.1",
     "engine_version": "0.1.62",
-    "optimization": "RDNA3",
-    "revision": "upstream-v0.2.16",
-    "weights_variant": "GSQ-RCO IQ3_XXS"
+    "optimization": "RDNA3 penalty pipeline + BF16 HC",
+    "revision": "penpipe-rdna-stage1",
+    "weights_variant": "GSQ-RCO IQ3_XXS",
+    "upstream_version": "0.2.16",
+    "rdna3_revision": 1
   }
 }

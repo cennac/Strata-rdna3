@@ -1,0 +1,6 @@
+{
+  "reference": "local historical penalty-aware pipeline; adapted to official v0.2.16 reply-only history",
+  "before": "4994185d569f72cfc3cfad2b9c173fa56922e3bb4d831b2bd54be9678c95ef4f",
+  "after": "60b3c9497ab394d7a3b1fc21aa07cf97a1495708c7c1ed18786774060df6f796",
+  "default": "off; STRATA_HYBRID_PENALTIES=1 opts in"
+}

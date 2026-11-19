@@ -3,5 +3,27 @@
   "tag": "v0.2.16",
   "engine_version": "0.1.62",
   "archive_sha256": "858715c6d5f9e6b912cfc31e49855974f64b91126cfe2260712930e1aa288066",
-  "local_changes": []
+  "local_changes": [
+    {
+      "path": "engine/src/program/generate.cpp",
+      "sha256": "60b3c9497ab394d7a3b1fc21aa07cf97a1495708c7c1ed18786774060df6f796"
+    },
+    {
+      "path": "engine/src/kernels/cuda/fused_gr.cu",
+      "sha256": "456e4597e2168a3a395e50b9a76412bc63d87552bb5eed08c9bf30823ed16143"
+    },
+    {
+      "path": "engine/src/kernels/cuda/rdna_gr_local.cu",
+      "sha256": "a8ce9a576a5b74e04e149cf7034c77bb8b960e9efd3ea28235f96f5863a70b9c"
+    },
+    {
+      "path": "engine/src/kernels/rdna_hc_probe.cpp",
+      "sha256": "15a6a79eba07b359c56fd336a0f6eb24091a15cacade5873bddd76401d27e2b7"
+    },
+    {
+      "path": "engine/CMakeLists.txt",
+      "sha256": "54548eb817801ff8c84933ec71143a7d95042182b6df1263d3ec1c2cfc70e613"
+    }
+  ],
+  "tested_binary_sha256": "0e9906bc742585ef19d6d234b70ae1e758695e781b2b85b18054acd5b8658aea"
 }
