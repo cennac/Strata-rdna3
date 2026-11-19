@@ -2,10 +2,10 @@
 
 对照 `dual-xxs.template.json` 的67个 `STRATA_*`/`GPU_*` env 与 dev 引擎源码的全部 `getenv("STRATA_*")`(814个)。
 
-## 上游已收编的 Codex 优化
+## 上游已收编的本地工作树优化
 
-- `STRATA_IQ3S_EXACT1`(Codex worktree commit `fa6d445`,0.1.43基底)→ 上游0.1.62已泛化为 `STRATA_CPU_IQ_ALL_EXACT1`(native_expert.cpp:487-499 → `iq256_gu_rows_exact_one()`,覆盖16/17/18/21/22五格式,ggml逐位一致,默认关)。其速度收益在当前组合中已由 `STRATA_IQ_MT_MIN=1` 兑现(两者用同一快速解码,仅最终求和次序不同);第十四轮实测确认不可叠加且破坏窗口不变性,不采纳。
-- `STRATA_PIPED_ADAPT_EVERY`(Codex worktree commit `d2e955c`)→ 上游等价物 `STRATA_ADAPT_OVERLAP`(generate.cpp:2195)在 layer-split 部署上被上游明确排除(generate.cpp:14311 `"not on a layer split"`),本机双卡 `--layer-split 26 22` 无法启用;0.1.62流水线重构后有界嫁接风险高,评估后不移植。
+- `STRATA_IQ3S_EXACT1`(本地工作树 `cennac-rdna3-dev` commit `fa6d445`,0.1.43基底)→ 上游0.1.62已泛化为 `STRATA_CPU_IQ_ALL_EXACT1`(native_expert.cpp:487-499 → `iq256_gu_rows_exact_one()`,覆盖16/17/18/21/22五格式,ggml逐位一致,默认关)。其速度收益在当前组合中已由 `STRATA_IQ_MT_MIN=1` 兑现(两者用同一快速解码,仅最终求和次序不同);第十四轮实测确认不可叠加且破坏窗口不变性,不采纳。
+- `STRATA_PIPED_ADAPT_EVERY`(本地工作树 `cennac-rdna3-dev` commit `d2e955c`)→ 上游等价物 `STRATA_ADAPT_OVERLAP`(generate.cpp:2195)在 layer-split 部署上被上游明确排除(generate.cpp:14311 `"not on a layer split"`),本机双卡 `--layer-split 26 22` 无法启用;0.1.62流水线重构后有界嫁接风险高,评估后不移植。
 
 ## 模板中的无效残留名(engine 0.1.62 源码无 `getenv` 读取;在 0.1.43 现役上有效)
 
