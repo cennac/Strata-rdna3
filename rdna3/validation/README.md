@@ -34,3 +34,5 @@ Q8/A8 HC 的独立标量参考、Q8工作区首次失败及修正理由见[第�
 第十四轮CPU分发对照见[round14记录](../benchmarks/2026-11-19-round14.md)：`STRATA_CPU_IQ_ALL_EXACT1`（上游收编版Codex IQ3S_EXACT1）在本机全量parity零失败（`round14-iq-avx2-parity.txt`，生效日志`round14-exact1-gate.txt`），但整机慢于`STRATA_IQ_MT_MIN=1`，不采纳。开关对照审计见[2026-11-19-switch-audit.md](2026-11-19-switch-audit.md)。
 
 第十五至十七轮采纳`STRATA_SH_STREAM=1`＋`STRATA_AUX_CPUS=auto`（四路+0.7~6.9%，均为调度/放置类开关）。第十八至二十轮发现**冻结串行重复检查当日下午起对纯对照配置也失败**（热/冷加载共4组，6/6中文不一致），该检查在恢复可复现前不用于开关甄别；上午round-12同协议通过，诱因未定位，开放问题。见[round18-20记录](../benchmarks/2026-11-19-round18-20.md)。
+
+第二十一至二十二轮采纳`--pool-workers 12`（zh单+5.0%/双+3.4%/代码持平）；**`STRATA_TSUM=1` 在gfx1100加载期SIGABRT崩溃**，勿启用；swiglu（代码−7.9%）、pool16、lfuse未采纳。见[round21-22记录](../benchmarks/2026-11-19-round21-22.md)。
