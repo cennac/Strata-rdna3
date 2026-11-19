@@ -156,10 +156,12 @@
   "max_active_requests": 2,
   "deployment": {
     "framework": "Strata",
-    "version": "legacy-20261110",
+    "version": "0.1.43-rdna3.1",
     "engine_version": "0.1.43",
     "optimization": "RDNA3",
-    "revision": "main-v0.1.0",
-    "weights_variant": "GSQ-RCO IQ3_XXS"
+    "revision": "legacy-20261110",
+    "weights_variant": "GSQ-RCO IQ3_XXS",
+    "upstream_version": "0.1.43",
+    "rdna3_revision": 1
   }
 }

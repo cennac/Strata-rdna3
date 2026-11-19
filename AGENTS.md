@@ -13,3 +13,5 @@ This is Cennac's independent RDNA3 optimization repository.
 - Keep upstream licenses and attribution. Make local changes opt-in where practical.
 - Update `rdna3/CHANGELOG.md`, the reproduction instructions and benchmark records with meaningful changes.
 - Merge development into `main` only after the measured performance and correctness criteria are met; record the evidence.
+
+Release versions follow upstream: `v<upstream-version>-rdna3.<revision>`. Stable first release is v0.1.43-rdna3.1 (legacy engine plus later backports); development is v0.2.16-rdna3.1. Keep the upstream engine version separate from the public release version.
