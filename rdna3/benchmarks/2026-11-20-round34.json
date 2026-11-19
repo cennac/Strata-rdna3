@@ -1,0 +1,30 @@
+{
+ "date": "2026-11-20",
+ "purpose": "re-screen HC Q8 / Q8+A8 on the adopted combo (legacy production runs Q8+A8; dev port runs BF16) - both rejected again",
+ "binary": "5614920c",
+ "context": "r33 service-mode table: HC read +0.38ms/window vs legacy; legacy BASE env has STRATA_GR_RDNA_Q8=1 + A8=1 + GR_FUSED=1",
+ "arms": {
+  "r34-control": {
+   "zh1": 112.05,
+   "zh2": 155.68,
+   "code1": 149.46,
+   "code2": 206.02
+  },
+  "r34-hcq8": {
+   "zh1": 109.6,
+   "zh2": 159.59,
+   "code1": 146.74,
+   "code2": 206.02
+  },
+  "r34-hcq8a8": {
+   "zh1": 109.2,
+   "zh2": 151.95,
+   "code1": 144.1,
+   "code2": 202.83
+  }
+ },
+ "verdict": "hcq8 mixed (-2.2/+2.5/-1.8/+0.0), hcq8a8 negative on all lanes - not adopted; matches round 3",
+ "gr_fused_note": "the port grid barrier (STRATA_GR_FUSED) fuses down+up only for the A8 read and needs the legacy rdna_r8_scratch_init workspace; with A8 itself slower than BF16 on this build, wiring the barrier cannot pay - HC gap belongs to kernel/launch-level work",
+ "completed": true,
+ "restored": true
+}
