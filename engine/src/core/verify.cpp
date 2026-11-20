@@ -3906,8 +3906,31 @@ void Verifier::raise_flag(uint32_t* flag, uint32_t value) { strata::core::flag_r
 // rises and the graph waits for "flag B >= layer + 1", so raising it on the spot for a layer with nothing to copy
 // releases an earlier layer (or the other token group of a split window) whose uploads are still in flight.
 void Verifier::raise_flag_b_ordered(uint32_t want) {
+    // STRATA_LAB_RDNA_B_DIRECT=1 (opt-in): raise directly on the calling thread when every host-function raise queued
+    // on the copy stream has already executed (b_pending_ == 0) - then each queued copy has landed too, because its
+    // raise runs after it on the same stream, so the counter cannot jump past an in-flight copy (the PR #5096 hazard
+    // stays covered).  The sticky copy_used_ of the default path keeps ordering with a host function instead, which
+    // after a window's first fetch waits for the copy stream to drain even for empty plans (the measured waitB).
+    static const bool b_direct_lab = [] { const char* v = std::getenv("STRATA_LAB_RDNA_B_DIRECT"); return v != nullptr && v[0] == '1'; }();
+    if (b_direct_lab && b_pending_.load(std::memory_order_acquire) == 0) {
+        strata::core::flag_raise_max(h_flagB_, want);
+        return;
+    }
     FlagSet& fs = flag_sets_[(want - 1) % (sizeof flag_sets_ / sizeof flag_sets_[0])];
-    const cudaError_t e = strata::core::raise_flag_b_ordered(copy_used_, copy_, &fs, h_flagB_, want);
+    cudaError_t e;
+    if (b_direct_lab) {
+        BRaiseArg& a = b_args_[(want - 1) % (sizeof b_args_ / sizeof b_args_[0])];
+        a.flag = h_flagB_; a.value = want; a.pending = &b_pending_;
+        b_pending_.fetch_add(1, std::memory_order_release);
+        e = cudaLaunchHostFunc(copy_, [](void* p) {
+            BRaiseArg* a = (BRaiseArg*) p;
+            strata::core::flag_raise_max(a->flag, a->value);
+            a->pending->fetch_sub(1, std::memory_order_release);
+        }, &a);
+        if (e != cudaSuccess) b_pending_.fetch_sub(1, std::memory_order_release);   // not queued: undo the count
+    } else {
+        e = strata::core::raise_flag_b_ordered(copy_used_, copy_, &fs, h_flagB_, want);
+    }
     if (e != cudaSuccess) {
         // The flag was not raised: the consumers must not be released to staging that is still being written.
         std::fprintf(stderr, "strata DMA: ordered flag B completion failed: %s\n", cudaGetErrorString(e));

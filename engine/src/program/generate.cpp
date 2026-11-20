@@ -20943,7 +20943,13 @@ int main(int argc, char** argv) {
                         }
                     }
                     // ---- every window in flight served
-                    if ((doomed && !pump0(D)) || !pump0(A) || !pump0(B)) return die(err);
+                    // STRATA_LAB_RDNA_PUMP_AGE=1 (opt-in): serve the OLDER window's stage 1 before the newer window's
+                    // stage-0 front (pump0(B)).  Measured: the fixed D->A->B->s1 order starves the second card - its
+                    // CPU rows wait behind window K+1's plan/staging work (stage-1 waitCPU 1.5 ms of a ~12.5 ms window).
+                    static const bool pump_age_lab = [] { const char* v = std::getenv("STRATA_LAB_RDNA_PUMP_AGE"); return v != nullptr && v[0] == '1'; }();
+                    const bool s1_first = pump_age_lab && A.s1 && !A.s1_done;
+                    if ((doomed && !pump0(D)) || !pump0(A)) return die(err);
+                    if (!s1_first && !pump0(B)) return die(err);
                     if (A.s1 && !A.s1_done) {
                         strata::core::Verifier& v = V1(A);
                         if (v.service(&drive_pool_split, SDf(A), err) < 0) return die(err);
@@ -20963,6 +20969,7 @@ int main(int argc, char** argv) {
                             tre("F1", A.seq, A.T);
                         } else if (!err.empty()) return die(err);
                     }
+                    if (s1_first && !pump0(B)) return die(err);   // the deferred newer window, after the older one's rows
                     if (drive.d.failed) return die(drive.d.fail ? drive.d.fail : "the expert pool failed");
                     // ---- a wrong speculative window has stopped (it is launched on no further stage once doomed):
                     // every front stage it ran on back to the verified window's real commit
