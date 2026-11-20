@@ -5547,7 +5547,13 @@ int Verifier::service(PoolMultiFn pool, void* user, std::string& err) {
     }
     const int G = groups_[T] > 0 ? groups_[T] : 1;
     const int gtb[2] = {0, (T + 1) / 2}, gte[2] = {G == 2 ? (T + 1) / 2 : T, T};
+    // STRATA_LAB_RDNA_SERVE_QUANTUM=N (opt-in): serve at most N rang rings per service() call and return, so the
+    // pipelined loop's other verifiers get their turn instead of one greedy pass hogging the thread for a whole
+    // window (the pool trace shows bursts of 20-24 rings / ~5 ms during which the other stage's rings wait).
+    static const int serve_quantum = [] { const char* v = std::getenv("STRATA_LAB_RDNA_SERVE_QUANTUM"); return v ? std::max(1, std::atoi(v)) : 0; }();
+    int served_this_call = 0;
     while (fl_k_ < fl_total_) {
+        if (serve_quantum > 0 && served_this_call >= serve_quantum) return 1;   // rang rings remain: called again
         const int64_t l = lb_ + fl_k_ / G;
         const uint32_t want = (uint32_t) (fl_k_ + 1);
         if (*(volatile uint32_t*) h_seq_ < want) {
@@ -5597,6 +5603,7 @@ int Verifier::service(PoolMultiFn pool, void* user, std::string& err) {
         }
         if (fl_k_ == 0 && !gather_ple()) return -1;
         *(volatile uint32_t*) h_flag_ = want;
+        ++served_this_call;
         ++fl_k_;
         ms_pool += ms_since(b);
         fl_since_ms_ = fl_flush_ms_ = now_ms();
