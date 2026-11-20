@@ -22208,6 +22208,10 @@ int main(int argc, char** argv) {
                     if (st == 0) std::fprintf(stderr, "strata decode GPU stages (ms/window):%s\n", pr.c_str());   // text as before
                     else std::fprintf(stderr, "strata decode GPU stages, stage %d (ms/window):%s\n", st, pr.c_str());
                 }
+                // STRATA_VERIFY_TRACE: the ring-handshake breadcrumbs of this request too (normally only printed on
+                // a gate timeout): per event the host clock and the seq/flag/flagA/flagB counters - the pool serve
+                // latency per ring reads straight from a healthy run.
+                for (int st = 0; st < n_stages; ++st) stage_ver(st).trace_dump(stderr);
             }
             if (drive.d.fs) std::fprintf(stderr, "strata serve: %s\n", drive.d.fs->report().c_str());
             if (!cancelled) {
