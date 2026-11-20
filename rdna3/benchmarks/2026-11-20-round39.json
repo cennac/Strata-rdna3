@@ -1,0 +1,24 @@
+{
+ "date": "2026-11-20",
+ "purpose": "layer-split balance screen (stage-1 is the critical path: 12.53 vs 11.71ms + head + drafter)",
+ "binary": "5614920c",
+ "arms": {
+  "r39-control": {
+   "zh1": 114.02,
+   "zh2": 156.17,
+   "code1": 149.01,
+   "code2": 207.26
+  },
+  "r39-ls2424": {
+   "zh1": 114.93,
+   "zh2": 145.24,
+   "code1": 146.33,
+   "code2": 199.34
+  },
+  "r39-ls2820": {}
+ },
+ "events": "r39-ls2820 (28/20) engine SIGABRT (exit -6) at first request; r39-ls3018 never ran (campaign aborted by design)",
+ "verdict": "26/22 stays: 24/24 costs the dual lanes (145.2/199.3 vs 156.2/207.3); 28/20 crashes. Split rebalancing closed as an avenue.",
+ "completed": null,
+ "restored": true
+}
