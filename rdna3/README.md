@@ -69,6 +69,10 @@ is not the same as recovering the legacy engine's speed).
   bit-exact, throughput −4.8% to −10.4% — the synchronous inline serve model wins; every
   bounded serve-model restructure on this rig has now measured slower
   ([2026-11-21 screen](benchmarks/2026-11-21-pool-queue.md)).
+- Local HC Q8 on the zero-PCIe baseline: **blocked** — a flaky layer-24 CPU-expert deadlock
+  (2 of 8 loads, identical watchdog signature; 3 reproductions clean) plus one completed pair
+  with no clear gain. Off until root-caused
+  ([2026-11-21 record](benchmarks/2026-11-21-hc-q8-blocked.md)).
 
 - `STRATA_TSUM=1` aborts the engine at load on gfx1100 (SIGABRT, exit −6). Do not enable
   (round 21).

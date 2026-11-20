@@ -1,5 +1,9 @@
 # 更新记录
 
+## Local HC Q8 confirmation blocked (2026-11-21)
+
+- The three-pair confirmation of local Q8 HC weights on the adopted baseline could not run: 2 of 8 Q8 loads deadlocked at the layer-24 CPU-expert dispatch and were killed by the watchdog with an identical signature; three targeted reproductions (fresh load, two-load sequence, exact warmup body) ran clean, so the race is flaky. The one completed pair shows no clear gain. Local Q8 stays off until the deadlock is root-caused. See the [blocked record](benchmarks/2026-11-21-hc-q8-blocked.md).
+
 ## Pool compute queue / async C (2026-11-21)
 
 - Implemented the pool-serve redesign as `STRATA_LAB_RDNA_POOL_QUEUE=1` (default off): a lock-free 4-slot SPSC ring feeds one runner thread that is the pool's only caller and raises C per ring. Frozen texts byte-identical; throughput −9.0%/−4.8%/−10.4%/−5.7% (medians) — **not adopted**. The inline synchronous design is confirmed the best serve model tested on this rig; the remaining gap is structural window scheduling. Also documented an unexplained `std::system_error(EPERM)` from `pthread_mutex_unlock` in a HIP-build worker thread (the reason the ring is lock-free). See the [record](benchmarks/2026-11-21-pool-queue.md).

@@ -1,0 +1,31 @@
+{
+  "outcome": "blocked: flaky layer-24 CPU-expert deadlock killed 2 of 8 Q8 campaign loads (issue #29, identical signature); 3 targeted reproductions ran clean",
+  "binary": "3e419e1d51e8bb8286082df882c210dc8ac64c0dc794e0e91bd89ad8bca14e15",
+  "q8_arms_config": {
+    "STRATA_HC_Q8": 1,
+    "STRATA_LAB_RDNA_HC_Q8": 1,
+    "STRATA_GR_RDNA_A8": 0,
+    "STRATA_LAB_RDNA_POOL_QUEUE": "absent (off)",
+    "STRATA_LAB_RDNA_ZERO_PCIE_GRAPH": 1
+  },
+  "hang_signature": "no progress for 180 s during a request (verify window (pipelined): the CPU experts of layer 24)",
+  "single_completed_pair": {
+    "zh_single": [
+      126.08,
+      118.36
+    ],
+    "zh_dual": [
+      161.1,
+      164.18
+    ],
+    "code_single": [
+      155.58,
+      157.6
+    ],
+    "code_dual": [
+      221.37,
+      221.47
+    ]
+  },
+  "decision": "local Q8 stays off; root-cause the deadlock before any retry"
+}
