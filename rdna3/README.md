@@ -31,7 +31,7 @@ Remaining gap: −15.4% / −11.9% / −18.3% / −9.7%. Dual-lane TTFT has been
 baseline since round 1. Cross-campaign numbers show progress only; adoption decisions rest
 on interleaved same-build controls inside each campaign.
 
-## Adopted (template revision `shstream-aux-pool12`)
+## Adopted (template revision `shstream-aux-pool12-zero-pcie`)
 
 1. **Penalty-history pipelining** — `STRATA_HYBRID_PENALTIES=1` + `STRATA_PW_WITH_BATCH=1`
    (round 1; the largest single win over stock v0.2.16).
@@ -42,6 +42,10 @@ on interleaved same-build controls inside each campaign.
 4. **Auxiliary CPU placement** — `STRATA_AUX_CPUS=auto` (rounds 15–17).
 5. **CPU expert pool widened** — `--pool-workers` 8 → 12 (rounds 21–22: zh single +5.0%,
    zh dual +3.4%, code flat).
+6. **Fixed-zero expert PCIe graph** — `STRATA_LAB_RDNA_ZERO_PCIE_GRAPH=1` in the dual-gfx1100
+   template with `--pcie-frac 0`. Three fresh-load pairs improved throughput medians by
+   +3.7% / +7.1% / +4.6% / +1.2% in the same workload order. The engine-wide default stays
+   off. See the [paired results and validation scope](benchmarks/2026-11-20-zero-pcie-graph.md).
 
 ## Validated but not enabled by default
 
@@ -54,6 +58,17 @@ quantize kernel (`STRATA_LAB_RDNA_GR_Q32`, round 24), the draft-layer HC fusion 
 is not the same as recovering the legacy engine's speed).
 
 ## Kept negative results
+
+- `STRATA_LOOKAHEAD=0` (routing prefetch worker off): Chinese dual +8.03% in every pair but
+  code single −2.17% in every pair — not a clear all-lane win, so the look-ahead stays on
+  ([2026-11-20 screen](benchmarks/2026-11-20-lookahead-off.md)).
+- `STRATA_MTP_HIP_PRIO=1` (draft stream at highest priority): Chinese dual +3.83% in every
+  pair, Chinese single −2.63% median, code flat — not adopted on gfx1100
+  ([2026-11-20 screen](benchmarks/2026-11-20-mtp-prio.md)).
+- `STRATA_LAB_RDNA_POOL_QUEUE=1` (async C through a single-pool SPSC runner): correctness
+  bit-exact, throughput −4.8% to −10.4% — the synchronous inline serve model wins; every
+  bounded serve-model restructure on this rig has now measured slower
+  ([2026-11-21 screen](benchmarks/2026-11-21-pool-queue.md)).
 
 - `STRATA_TSUM=1` aborts the engine at load on gfx1100 (SIGABRT, exit −6). Do not enable
   (round 21).

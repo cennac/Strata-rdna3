@@ -146,7 +146,8 @@
     "STRATA_IQ_MT_MIN": "1",
     "STRATA_PIPELINE_DEBUG": "1",
     "STRATA_GR_V3": "0",
-    "STRATA_LAB_RDNA_GR": "1"
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_ZERO_PCIE_GRAPH": "1"
   },
   "lib_dirs": [
     "@ROCM@/lib",
@@ -164,8 +165,8 @@
     "framework": "Strata",
     "version": "0.2.16-rdna3.1",
     "engine_version": "0.1.62",
-    "optimization": "RDNA3 penalty pipeline + BF16 HC + SH stream + aux auto + pool12",
-    "revision": "shstream-aux-pool12",
+    "optimization": "RDNA3 penalty pipeline + BF16 HC + SH stream + aux auto + pool12 + fixed-zero PCIe graph",
+    "revision": "shstream-aux-pool12-zero-pcie",
     "weights_variant": "GSQ-RCO IQ3_XXS",
     "upstream_version": "0.2.16",
     "rdna3_revision": 1

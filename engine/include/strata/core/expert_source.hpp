@@ -403,7 +403,14 @@ struct GpuPlanSink {
     /// kernel reads the mapped arena directly; 2 = a copy kernel stages it inside the graph.  For 1 and 2 `ptr2`
     /// holds the arena's device alias.
     int pcie_mode = 0;
+    bool fixed_zero_pcie = false;          ///< the graph omits the PCIe share; only zero-group plans are valid
+    bool fixed_zero_pcie_violation = false; ///< set and checked on the pool callback's host thread
     int32_t cpu_jobs = 0;   ///< host only: the distinct experts the pool computes for the layer just published
+    /// STRATA_LAB_RDNA_POOL_QUEUE: the serve thread queued this ring's CPU experts to the runner; the
+    /// runner raises C through `complete(ctx, want)` when the rows land. Host bookkeeping only.
+    uint32_t cur_want = 0;
+    bool async_queued = false;
+    void (*complete)(void* ctx, uint32_t want) = nullptr;
 };
 
 /// Verifier::set_pcie_balance: a verify window's costs, fitted to each layer's measured times (ms, least squares with
@@ -498,12 +505,17 @@ struct PcieModel {
 
 /// The adapter's own state.  One per session, reused every layer so the token path allocates nothing (P2.T10).
 struct ForesightSwap;
+struct PoolComputeQueue;      ///< STRATA_LAB_RDNA_POOL_QUEUE: defined in expert_source.cpp (opaque here)
+struct ExpertDispatch;
+PoolComputeQueue* make_pool_queue(ExpertDispatch* d, bool enable);
+void delete_pool_queue(PoolComputeQueue* q);
 
 struct ExpertDispatch {
     ForesightSwap* fs = nullptr;   ///< Foresight swap space (STRATA_FS_SLOTS; null = off)
     strata::kernels::cpu::ExpertPool* pool = nullptr;
     ExpertSource* src = nullptr;
     RouterLookahead* lookahead = nullptr;   ///< CS-T: warms the next layer's predicted file-tier experts
+    PoolComputeQueue* queue = nullptr;      ///< STRATA_LAB_RDNA_POOL_QUEUE: the CPU experts' runner (null: compute inline)
     RemoteExperts* remote[3] = {}; ///< optional CUDA1..3 tiers for otherwise CPU-served rows
     int remote_count = 0;
     int64_t n_expert = strata::kernels::cpu::NE;

@@ -1,4 +1,5 @@
 // src/core/expert_source.cpp - the adapter.  See the header for the three clauses of the contract.
+#include "strata/platform/cpu_relax.hpp"
 #include "strata/core/expert_source.hpp"
 #include "strata/core/expert_nibble.hpp"
 #include "strata/core/conversation_memory.hpp"
@@ -4943,6 +4944,126 @@ int tail_skip_rank() {
 }
 void set_tail_skip_rank(int r) { g_tail_skip_rank.store(r > 0 && r < 10 ? r : 0, std::memory_order_relaxed); }
 
+
+// STRATA_LAB_RDNA_POOL_QUEUE (experimental): the serve thread builds the plan, publishes A and hands the CPU
+// experts' batch to one runner thread. The runner is the pool's ONLY caller, so the pool stays a one-batch-
+// at-a-time machine; the serve thread is free to service the other verifiers' rings while the rows compute,
+// and the runner raises the ring's C flag (GpuPlanSink::complete) when the batch lands. A full FIFO makes the
+// serve thread WAIT for a slot (never compute beside the runner - two pool batches at once corrupt its state).
+// The blob pointers must stay valid until the batch runs (the mapped in-place source; the cold landing path
+// still computes inline), and the verifiers must outlive the queue: the serve scope declares it last.
+struct PoolComputeQueueSlot {
+    int njobs = 0;
+    std::vector<strata::kernels::cpu::ExpertJobMulti> jobs;
+    std::vector<strata::kernels::cpu::ActQ> act;
+    std::vector<uint8_t> nact;
+    strata::kernels::cpu::NativeFmt fmt{};
+    strata::kernels::cpu::NativeArithmetic arithmetic = strata::kernels::cpu::NativeArithmetic::Default;
+    bool native = false;
+    uint32_t want = 0;
+    GpuPlanSink* plan = nullptr;
+};
+
+struct PoolComputeQueue {
+    static constexpr int kDepth = 4;
+    explicit PoolComputeQueue(ExpertDispatch* dispatch, bool enable) : d(dispatch), on_(enable) {}
+    bool on() const { return on_; }
+    int64_t queued = 0, waits = 0;
+    ~PoolComputeQueue() {
+        stop.store(true, std::memory_order_release);
+        if (runner.joinable()) runner.join();
+    }
+    // One call per pool ring, from the serve thread only. Blocks while the FIFO is full (bounded by the
+    // queued batches' own compute); copies the jobs and the quantized activations into the slot, so the
+    // dispatch's own tables are free for the next ring the moment this returns.
+    void enqueue(int njobs, const strata::kernels::cpu::ExpertJobMulti* jobs, int64_t n_tok, bool native,
+                 const strata::kernels::cpu::NativeFmt& fmt, strata::kernels::cpu::NativeArithmetic arithmetic,
+                 GpuPlanSink* plan) {
+        // single producer (the serve thread): spin until the consumer freed a slot
+        while (tail.load(std::memory_order_relaxed) - head.load(std::memory_order_acquire) == kDepth) {
+            ++waits;
+            strata_cpu_pause();
+        }
+        PoolComputeQueueSlot& s = slots[tail.load(std::memory_order_relaxed) % kDepth];
+        s.njobs = njobs;
+        s.jobs.assign(jobs, jobs + njobs);
+        s.act.assign(d->act_multi.begin(), d->act_multi.begin() + n_tok);
+        if (native)
+            s.nact.assign(d->nact_multi.begin(), d->nact_multi.begin() + n_tok * (int64_t) strata::kernels::cpu::kNativeActBytes);
+        s.native = native;
+        s.fmt = fmt;
+        s.arithmetic = arithmetic;
+        s.plan = plan;
+        s.want = plan->cur_want;
+        for (int e = 0; e < njobs; ++e) {
+            strata::kernels::cpu::ExpertJobMulti& j = s.jobs[(size_t) e];
+            for (int t = 0; t < j.nt; ++t) {
+                const int64_t ai = j.act[t] - d->act_multi.data();
+                j.act[t] = &s.act[(size_t) ai];
+                if (j.nact[t] != nullptr)
+                    j.nact[t] = s.nact.data() + ((const uint8_t*) j.nact[t] - d->nact_multi.data());
+            }
+        }
+        tail.store(tail.load(std::memory_order_relaxed) + 1, std::memory_order_release);
+    }
+    void loop() noexcept {
+        try {
+            loop_inner();
+        } catch (const std::exception& e) {
+            std::fprintf(stderr, "strata: pool queue runner exception at %s: %s (errno %d: %s) | this=%p head=%llu tail=%llu queued=%lld waits=%lld\n",
+                         phase, e.what(), errno, std::strerror(errno), (void*) this,
+                         (unsigned long long) head.load(), (unsigned long long) tail.load(),
+                         (long long) queued, (long long) waits);
+            std::fflush(stderr);
+            std::abort();
+        } catch (...) {
+            std::fprintf(stderr, "strata: pool queue runner exception (unknown)\n");
+            std::fflush(stderr);
+            std::abort();
+        }
+    }
+    const char* phase = "entry";
+    void loop_inner() {
+        // single consumer: spin until the producer published a batch (release/acquire pairs the slot fill)
+        for (;;) {
+            uint64_t h;
+            while ((h = head.load(std::memory_order_acquire)) == tail.load(std::memory_order_relaxed)) {
+                if (stop.load(std::memory_order_acquire)) return;
+                strata_cpu_pause();
+            }
+            PoolComputeQueueSlot& s = slots[h % kDepth];
+            phase = "compute";
+            if (s.native) d->pool->run_split_multi_native(s.fmt, s.jobs.data(), s.njobs, s.arithmetic);
+            else d->pool->run_split_multi(s.jobs.data(), s.njobs);
+            phase = "post-compute-fence";
+            std::atomic_thread_fence(std::memory_order_seq_cst);
+            GpuPlanSink* p = s.plan;
+            const uint32_t w = s.want;
+            phase = "advance";
+            head.store(h + 1, std::memory_order_release);
+            phase = "complete";
+            if (p != nullptr && p->complete != nullptr) p->complete(p->ctx, w);
+        }
+    }
+    ExpertDispatch* d = nullptr;
+    bool on_ = false;
+    PoolComputeQueueSlot slots[kDepth];
+    // SPSC ring: the serve thread publishes tail after filling a slot; the runner publishes head
+    // after computing it. 64-bit counters never wrap in a run (kDepth-deep modulo on index).
+    std::atomic<uint64_t> head{0}, tail{0};
+    std::atomic<bool> stop{false};
+    std::thread runner;
+};
+
+PoolComputeQueue* make_pool_queue(ExpertDispatch* d, bool enable) {
+    if (!enable) return nullptr;
+    PoolComputeQueue* q = new PoolComputeQueue(d, true);
+    q->runner = std::thread([q] { q->loop(); });
+    std::fprintf(stderr, "strata serve: pool compute queue on (%d slots)\n", (int) PoolComputeQueue::kDepth);
+    return q;
+}
+void delete_pool_queue(PoolComputeQueue* q) { delete q; }
+
 void expert_pool_dispatch_multi(ExpertDispatch& d, const float* x_f, const int32_t* ids, int64_t n_tok, int64_t k,
                                 float* out, strata::kernels::cpu::NativeArithmetic arithmetic) {
     using namespace strata::kernels::cpu;
@@ -5198,6 +5319,16 @@ void expert_pool_dispatch_multi(ExpertDispatch& d, const float* x_f, const int32
         P.counts[0] = groups;
         P.counts[1] = entries;
         P.counts[2] = fetches;
+        if (P.fixed_zero_pcie && P.counts[2] != 0) {
+            // Leave an empty plan for the verifier's no-plan drain; do not raise A here.
+            P.counts[0] = P.counts[1] = P.counts[2] = 0;
+            P.start[0] = P.start2[0] = 0;
+            P.fixed_zero_pcie_violation = true;
+            d.failed = true;
+            d.fail = "the fixed-zero PCIe verifier received a nonempty PCIe expert plan";
+            d.fail_layer = d.layers;
+            return;
+        }
         std::atomic_thread_fence(std::memory_order_seq_cst);
         pt("publish", fetches);
         if (P.publish) P.publish(P.ctx);
@@ -5434,8 +5565,14 @@ void expert_pool_dispatch_multi(ExpertDispatch& d, const float* x_f, const int32
     if (d.plan != nullptr) d.plan->cpu_jobs = njobs;
     pt("run", njobs);
     if (njobs > 0 && npend == 0) {
-        if (native) d.pool->run_split_multi_native(lay.fmt[(size_t) d.layers], d.jobs_multi.data(), njobs, arithmetic);
-        else d.pool->run_split_multi(d.jobs_multi.data(), njobs);
+        if (d.queue != nullptr && d.peer == nullptr && d.remote_count == 0) {
+            d.queue->enqueue(njobs, d.jobs_multi.data(), n_tok, native, lay.fmt[(size_t) d.layers], arithmetic, d.plan);
+            d.plan->async_queued = true;   // the runner raises this ring's C when the rows land
+            pt("queued", njobs);
+        } else {
+            if (native) d.pool->run_split_multi_native(lay.fmt[(size_t) d.layers], d.jobs_multi.data(), njobs, arithmetic);
+            else d.pool->run_split_multi(d.jobs_multi.data(), njobs);
+        }
     }
     if (d.remote_count > 0) {
         static thread_local std::string remote_error;

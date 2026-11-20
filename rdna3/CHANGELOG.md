@@ -1,5 +1,31 @@
 # 更新记录
 
+## Pool compute queue / async C (2026-11-21)
+
+- Implemented the pool-serve redesign as `STRATA_LAB_RDNA_POOL_QUEUE=1` (default off): a lock-free 4-slot SPSC ring feeds one runner thread that is the pool's only caller and raises C per ring. Frozen texts byte-identical; throughput −9.0%/−4.8%/−10.4%/−5.7% (medians) — **not adopted**. The inline synchronous design is confirmed the best serve model tested on this rig; the remaining gap is structural window scheduling. Also documented an unexplained `std::system_error(EPERM)` from `pthread_mutex_unlock` in a HIP-build worker thread (the reason the ring is lock-free). See the [record](benchmarks/2026-11-21-pool-queue.md).
+
+## Legacy fused-A8 ablation attempt (2026-11-20)
+
+- Ran the production 0.1.43 binary with `STRATA_GR_FUSED` 1 vs 0 under the frozen protocol: inconclusive, because 0.1.43 does not reproduce texts across identical requests on this rig while the development engine does (a role reversal of the R14–R20 instability). The HC fused-A8 port is deprioritized against the pool serve model's larger 2.4 ms/window wait chain. See the [attempt record](benchmarks/2026-11-20-legacy-fused-ablation.md).
+
+## Light profile of the adopted baseline (2026-11-20)
+
+- Single frozen load with `STRATA_VERIFY_PROFILE=1` + `STRATA_VERIFY_PROFILE_LIGHT=1` on the adopted template binary: bucket-level determinism to 0.01 ms; waitB/PCIe ≈ 0.05 ms confirms the fixed-zero graph; the surviving host wait chain is ~2.4 ms/window (stage-0 waitA ~1.0 + stage-1 waitCPU ~1.7); HC reads ~2.9 ms/window combined. Ranks the pool serve model as the next target, then the HC fused A8 port. See the [diagnostic record](benchmarks/2026-11-20-light-profile.md).
+
+## MTP draft stream priority screen (2026-11-20)
+
+- Verified gfx1100's stream priority range (1..-1) with a live probe, then screened `STRATA_MTP_HIP_PRIO=1` on the dual-card template: Chinese dual +3.83% in every pair, Chinese single −2.63% median, code lanes flat; frozen texts byte-identical. Not adopted. Added a diagnostic log line to `mtp.cpp` that reports the applied priority and range. See the [screen record](benchmarks/2026-11-20-mtp-prio.md).
+
+## Routing look-ahead off screen (2026-11-20)
+
+- Tested `STRATA_LOOKAHEAD=0` on the dual-gfx1100 template: Chinese dual improved in all three pairs (+8.03% median) but code single regressed in all three (−2.17% median); frozen serial/pipelined/forced-rollback texts stayed byte-identical across arms. Not adopted; the look-ahead stays on. A first campaign attempt aborted on its own config assertion before scoring and production was restored automatically. See the [screen record](benchmarks/2026-11-20-lookahead-off.md).
+
+## Fixed-zero expert PCIe verifier graph (2026-11-20)
+
+- Added a default-off HIP/gfx1100 experiment that omits the expert PCIe branch from verifier graphs only on a fixed-zero two-card split. Cross-card activation hand-off and ordered DMA publication remain unchanged.
+- Confirmed 156/132 fewer nodes on the two stages, exact token IDs in the frozen checks (including forced rollback and batch), and a working nonzero-share fallback. The ordered-flag test passed on both cards.
+- Three fresh-load pairs at 1,024 output tokens improved median Chinese single/dual and code single/dual throughput by 3.7%/7.1%/4.6%/1.2%. Enabled in the fixed-zero dual-card development template (`shstream-aux-pool12-zero-pcie`), not in the engine defaults. Production 0.1.43 was restored without changing its configuration. See the [validation and measurements](benchmarks/2026-11-20-zero-pcie-graph.md).
+
 ## dev/0.2.16 异步C设计与驻留/页缓存假设关闭（2026-11-20）
 
 - 架构分析(无新测速):ExpertPool是串行批机器——serve线程自身参与相计算、批状态复用,双批次并发需要双池;异步C因此退化为"每stage独立serve线程+独立池"的结构项目。驻留率两版持平(21785对21636槽),dev的miss读全部页缓存命中(0存储读)——驻留与页锁补充假设均不成立。

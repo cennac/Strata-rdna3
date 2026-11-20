@@ -523,6 +523,9 @@ bool MtpDrafter::load(const std::string& rt_dir, const ModelGeometry& g, Session
         int lo = 0, hi = 0;
         if (hip_prio && hipDeviceGetStreamPriorityRange(&lo, &hi) == hipSuccess)
             prio = hipStreamCreateWithPriority(&cs_, hipStreamNonBlocking, hi) == hipSuccess;
+        if (hip_prio)
+            std::fprintf(stderr, "strata mtp: draft stream priority %s (range %d..%d)\n",
+                         prio ? "raised" : "not applied", lo, hi);
         (void) cudaGetLastError();
     }
 #endif

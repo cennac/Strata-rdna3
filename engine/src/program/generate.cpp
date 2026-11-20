@@ -1643,6 +1643,15 @@ void drive_pool_split_impl(void* user, const float* x_f, const int32_t* ids, int
     d.d.cache_slot_off = s->cache_slot_off[st];
     d.d.pcie_num = s->pcie_num[st];
     drive_pool_multi_impl(s->base, x_f, ids, n_tok, k, out, layer, arithmetic);
+    if (d.d.plan != nullptr && d.d.plan->fixed_zero_pcie_violation) {
+        // Some batch/prompt graphs have already queued their commits. End the engine rather than
+        // letting the scheduler consume a drained window or reuse its session state.
+        std::fprintf(stderr, "strata serve: %s at layer %lld\n", d.d.fail, (long long) layer);
+        std::printf("ERR %s\n", d.d.fail);
+        std::fflush(stdout);
+        (void) strata::core::release_gpu_waits_within(5000);
+        std::_Exit(3);
+    }
 }
 void drive_pool_split(void* u, const float* x, const int32_t* ids, int64_t n, int64_t k, float* out, int64_t l) {
     drive_pool_split_impl(u, x, ids, n, k, out, l, strata::kernels::cpu::NativeArithmetic::Default);
@@ -3715,6 +3724,14 @@ int main(int argc, char** argv) {
 #if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
     prime_hw_queues();
 #endif
+    // The experiment requires a literal numeric zero, not a malformed or underflowed override.
+    const auto exact_pcie_zero = [](const char* text) {
+        char* end = nullptr;
+        errno = 0;
+        const double value = std::strtod(text, &end);
+        return end != text && *end == '\0' && errno != ERANGE && value == 0.0;
+    };
+    bool pcie_cli_zero = false;
     Options o;
     bool have_tokens = false;
     bool have_logits_stride = false;
@@ -3925,7 +3942,11 @@ int main(int argc, char** argv) {
         else if (a == "--window-hashes") o.window_hashes = next("--window-hashes");
         else if (a == "--mtp") o.mtp = next("--mtp");
         else if (a == "--mtp-window") o.mtp_window = std::atoll(next("--mtp-window"));
-        else if (a == "--pcie-frac") o.pcie_frac = std::atof(next("--pcie-frac"));
+        else if (a == "--pcie-frac") {
+            const char* value = next("--pcie-frac");
+            o.pcie_frac = std::atof(value);
+            pcie_cli_zero = exact_pcie_zero(value);
+        }
         else if (a == "--adapt-every") { o.adapt_every = std::atoi(next("--adapt-every")); o.adapt_every_given = true; }
         else if (a == "--adapt-decay") o.adapt_decay = strata::program::adapt_decay_checked(std::atof(next("--adapt-decay")));   // #1284: outside 0..1 -> 0.7, said
         else if (a == "--adapt-min-gain") o.adapt_min_gain = (float) std::atof(next("--adapt-min-gain"));
@@ -12542,6 +12563,29 @@ int main(int argc, char** argv) {
         };
         auto pcie_num_of = [](double f) { return std::max(0, std::min(256, (int) (f * 256.0 + 0.5))); };
         const int n_stages = split_devs.empty() ? 1 : (int) split_at.size() + 1;
+        const bool fixed_zero_pcie = [&] {
+#if defined(STRATA_USE_HIP)
+            const char* opt = std::getenv("STRATA_LAB_RDNA_ZERO_PCIE_GRAPH");
+            if (opt == nullptr || std::strcmp(opt, "1") != 0) return false;
+            const auto gfx1100 = [](int device) {
+                cudaDeviceProp p{};
+                if (cudaGetDeviceProperties(&p, device) != cudaSuccess) { (void) cudaGetLastError(); return false; }
+                return std::strncmp(p.gcnArchName, "gfx1100", 7) == 0 &&
+                       (p.gcnArchName[7] == '\0' || p.gcnArchName[7] == ':');
+            };
+            const char* dp = std::getenv("STRATA_VERIFY_DEVICE_PLAN");
+            const bool eligible = pcie_cli_zero && o.pcie_frac == 0.0 && !o.pcie_frac_auto && !pcie_balance() &&
+                                  n_stages == 2 && !split_same && stages.size() == 1 && stages[0]->pcie_frac == 0.0 &&
+                                  native_pack && o.peer_device < 0 && !remote_opt && drive.d.remote_count == 0 &&
+                                  adapt_fetch() == 0 && (dp == nullptr || std::atoi(dp) == 0) &&
+                                  gfx1100(0) && gfx1100(stages[0]->dev);
+            std::fprintf(stderr, "strata serve: fixed-zero PCIe verifier graph %s\n",
+                         eligible ? "enabled" : "not eligible (using the full graph)");
+            return eligible;
+#else
+            return false;
+#endif
+        }();
         // a layer split's hand-off buffers (and its pipelined windows) hold kVerifyMaxT rows: --lookup-max-t stops there
         if (n_stages > 1 && o.spec > strata::kernels::kVerifyNarrowT) {
             std::fprintf(stderr, "strata serve: --lookup-max-t %d: a layer split's windows stop at %d tokens\n",
@@ -12941,6 +12985,12 @@ int main(int argc, char** argv) {
                 split_drive_b.plan[st] = stage_ver_p(st, 1).plan_sink();
                 stage_ver_p(st, 1).set_split(o.spec_split);
                 stage_ver_p(st, 1).set_pcie_mode(o.pcie_mode == "dma" ? 0 : o.pcie_mode == "direct" ? 1 : 2);
+            }
+        }
+        if (fixed_zero_pcie) {
+            for (int st = 0; st < n_stages; ++st) {
+                stage_ver(st).set_fixed_zero_pcie();
+                if (pipe) stage_ver_p(st, 1).set_fixed_zero_pcie();
             }
         }
         // the pool the verify windows call: with a layer split, the wrapper that routes each layer to its stage
@@ -17302,6 +17352,14 @@ int main(int argc, char** argv) {
                 if (!pump(false)) return false;
             return pmtp_settle();
         };
+        // STRATA_LAB_RDNA_POOL_QUEUE (experimental): the serve thread publishes the plan and queues the CPU
+        // experts' batch to one runner thread (the pool's only caller: still one batch at a time); the runner
+        // raises C when the rows land. Declared after the verifiers so it joins before they die.
+        std::unique_ptr<strata::core::PoolComputeQueue, void (*)(strata::core::PoolComputeQueue*)> pool_queue(
+            strata::core::make_pool_queue(&drive.d,
+                [] { const char* v = std::getenv("STRATA_LAB_RDNA_POOL_QUEUE"); return v != nullptr && std::atoi(v) != 0; }()),
+            strata::core::delete_pool_queue);
+        if (pool_queue != nullptr) drive.d.queue = pool_queue.get();
         for (;;) {
             line_drain_ms = 0.0;
             strata::core::manifest::instance().flush_if_dirty("request");   // STRATA_MANIFEST: what the last request added (a no-op when off)
@@ -17755,6 +17813,7 @@ int main(int argc, char** argv) {
             // embedding floats, so a picture encoded again with other bits still matches.  Absent: the embeddings' hash.
             std::vector<uint64_t> req_img_keys;
             bool req_pcie_set = false;   // the request names its own share (the measured one holds meanwhile)
+            bool bad_fixed_pcie_override = false;
             // slot_read=1 (BGEN): the server takes DONE and BADM without a token, so the turn may be read in its slot
             // (STRATA_SLOT_READ, below).  Absent = the admission's first token on the main sessions, as before.
             bool req_slot_read = false;
@@ -17806,7 +17865,11 @@ int main(int argc, char** argv) {
                     else if (key == "penalty_freq") req_penalty_freq = fv;
                     else if (key == "penalty_present") req_penalty_present = fv;
                     else if (key == "seed") req_seed = std::strtoull(tok.c_str() + eq + 1, nullptr, 10);
-                    else if (key == "pcie_frac") { req_pcie_frac = std::clamp((double) fv, 0.0, 1.0); req_pcie_set = true; }
+                    else if (key == "pcie_frac") {
+                        bad_fixed_pcie_override |= fixed_zero_pcie && !exact_pcie_zero(tok.c_str() + eq + 1);
+                        if (!bad_fixed_pcie_override) req_pcie_frac = std::clamp((double) fv, 0.0, 1.0);
+                        req_pcie_set = true;
+                    }
                     else if (key == "spec_min_p") { req_spec_min_p = std::clamp((double) fv, 0.0, 1.0); req_min_p_set = true; }
                     else if (key == "draft") req_draft = tok.substr(eq + 1);
                     else if (key == "pipe") req_pipe = std::max(0.0, (double) fv);
@@ -17826,6 +17889,11 @@ int main(int argc, char** argv) {
                     }
                     // unknown keys are skipped: the ids start at the first token without '='
                 }
+            }
+            if (bad_fixed_pcie_override) {
+                std::printf("ERR pcie_frac: the fixed-zero PCIe verifier graph requires zero\n");
+                std::fflush(stdout);
+                continue;
             }
             strata::prefill::Prefill::set_pipe_request(req_pipe);   // every request sets it: none carries over
             bool req_df2 = use_df2;   // --draft auto: this request's drafter, decided once the prompt is parsed (below)

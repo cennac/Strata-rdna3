@@ -1073,6 +1073,7 @@ bool Verifier::init(const WeightTable& wt, const ModelGeometry& g, SessionState&
         sink_.cap = cap;
         sink_.publish = &Verifier::publish_plan;
         sink_.fetch = &Verifier::fetch_dma;
+        sink_.complete = &Verifier::complete_pool_rows;
         sink_.ctx = this;
     }
 
@@ -2505,21 +2506,25 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
             stamp(l, 19, grp);
             grouped(p_ptr, p_start, p_counts, 0, hit_out, true);
             stamp(l, 20, grp);
-            if (device_plan_) wait_flag_ge_or(m_flagB_, ring, skip_ + grp, cs);
-            else if (m_bal_ != nullptr)   // set_pcie_balance: the PCIe part starts
-                wait_flag_ge_stamped(m_flagB_, ring, m_bal_ + ((l - lb_) * 2 + grp) * 4 + 1, nullptr, cs);
-            else wait_flag_ge(m_flagB_, ring, cs);                 // the PCIe share is in staging (DMA) or mapped
-            if (sink_.pcie_mode == 2) {                            // stage it with a copy kernel, then point at staging
-                const int64_t per = G == 2 ? kStagingBlobs / 2 : kStagingBlobs;
-                uint8_t* stage = staging_ + (size_t) (grp * per) * lay.max_blob;
-                const unsigned long long* p_dst2 = (const unsigned long long*) (pl + dst2_off_);   // STRATA_ADAPT_FETCH
-                fetch_blobs(p_ptr2, p_counts + 2, stage, (int64_t) lay.blob_bytes(l), (int) per, cs, p_dst2);
-                rebase_ptrs((unsigned long long*) p_ptr2, p_counts + 2, stage, (int64_t) lay.blob_bytes(l), cs, p_dst2);
+            if (!sink_.fixed_zero_pcie) {
+                if (device_plan_) wait_flag_ge_or(m_flagB_, ring, skip_ + grp, cs);
+                else if (m_bal_ != nullptr)   // set_pcie_balance: the PCIe part starts
+                    wait_flag_ge_stamped(m_flagB_, ring, m_bal_ + ((l - lb_) * 2 + grp) * 4 + 1, nullptr, cs);
+                else wait_flag_ge(m_flagB_, ring, cs);                 // the PCIe share is in staging (DMA) or mapped
+                if (sink_.pcie_mode == 2) {                            // stage it with a copy kernel, then point at staging
+                    const int64_t per = G == 2 ? kStagingBlobs / 2 : kStagingBlobs;
+                    uint8_t* stage = staging_ + (size_t) (grp * per) * lay.max_blob;
+                    const unsigned long long* p_dst2 = (const unsigned long long*) (pl + dst2_off_);   // STRATA_ADAPT_FETCH
+                    fetch_blobs(p_ptr2, p_counts + 2, stage, (int64_t) lay.blob_bytes(l), (int) per, cs, p_dst2);
+                    rebase_ptrs((unsigned long long*) p_ptr2, p_counts + 2, stage, (int64_t) lay.blob_bytes(l), cs, p_dst2);
+                }
             }
             stamp(l, 21, grp);
-            // the PCIe share is pcie_frac of the misses: a few groups when the cache is cold, usually none (always none at
-            // pcie_frac 0), so its launch is kPcieGroupRows block rows striding over the groups, not cap of them
-            grouped(p_ptr2, p_start2, p_counts + 2, kPcieGroupRows, hit_out, false);
+            if (!sink_.fixed_zero_pcie) {
+                // the PCIe share is pcie_frac of the misses: a few groups when the cache is cold, usually none (always none at
+                // pcie_frac 0), so its launch is kPcieGroupRows block rows striding over the groups, not cap of them
+                grouped(p_ptr2, p_start2, p_counts + 2, kPcieGroupRows, hit_out, false);
+            }
             stamp(l, 22, grp);
             if (device_plan_) {   // no CPU share when the device planned the group: its rows are zeros
                 wait_flag_ge_or(m_flag_, ring, skip_ + grp, cs);
@@ -2864,39 +2869,10 @@ void Verifier::refresh_ar() {
     }
 }
 
-bool Verifier::capture(int T, std::string& err) {
-    const auto cap_t0 = std::chrono::steady_clock::now();
-    cudaGraphExec_t& exec_t = ar_off_ ? exec_nr_[sel_long_][T] : exec_[sel_long_][T];
-    if (exec_t != nullptr) return true;
-    {   // said before the capture: a process that exits inside it (#1275: Windows, 313 MiB free) leaves this line as the trace
-        size_t free_b = 0, total_b = 0;
-        if (cudaMemGetInfo(&free_b, &total_b) == cudaSuccess)
-            std::fprintf(stderr, "strata verify: capturing the %d-token window (%zu MiB of VRAM free)\n", T, free_b >> 20);
-        else
-            (void) cudaGetLastError();
-    }
-    if (cudaStreamBeginCapture(cs_, cudaStreamCaptureModeThreadLocal) != cudaSuccess) {
-        err = "verify: begin capture failed";
-        return false;
-    }
-#if !defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906) && !defined(STRATA_GPU_METAL)
-    prio_forks_.clear();
-    prio_tails_.clear();
-#endif
-    std::string rerr;
-    const bool ok = record_window(T, cs_, rerr);
-    cudaGraph_t graph = nullptr;
-    const cudaError_t ce = cudaStreamEndCapture(cs_, &graph);
-    if (!ok) {
-        if (graph) cudaGraphDestroy(graph);
-        err = rerr;
-        return false;
-    }
-    if (ce != cudaSuccess) {
-        err = std::string("verify: end capture: ") + cudaGetErrorString(ce);
-        return false;
-    }
-#if defined(STRATA_USE_HIP)   // 143-amdk: the same listing on HIP (kernel names by hipKernelNameRefByPtr); STRATA_VERIFY_NODES=2 also lists the first nodes in graph order
+#if defined(STRATA_USE_HIP)
+// STRATA_VERIFY_NODES=2 also lists the first nodes in capture order.
+static void log_hip_graph_nodes(hipGraph_t graph, int T, const char* kind, const Verifier* verifier,
+                                int device, int64_t lb, int64_t le, bool fixed_zero) {
     if (std::getenv("STRATA_VERIFY_NODES") != nullptr) {
         size_t nn = 0;
         hipGraphGetNodes(graph, nullptr, &nn);
@@ -2930,10 +2906,49 @@ bool Verifier::capture(int T, std::string& err) {
         std::vector<std::pair<int, std::string>> v;
         for (auto& [k2, c] : kinds) v.push_back({c, k2});
         std::sort(v.rbegin(), v.rend());
-        std::fprintf(stderr, "strata verify: the %d-token window graph has %zu nodes:", T, nn);
+        std::fprintf(stderr, "strata verify: the %d-token %s graph has %zu nodes (gpu=%d layers=[%lld,%lld) "
+                             "verifier=%p fixed-zero-pcie=%d):", T, kind, nn, device, (long long) lb,
+                     (long long) le, static_cast<const void*>(verifier), (int) fixed_zero);
         for (size_t i = 0; i < v.size() && i < 80; ++i) std::fprintf(stderr, "\n %4d x %.110s", v[i].first, v[i].second.c_str());
         std::fprintf(stderr, "\n%s\n", seq.c_str());
     }
+}
+#endif
+
+bool Verifier::capture(int T, std::string& err) {
+    const auto cap_t0 = std::chrono::steady_clock::now();
+    cudaGraphExec_t& exec_t = ar_off_ ? exec_nr_[sel_long_][T] : exec_[sel_long_][T];
+    if (exec_t != nullptr) return true;
+    {   // said before the capture: a process that exits inside it (#1275: Windows, 313 MiB free) leaves this line as the trace
+        size_t free_b = 0, total_b = 0;
+        if (cudaMemGetInfo(&free_b, &total_b) == cudaSuccess)
+            std::fprintf(stderr, "strata verify: capturing the %d-token window (%zu MiB of VRAM free)\n", T, free_b >> 20);
+        else
+            (void) cudaGetLastError();
+    }
+    if (cudaStreamBeginCapture(cs_, cudaStreamCaptureModeThreadLocal) != cudaSuccess) {
+        err = "verify: begin capture failed";
+        return false;
+    }
+#if !defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906) && !defined(STRATA_GPU_METAL)
+    prio_forks_.clear();
+    prio_tails_.clear();
+#endif
+    std::string rerr;
+    const bool ok = record_window(T, cs_, rerr);
+    cudaGraph_t graph = nullptr;
+    const cudaError_t ce = cudaStreamEndCapture(cs_, &graph);
+    if (!ok) {
+        if (graph) cudaGraphDestroy(graph);
+        err = rerr;
+        return false;
+    }
+    if (ce != cudaSuccess) {
+        err = std::string("verify: end capture: ") + cudaGetErrorString(ce);
+        return false;
+    }
+#if defined(STRATA_USE_HIP)
+    log_hip_graph_nodes(graph, T, "window", this, device_, lb_, le_, sink_.fixed_zero_pcie);
 #endif
 #if !defined(STRATA_USE_HIP) && !defined(STRATA_GPU_METAL)   // a CUDA debug listing (node types, kernel names)
     if (std::getenv("STRATA_VERIFY_NODES") != nullptr) {   // what the window graph holds
@@ -3656,9 +3671,11 @@ bool Verifier::run(int T, const int32_t* tokens, int64_t pos0, PoolMultiFn pool,
         const int tb = gtb[grp], n = gte[grp] - gtb[grp];
         progress_at("verify window: the CPU experts of layer", l);
         if (remote_opt_) remote_opt_->begin(h_w_ + (size_t) tb * ss.k, tb, n);
-        if (pool != nullptr)
+        if (pool != nullptr) {
+            sink_.cur_want = want;   // the pool queue's runner reports completion with this ring value
             pool(user, h_x_ + (size_t) tb * g.n_embd, h_ids_ + (size_t) tb * ss.k, n, ss.k,
                  h_ymiss_ + (size_t) tb * ss.k * g.n_embd, l);
+        }
         if (remote_opt_) remote_opt_->end();
         VDBG("layer %lld served\n", (long long) l);
         if (g_trace) trace_ev(*(volatile uint32_t*) h_flagA_ == want ? "SERVED" : "SERVED-NO-PLAN-YET", k, l,
@@ -3694,7 +3711,8 @@ bool Verifier::run(int T, const int32_t* tokens, int64_t pos0, PoolMultiFn pool,
             strata_store_fence();
             ms_host += ms_since(tp);
         }
-        if (!(test_stall && k + 1 == steps)) *flag = want;
+        if (sink_.async_queued) sink_.async_queued = false;   // the queue's runner raises C
+        else if (!(test_stall && k + 1 == steps)) *flag = want;
         if (h_bal_ != nullptr) bal_p_[(size_t) ((k / G) * 2 + grp)] = ms_since(b);
         ms_wait += std::chrono::duration<double, std::milli>(b - a).count();
         ms_pool += ms_since(b);
@@ -3974,6 +3992,12 @@ void Verifier::publish_plan(void* ctx) {
     *(volatile uint32_t*) v->h_flagA_ = v->cur_layer_ + 1;
 }
 
+void Verifier::complete_pool_rows(void* ctx, uint32_t want) {
+    // STRATA_LAB_RDNA_POOL_QUEUE: the runner's batch landed (its own fences precede this call)
+    Verifier* v = (Verifier*) ctx;
+    *(volatile uint32_t*) v->h_flag_ = want;
+}
+
 bool Verifier::window_logprobs(const int32_t* targets, int T, int64_t pos0, int32_t extra_id, std::FILE* out,
                                std::string& err) {
     if (next_ != nullptr) return next_->window_logprobs(targets, T, pos0, extra_id, out, err);
@@ -4222,6 +4246,9 @@ bool Verifier::capture_batch(const int* rows, int S, int hbase, std::string& err
         err = !ok ? rerr : std::string("verify: end batch capture: ") + cudaGetErrorString(ce);
         return false;
     }
+#if defined(STRATA_USE_HIP)
+    log_hip_graph_nodes(graph, S, "batch window", this, device_, lb_, le_, sink_.fixed_zero_pcie);
+#endif
     const bool made = instantiate_evicting(ex, graph, bkey(rows, S, hbase), "verify: batch instantiate: ", err);
     cudaGraphDestroy(graph);
     if (!made) return false;
@@ -5003,7 +5030,10 @@ bool Verifier::run_slot_rows(const int* rows, int S, const int32_t* tokens, cons
         // The recorded graph consumes the helper mask and weighted sum just as
         // the solo graph does. Reset both and supply this layer's routing weights.
         if (remote_opt_) remote_opt_->begin(h_w_, 0, S);
-        if (pool != nullptr) pool(user, h_x_, h_ids_, S, ss_->k, h_ymiss_, l);
+        if (pool != nullptr) {
+            sink_.cur_want = want;
+            pool(user, h_x_, h_ids_, S, ss_->k, h_ymiss_, l);
+        }
         if (remote_opt_) remote_opt_->end();
         progress_tick();
         std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -5018,7 +5048,8 @@ bool Verifier::run_slot_rows(const int* rows, int S, const int32_t* tokens, cons
             *(volatile uint32_t*) h_flagA_ = want;
             raise_flag_b_ordered(want);   // behind any copy still queued from an earlier layer
         }
-        *flag = want;
+        if (sink_.async_queued) sink_.async_queued = false;   // the queue's runner raises C
+        else *flag = want;
         ms_wait += std::chrono::duration<double, std::milli>(b - a).count();
         ms_pool += ms_since(b);
     }
@@ -5218,7 +5249,10 @@ int Verifier::batch_serve(PoolMultiFn pool, void* user) {
         cur_layer_ = want - 1;
         set_plan_slot(0);
         if (remote_opt_) remote_opt_->begin(h_w_, 0, S);
-        if (pool != nullptr) pool(user, h_x_, h_ids_, S, ss_->k, h_ymiss_, lb_ + k);
+        if (pool != nullptr) {
+            sink_.cur_want = want;
+            pool(user, h_x_, h_ids_, S, ss_->k, h_ymiss_, lb_ + k);
+        }
         if (remote_opt_) remote_opt_->end();
         progress_tick();
         std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -5233,7 +5267,8 @@ int Verifier::batch_serve(PoolMultiFn pool, void* user) {
             *(volatile uint32_t*) h_flagA_ = want;
             raise_flag_b_ordered(want);   // behind any copy still queued from an earlier layer
         }
-        *(volatile uint32_t*) h_flag_ = want;
+        if (sink_.async_queued) sink_.async_queued = false;   // the queue's runner raises C
+        else *(volatile uint32_t*) h_flag_ = want;
         ms_pool += ms_since(b);
         ring_now();
         b_k_.fetch_add(1, std::memory_order_release);
@@ -5583,9 +5618,11 @@ int Verifier::service(PoolMultiFn pool, void* user, std::string& err) {
         set_plan_slot(grp);
         const int tb = gtb[grp], n = gte[grp] - gtb[grp];
         progress_at("verify window (pipelined): the CPU experts of layer", l);
-        if (pool != nullptr)
+        if (pool != nullptr) {
+            sink_.cur_want = want;   // the pool queue's runner reports completion with this ring value
             pool(user, h_x_ + (size_t) tb * g.n_embd, h_ids_ + (size_t) tb * ss.k, n, ss.k,
                  h_ymiss_ + (size_t) tb * ss.k * g.n_embd, l);
+        }
         if (g_trace) trace_ev(*(volatile uint32_t*) h_flagA_ == want ? "SERVED" : "SERVED-NO-PLAN-YET", fl_k_, l,
                               (int64_t) ms_since(b));
         progress_tick();
@@ -5602,7 +5639,8 @@ int Verifier::service(PoolMultiFn pool, void* user, std::string& err) {
             raise_flag_b_ordered(want);   // behind any copy still queued from an earlier layer
         }
         if (fl_k_ == 0 && !gather_ple()) return -1;
-        *(volatile uint32_t*) h_flag_ = want;
+        if (sink_.async_queued) sink_.async_queued = false;   // the queue's runner raises C
+        else *(volatile uint32_t*) h_flag_ = want;
         ++served_this_call;
         ++fl_k_;
         ms_pool += ms_since(b);

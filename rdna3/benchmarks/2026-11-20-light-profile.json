@@ -1,0 +1,26 @@
+{
+  "scope": "single diagnostic load, STRATA_VERIFY_PROFILE=1 + STRATA_VERIFY_PROFILE_LIGHT=1, frozen requests (adapt 0, swaps 0, suffix 0), pipelined pw=2",
+  "binary_sha256": "528530d9cc9b87d61f61763d16279e2909ca28757295b83881a83b81d7ffab32",
+  "baseline": "adopted template shstream-aux-pool12-zero-pcie (fixed-zero PCIe graph on, look-ahead on, MTP priority off)",
+  "instrumentation_overhead_ms_per_window": 1.8,
+  "requests": [
+    {"label": "warmup-zh-128", "windows": 64, "wall_ms": 1340, "ms_per_window": 20.95},
+    {"label": "zh-384-a", "windows": 197, "wall_ms": 3915, "ms_per_window": 19.87},
+    {"label": "zh-384-b", "windows": 197, "wall_ms": 3918, "ms_per_window": 19.89},
+    {"label": "code-384-a", "windows": 158, "wall_ms": 2981, "ms_per_window": 18.87},
+    {"label": "code-384-b", "windows": 158, "wall_ms": 2979, "ms_per_window": 18.86},
+    {"label": "zh-1024", "windows": 519, "wall_ms": 10432, "ms_per_window": 20.10},
+    {"label": "code-1024", "windows": 415, "wall_ms": 8232, "ms_per_window": 19.84}
+  ],
+  "stage_buckets_ms_per_window": {
+    "zh-1024": {
+      "stage0": {"q8+qkv_gemv": 0.76, "conv": 0.20, "ab": 0.05, "z": 0.49, "rec": 0.27, "out_proj": 0.45, "router_plan_bell": 0.61, "shared_quant": 0.05, "waitA": 1.00, "vram_hits": 1.53, "waitB": 0.05, "pcie_grp": 0.05, "waitCPU": 0.57, "copy_combine": 0.35, "gap": 0.05, "hc0": 0.94, "hc1": 0.73},
+      "stage1": {"q8+qkv_gemv": 0.64, "conv": 0.17, "ab": 0.04, "z": 0.43, "rec": 0.23, "out_proj": 0.39, "router_plan_bell": 0.53, "shared_quant": 0.04, "waitA": 0.41, "vram_hits": 1.31, "waitB": 0.04, "pcie_grp": 0.04, "waitCPU": 1.67, "copy_combine": 0.49, "gap": 0.04, "head": 0.86, "hc0": 0.61, "hc1": 0.61}
+    },
+    "code-1024": {
+      "stage0": {"q8+qkv_gemv": 0.81, "conv": 0.21, "ab": 0.05, "z": 0.51, "rec": 0.28, "out_proj": 0.47, "router_plan_bell": 0.63, "shared_quant": 0.05, "waitA": 1.09, "vram_hits": 1.66, "waitB": 0.05, "pcie_grp": 0.05, "waitCPU": 1.20, "copy_combine": 0.38, "gap": 0.05, "hc0": 0.99, "hc1": 0.76},
+      "stage1": {"q8+qkv_gemv": 0.68, "conv": 0.18, "ab": 0.04, "z": 0.45, "rec": 0.24, "out_proj": 0.40, "router_plan_bell": 0.55, "shared_quant": 0.04, "waitA": 0.61, "vram_hits": 1.42, "waitB": 0.04, "pcie_grp": 0.04, "waitCPU": 1.68, "copy_combine": 0.58, "gap": 0.04, "head": 0.93, "hc0": 0.65, "hc1": 0.59}
+    }
+  },
+  "notes": "Repeats reproduce every bucket to 0.01 ms. waitB/PCIe ~0.04-0.05 confirms the fixed-zero graph removed the branch. Remaining host wait chain ~2.4 ms/window (waitA stage0 ~1.0 + waitCPU stage1 ~1.7). HC total ~2.9 ms/window combined. Two aborted preparation attempts (missing STRATA_VERIFY_PROFILE, prompt-prefix mismatch) are recorded in the campaign evidence; both restored production automatically."
+}
