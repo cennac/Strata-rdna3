@@ -627,6 +627,7 @@ private:
     void stage_inputs(int T, const int32_t* tokens, int64_t pos0);
     bool staged_ = false;
     bool copy_used_ = false;
+    std::atomic<int> b_pending_{0};   // STRATA_LAB_RDNA_B_DIRECT: raises queued on copy_ and not yet executed
     bool capture_commit(std::string& err);
     bool record_window(int T, cudaStream_t cs, std::string& err);
     // #649: STRATA_VERIFY_TRACE=1 - a host event ring (trace_ev) and GPU breadcrumbs: the profiler's stamp points,
@@ -739,6 +740,8 @@ private:
     cudaStream_t copy_ = nullptr;                                 // the copy engine's stream (DMA of missed experts)
     using FlagSet = strata::core::FlagRaise;
     FlagSet flag_sets_[2 * 64 * 2] = {};                          // host-function arguments, one per (layer, group)
+    struct BRaiseArg { uint32_t* flag; uint32_t value; std::atomic<int>* pending; };
+    BRaiseArg b_args_[2 * 64 * 2] = {};   // STRATA_LAB_RDNA_B_DIRECT: the same slots, with the counter to decrement
     static void fetch_dma(void* ctx, const uint8_t* const* src, int n, size_t bytes);
     static void raise_flag(uint32_t* flag, uint32_t value);
     /// Flag B for `want`, behind every copy queued on copy_ (an empty plan must not overtake an earlier layer's DMA).

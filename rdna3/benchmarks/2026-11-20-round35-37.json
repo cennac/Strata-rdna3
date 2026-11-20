@@ -1,0 +1,90 @@
+{
+ "date": "2026-11-20",
+ "purpose": "overlap-scheduling fixes: pw0 serial regime test (r35), two bounded reorder fixes screened (r36) and confirmed (r37) - both rejected at 1024x3",
+ "mechanism_analysis": {
+  "waitB": "dev raise_flag_b_ordered keeps empty-plan B raises behind the copy stream (sticky copy_used_, PR #5096); legacy raised directly on the pool thread",
+  "waitCPU_stage1": "the pump order D->A->B(front stage0)->s1 serves the NEWER window before the OLDER window stage-1 rows (starvation); legacy ran serial decode on 2 stages (min_st=3) with a dedicated pool thread",
+  "pw0_note": "dev serial decode is catastrophically slow (60/135/75/174) - legacy serial speed is NOT reproducible by config; dev needs the pipelined loop"
+ },
+ "fixes": {
+  "STRATA_LAB_RDNA_B_DIRECT": "raise flag B directly when every queued host-function raise has executed (b_pending_ counter; PR #5096 hazard stays covered)",
+  "STRATA_LAB_RDNA_PUMP_AGE": "serve the older window stage-1 before the newer window stage-0 front (pump0(B) deferred)"
+ },
+ "build": "strata-0216-overlap f5d5838e4b473285135bf41bc93852391c44f6779f9bb8d7780549112254e62f",
+ "r35_pw0": {
+  "r35-control": {
+   "zh1": 108.65,
+   "zh2": 155.21,
+   "code1": 146.79,
+   "code2": 203.71
+  },
+  "r35-pw0": {
+   "zh1": 60.62,
+   "zh2": 135.49,
+   "code1": 74.75,
+   "code2": 174.43
+  }
+ },
+ "r36_screen_768": {
+  "r36-control": {
+   "zh1": 111.16,
+   "zh2": 145.19,
+   "code1": 140.28,
+   "code2": 201.7
+  },
+  "r36-bdirect": {
+   "zh1": 113.76,
+   "zh2": 155.81,
+   "code1": 142.12,
+   "code2": 199.89
+  },
+  "r36-pumpage": {
+   "zh1": 115.4,
+   "zh2": 157.95,
+   "code1": 144.21,
+   "code2": 208.65
+  },
+  "r36-both": {
+   "zh1": 112.99,
+   "zh2": 150.38,
+   "code1": 146.88,
+   "code2": 206.77
+  }
+ },
+ "r37_confirm_1024x3": {
+  "r37-control": {
+   "zh1": 112.91,
+   "zh2": 155.94,
+   "code1": 150.72,
+   "code2": 215.7
+  },
+  "r37-pumpage": {
+   "zh1": 110.08,
+   "zh2": 156.01,
+   "code1": 147.35,
+   "code2": 215.42
+  },
+  "r37-bdirect": {
+   "zh1": 114.6,
+   "zh2": 148.37,
+   "code1": 150.96,
+   "code2": 212.7
+  },
+  "r37-both": {
+   "zh1": 115.76,
+   "zh2": 148.31
+  }
+ },
+ "r37_events": "r37-both zh2 r0 one lane stopped at 954/1024 (campaign aborted by design); r37-pumpage warm-engine parity failed both kinds (protocol limitation per rounds 18-20, inconclusive)",
+ "verdict": "neither adopted: pumpage screen (+3.8/+8.8/+2.8/+3.4) collapsed at 1024x3 (-2.5/+0.6/-0.8/-0.3); bdirect within noise; single-pump-sequence reordering is insufficient - closing the wait gap needs cross-window pool work-ahead, out of bounded-reorder scope",
+ "completed": {
+  "r35": true,
+  "r36": true,
+  "r37": null
+ },
+ "restored": {
+  "r35": true,
+  "r36": true,
+  "r37": true
+ }
+}
