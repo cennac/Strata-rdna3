@@ -1,5 +1,8 @@
 # 更新记录
 
+## Shared-expert gate/up pair: probe-pinned but coverage too small to screen (2026-11-21)
+
+- Extended `native_mmvq_pair` to IQ4_XS gate/up pairs behind default-off `STRATA_LAB_RDNA_SH_PAIR`. The probe pinned the real boundaries: bitwise vs both solo kernels for even `n_out` at cols 1..8 (including captured replays and the discriminating 642 shape), a ~1e-7 relative difference at odd `n_out` (guard falls back), and a pre-existing lab-family pair inconsistency at 642 (recorded, not gated). Frozen token/rollback/sampled/objective gates all passed with the pair active. Measured coverage is only 4 front + 2 final layers (−12 nodes per window pair, ~0.7%), far below the node-analysis estimate, and the scored screen aborted on one early-EOS burst — the switch stays off; see the [record](benchmarks/2026-11-21-sh-pair.md).
 ## Shared-expert fork stream confirmed on the fixed-zero template (2026-11-21)
 
 - First paired screen of `STRATA_SH_STREAM` on the current template (carried =1 since r28, never A/B'd there; production runs the HIP default off). The fork arm won every workload median (+3.78% / +0.09% / +2.07% / +3.39% for zh/code single/dual) with TTFT medians down 2.4–3.4%, so the predeclared removal rule did not fire and the template keeps `=1`. The fork's extra per-layer quantize (qdedup is fork-exclusive) does not outweigh its cross-stream overlap on this dual-card doorbell path; the single-GPU HIP evidence in the engine comment does not transfer. See the [paired record](benchmarks/2026-11-21-sh-stream-ab.md).
@@ -15,6 +18,7 @@
 (PLE history advance and snapshot fusion: one node fewer per row, no service gain (off))
 (Pinned penalty-history staging: removing the post-upload stream sync costs the Chinese lanes (off))
 (Shared-expert fork stream confirmed on the fixed-zero template (keep STRATA_SH_STREAM=1))
+(Shared-expert gate/up pair launch: probe-pinned, coverage too small to screen (off))
 
 ## Fused-A8 port rejected on the real binary (2026-11-21)
 

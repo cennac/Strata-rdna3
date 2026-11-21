@@ -211,12 +211,23 @@ bool fused_swiglu_q81_enabled() {
     }();
     return on;
 }
+
+// STRATA_LAB_RDNA_SH_PAIR=1: attempt the gate+up pair launch on the doorbell path too (the lfuse pair bit
+// only ever fires for all-resident windows).  `native_mmvq_pair` falls back to the exact two solo launches
+// whenever a matrix pair does not qualify, so enabling this cannot change any output.
+bool sh_pair_on() {
+    static const bool on = [] {
+        const char* v = std::getenv("STRATA_LAB_RDNA_SH_PAIR");
+        return v != nullptr && v[0] == '1' && v[1] == '\0';
+    }();
+    return on;
+}
 }  // namespace
 
 void shared_expert_multi(int n_tok, const float* x, const uint16_t* x_bf16, const NativeSharedWeights& nw,
                          const uint16_t* gate_inp_bf16, float* gate, float* up, float* g, float* out, int64_t n_embd,
                          int64_t n_ff, void* stream, const void* x_q8_1_ready, int lfuse) {
-    const bool gate_deferred = (lfuse & 1) != 0, pair = (lfuse & 2) != 0;
+    const bool gate_deferred = (lfuse & 1) != 0, pair = (lfuse & 2) != 0 || sh_pair_on();
     if (n_tok < 1 || n_tok > kVerifyMaxT || !nw.q8_1 || !nw.gate_data || !nw.up_data || !nw.down_data || !stream)
         throw std::invalid_argument("shared_expert_multi: needs 1..8 tokens (16 in a wide build), native weights, scratch and a stream");
     cudaStream_t cs = (cudaStream_t) stream;
