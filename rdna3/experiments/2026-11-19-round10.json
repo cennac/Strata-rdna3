@@ -1,0 +1,33 @@
+{
+  "purpose": "Port legacy gfx1100 IQ4_XS/Q6_K/IQ3_S and selected Q4_K/Q5_K dense projections",
+  "output_tokens": 1024,
+  "repeats": 3,
+  "common_env": {
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_PIPELINE_DEBUG": "1",
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_GR_V3": "0",
+    "STRATA_HC_Q8": "0",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_MMVQ": "0",
+    "STRATA_Q6_PACKED": "0"
+  },
+  "candidates": [
+    {
+      "name": "kquant-control",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "0"
+      }
+    },
+    {
+      "name": "kquant-legacy",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "1"
+      }
+    }
+  ],
+  "correctness": "Two-GPU numerical tolerance, per-column consistency, paired launches and graph replay; frozen penalty/rollback text parity; three-question smoke for control and candidate."
+}

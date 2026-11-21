@@ -1,0 +1,709 @@
+{
+  "date": "2026-11-19",
+  "model": "Qwen3.8-Flash-Next-IQ3_XXS",
+  "output_tokens": 1024,
+  "repeats": 3,
+  "capacity_per_request": 131072,
+  "actual_long_input": false,
+  "presence_penalty": 1.5,
+  "prompt_cache": false,
+  "conversation_cache": false,
+  "arms": [
+    {
+      "name": "q5-control",
+      "engine_sha256": "553947e92e7466b1127774607b286a2083c5efafbc8aae40d385e72899428bc2",
+      "metrics": {
+        "zh1": {
+          "decode_tps_median": 112.1,
+          "batch_tps_median": 108.57035008739973,
+          "ttft_s_median": 0.3132709409983363,
+          "valid_bursts": 3,
+          "excluded_bursts": 0,
+          "samples": [
+            {
+              "valid": true,
+              "batch_tps": 108.98036779221371,
+              "requests": [
+                {
+                  "decode_tps": 112.5,
+                  "ttft_s": 0.31035580798925366,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "7d9136054c2ebeb6df0682e79583a0b38592cd0eeae892bb69a519e80ce76dd7"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 107.60320753682349,
+              "requests": [
+                {
+                  "decode_tps": 111.1,
+                  "ttft_s": 0.31523549401026685,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "36187c93c4ac8d3f6b9e98854cbd6e6a6006b41c72c9b5584b9fff5ae4c17205"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 108.57035008739973,
+              "requests": [
+                {
+                  "decode_tps": 112.1,
+                  "ttft_s": 0.3132709409983363,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "8bba6d663a913b411760960a717f42c1bbb920d3aab4dddf5d3c8f57c4eb7fc9"
+                }
+              ]
+            }
+          ]
+        },
+        "zh2": {
+          "decode_tps_median": 84.35,
+          "batch_tps_median": 154.99389814608853,
+          "ttft_s_median": 0.6369371024993598,
+          "valid_bursts": 3,
+          "excluded_bursts": 0,
+          "samples": [
+            {
+              "valid": true,
+              "batch_tps": 153.49767719738745,
+              "requests": [
+                {
+                  "decode_tps": 82.1,
+                  "ttft_s": 0.30903727500117384,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "c7881ab247aaf7059313aa14823cce2609d497b6daf09db2db3bdc0ee43847f9"
+                },
+                {
+                  "decode_tps": 82.9,
+                  "ttft_s": 1.0085392210021382,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "d67ed0ac57ce01ac0e79340b2c672bb81cd7af223c9f1c2b57d0acbb29755e92"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 163.50955388906925,
+              "requests": [
+                {
+                  "decode_tps": 86.8,
+                  "ttft_s": 0.3166191850032192,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "b73ce769b205bdc57da8e8c56a357bb887cd452167eededd1831db18cffa33e3"
+                },
+                {
+                  "decode_tps": 88.7,
+                  "ttft_s": 0.9915714870003285,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "542878873faea28410d161e76eb080733e9beb52965ea3edab6ad4fcc19ce04b"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 154.99389814608853,
+              "requests": [
+                {
+                  "decode_tps": 85.3,
+                  "ttft_s": 0.3170238650054671,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "f0f5157775a4d3a851376489013c604675f8722890560918193227d81dbd77fa"
+                },
+                {
+                  "decode_tps": 83.4,
+                  "ttft_s": 0.9568503399932524,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "f529dc0ad389d888fe64089ba309feb6bc00e551adbf5224f32248c746b8f1cf"
+                }
+              ]
+            }
+          ]
+        },
+        "code1": {
+          "decode_tps_median": 152.4,
+          "batch_tps_median": 146.37255367156135,
+          "ttft_s_median": 0.29007473100500647,
+          "valid_bursts": 3,
+          "excluded_bursts": 0,
+          "samples": [
+            {
+              "valid": true,
+              "batch_tps": 146.37255367156135,
+              "requests": [
+                {
+                  "decode_tps": 152.4,
+                  "ttft_s": 0.29286579600011464,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "6968f3b885f73feac1841fb2af2305e00a6759cfb809b4dde28b573647c30cb1"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 146.07268755397212,
+              "requests": [
+                {
+                  "decode_tps": 151.9,
+                  "ttft_s": 0.28594237699871883,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "90f0eaf30bc95438df0cd551eeeee68abfe0281109165657213b3a7a3c179856"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 147.12536991115215,
+              "requests": [
+                {
+                  "decode_tps": 153.1,
+                  "ttft_s": 0.29007473100500647,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "44b00202a78013dd9334648720ecfa36f78a9c1c97b0c3149dc7c792df8200ca"
+                }
+              ]
+            }
+          ]
+        },
+        "code2": {
+          "decode_tps_median": 114.0,
+          "batch_tps_median": 210.71109263077776,
+          "ttft_s_median": 0.5989651685013087,
+          "valid_bursts": 3,
+          "excluded_bursts": 0,
+          "samples": [
+            {
+              "valid": true,
+              "batch_tps": 209.72357790467524,
+              "requests": [
+                {
+                  "decode_tps": 110.9,
+                  "ttft_s": 0.2864768970030127,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "2d1ea72cde3ac22775d4361d84f81f106ef37bf32529c1517537d14bb97d528b"
+                },
+                {
+                  "decode_tps": 116.9,
+                  "ttft_s": 0.9103432209958555,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "313109d1c55719dcc7d9ecaa4399f0b8954a2eafb82c3eff70ee00083eb476f3"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 210.71109263077776,
+              "requests": [
+                {
+                  "decode_tps": 116.2,
+                  "ttft_s": 0.910384688002523,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "90f0eaf30bc95438df0cd551eeeee68abfe0281109165657213b3a7a3c179856"
+                },
+                {
+                  "decode_tps": 111.5,
+                  "ttft_s": 0.28670578901073895,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "838c31d736483537e490f07b89dfc3530f9a48b76df8148b14a14babe22db528"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 211.27267783144652,
+              "requests": [
+                {
+                  "decode_tps": 117.0,
+                  "ttft_s": 0.9095436070056166,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "2e25efbebd7abc3e02f5175a1fd441f4abd93874805360dc1646a3d216a92d30"
+                },
+                {
+                  "decode_tps": 111.8,
+                  "ttft_s": 0.28838672999700066,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "63c127e70e90cc91ba0be69c0ebb03992b46b2b706e67b59b4d91d546d018db4"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "min_available_gib": 31.05876922607422,
+      "hotspot_max_c": [
+        95.0,
+        78.0
+      ],
+      "vram_peak_gib": [
+        22.513259887695312,
+        22.383689880371094
+      ],
+      "quality_smoke": [
+        {
+          "key": "json",
+          "passed": false,
+          "tokens": 21,
+          "finish": "stop",
+          "text": "{\"total\":94.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}"
+        },
+        {
+          "key": "order",
+          "passed": true,
+          "tokens": 703,
+          "finish": "stop",
+          "text": "根据题目条件，我们可以逐步推导甲、乙、丙、丁的排列顺序。\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序为“甲丁”。我们将这个组合视为一个整体块 $[甲丁]$。\n\n2.  **分析“甲不在第1位”**：\n    由于 $[甲丁]$ 是一个整体，如果甲在第1位，那么丁就在第2位。但题目规定甲不能在第1位，所以 $[甲丁]$ 这个块不能占据位置 (1, 2)。\n    可能的 $[甲丁]$ 位置组合有：\n    *   位置 (2, 3)：即第2位是甲，第3位是丁。\n    *   位置 (3, 4)：即第3位是甲，第4位是丁。\n\n3.  **分析“乙在丙左边且不相邻”**：\n    剩下的两个位置将由乙和丙占据。我们需要检查上述两种 $[甲丁]$ 的位置情况，看哪种情况下乙和丙能满足“乙在左、丙在右、且不相邻”的条件。\n\n    **情况一：$[甲丁]$ 在位置 (2, 3)**\n    *   排列结构：_ 甲 丁 _\n    *   剩余位置是第1位和第4位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第4位。\n    *   排列结果：**乙 甲 丁 丙**\n    *   检查条件：\n        *   甲在第2位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲2，丁3）。\n        *   乙(1)在丙(4)左边？是。\n        *   乙和丙不相邻？是（中间隔了甲和丁）。\n    *   此排列符合所有条件。\n\n    **情况二：$[甲丁]$ 在位置 (3, 4)**\n    *   排列结构：_ _ 甲 丁\n    *   剩余位置是第1位和第2位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第2位。\n    *   排列结果：**乙 丙 甲 丁**\n    *   检查条件：\n        *   甲在第3位（不在第1位）？是。\n        *   丁紧挨在甲右边？是（甲3，丁4）。\n        *   乙(1)在丙(2)左边？是。\n        *   乙和丙不相邻？**否**。乙在第1位，丙在第2位，他们是相邻的。\n    *   此排列不符合“乙丙不相邻”的条件，排除。\n\n4.  **结论**：\n    唯一符合所有条件的排列是：乙、甲、丁、丙。\n\n答案=乙甲丁丙"
+        },
+        {
+          "key": "extract",
+          "passed": true,
+          "tokens": 18,
+          "finish": "stop",
+          "text": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}"
+        }
+      ],
+      "parity": []
+    },
+    {
+      "name": "q5-wave",
+      "engine_sha256": "553947e92e7466b1127774607b286a2083c5efafbc8aae40d385e72899428bc2",
+      "metrics": {
+        "zh1": {
+          "decode_tps_median": 111.9,
+          "batch_tps_median": 108.4410756983652,
+          "ttft_s_median": 0.31386424000083935,
+          "valid_bursts": 3,
+          "excluded_bursts": 0,
+          "samples": [
+            {
+              "valid": true,
+              "batch_tps": 105.17116836675426,
+              "requests": [
+                {
+                  "decode_tps": 108.5,
+                  "ttft_s": 0.31377354900178034,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "799ed2836ecefb4791b9935e7dce0eab43ea84489fb97daa2596c4365f2b4d56"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 108.4410756983652,
+              "requests": [
+                {
+                  "decode_tps": 111.9,
+                  "ttft_s": 0.31386424000083935,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "c95b4f6039af4981a8b761d25031a1104b21318f147ae11448b974d9957dd77d"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 109.40790612057033,
+              "requests": [
+                {
+                  "decode_tps": 113.0,
+                  "ttft_s": 0.31523197700153105,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "001b750e64db4527b1ce51c81c1ee6d55b78ee3ec7e2c281192aec7122a26d61"
+                }
+              ]
+            }
+          ]
+        },
+        "zh2": {
+          "decode_tps_median": 87.05,
+          "batch_tps_median": 156.29971496464822,
+          "ttft_s_median": 0.6319242924946593,
+          "valid_bursts": 3,
+          "excluded_bursts": 0,
+          "samples": [
+            {
+              "valid": true,
+              "batch_tps": 161.27358126379926,
+              "requests": [
+                {
+                  "decode_tps": 87.1,
+                  "ttft_s": 0.30987238099623937,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "0d1e5140eaf57f18e2fa85d4e4e85ab355a3a3fda202496615dd147b4ca60d87"
+                },
+                {
+                  "decode_tps": 87.0,
+                  "ttft_s": 0.9481457459914964,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "4f8ac1c384fd397913259c1da2196f9e68ed713322b0a4e1344a40397bf09c4a"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 153.8584841265572,
+              "requests": [
+                {
+                  "decode_tps": 87.2,
+                  "ttft_s": 0.9817592410108773,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "fb025761d4f673c49ed3a6ed17c9af2e81538100c175f6742f8108b66ad614fb"
+                },
+                {
+                  "decode_tps": 80.5,
+                  "ttft_s": 0.31567471999733243,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "e56730fcb09f0762a619c80fec541abb1fa8ea84737618a209bb96bc822d9161"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 156.29971496464822,
+              "requests": [
+                {
+                  "decode_tps": 89.7,
+                  "ttft_s": 0.9834527330094716,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "1d0b0ecf8e9f047b7785650e5be6b3124a696066f43771068ed46e039a4df749"
+                },
+                {
+                  "decode_tps": 81.8,
+                  "ttft_s": 0.31570283899782225,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "d65bbb167a1b398ca31c9a29f7933bf6a608ac3130c8853e5c051a1543f19a02"
+                }
+              ]
+            }
+          ]
+        },
+        "code1": {
+          "decode_tps_median": 152.9,
+          "batch_tps_median": 146.90813956030874,
+          "ttft_s_median": 0.2895489149959758,
+          "valid_bursts": 3,
+          "excluded_bursts": 0,
+          "samples": [
+            {
+              "valid": true,
+              "batch_tps": 145.83229262561096,
+              "requests": [
+                {
+                  "decode_tps": 151.9,
+                  "ttft_s": 0.2969390999933239,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "7570071a974c33d941bb227f59cae6f78637f0611658260fb4bd075cfb2ee3e9"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 149.98327583195774,
+              "requests": [
+                {
+                  "decode_tps": 156.2,
+                  "ttft_s": 0.2886733670020476,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "429c10c833a7f4e676e1346ec491f6c46bf07504c6976d97f4c9c7840b2ea07a"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 146.90813956030874,
+              "requests": [
+                {
+                  "decode_tps": 152.9,
+                  "ttft_s": 0.2895489149959758,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "90f0eaf30bc95438df0cd551eeeee68abfe0281109165657213b3a7a3c179856"
+                }
+              ]
+            }
+          ]
+        },
+        "code2": {
+          "decode_tps_median": 115.65,
+          "batch_tps_median": 212.63788520411023,
+          "ttft_s_median": 0.594170545504312,
+          "valid_bursts": 3,
+          "excluded_bursts": 0,
+          "samples": [
+            {
+              "valid": true,
+              "batch_tps": 212.63788520411023,
+              "requests": [
+                {
+                  "decode_tps": 114.5,
+                  "ttft_s": 0.28812925500096753,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "0c8b38499ac0abb7e508a03227b649f0ca0d0288def5c7a8472090179c15f5d3"
+                },
+                {
+                  "decode_tps": 117.1,
+                  "ttft_s": 0.9019348289875779,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "f88a38d368a9d07258f841c4ba44c0d05a6ba7e2b77f19898f1459919c1bc689"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 211.57801485785075,
+              "requests": [
+                {
+                  "decode_tps": 113.8,
+                  "ttft_s": 0.28678708100051153,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "2244b8a27cf2ff91f1951d83c1b5c551a6faeadbcb9f4c08e3a99d8d3e4cbe94"
+                },
+                {
+                  "decode_tps": 116.5,
+                  "ttft_s": 0.9047453629900701,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "8ea2cf98e94101245519008fc0d081ba94450905f93e90b17dcab1f214d0611a"
+                }
+              ]
+            },
+            {
+              "valid": true,
+              "batch_tps": 216.81815604259668,
+              "requests": [
+                {
+                  "decode_tps": 119.8,
+                  "ttft_s": 0.8992317890078994,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "b0697426850cad726fb0da0866db8843e1a5ee6b8e329998e9718afa150fc129"
+                },
+                {
+                  "decode_tps": 114.8,
+                  "ttft_s": 0.2891093020007247,
+                  "tokens": 1024,
+                  "finish": "length",
+                  "cache_n": 0,
+                  "text_sha256": "f6c5e66f5ce049b617280d526a671167c6a57b4ab323c2678171af9f219496dc"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "min_available_gib": 31.796661376953125,
+      "hotspot_max_c": [
+        97.0,
+        81.0
+      ],
+      "vram_peak_gib": [
+        22.543895721435547,
+        22.383602142333984
+      ],
+      "quality_smoke": [
+        {
+          "key": "json",
+          "passed": false,
+          "tokens": 21,
+          "finish": "stop",
+          "text": "{\"total\":94.5,\"paid_ids\":[\"A\",\"C\"],\"pending_count\":1}"
+        },
+        {
+          "key": "order",
+          "passed": true,
+          "tokens": 696,
+          "finish": "stop",
+          "text": "根据题目条件，我们可以逐步推导甲、乙、丙、丁的排列顺序。\n\n1.  **分析“丁紧挨在甲右边”**：\n    这意味着甲和丁必须相邻，且顺序为“甲丁”。我们将这个组合视为一个整体块 $[甲丁]$。\n\n2.  **分析“甲不在第1位”**：\n    由于 $[甲丁]$ 是一个整体，如果甲在第1位，那么丁就在第2位。但题目说甲不在第1位，所以 $[甲丁]$ 这个块不能占据位置 (1, 2)。\n    可能的 $[甲丁]$ 位置组合有：\n    *   位置 (2, 3)：即第2位是甲，第3位是丁。\n    *   位置 (3, 4)：即第3位是甲，第4位是丁。\n\n3.  **分析“乙在丙左边且不相邻”**：\n    剩下的两个位置将由乙和丙占据。我们需要检查上述两种 $[甲丁]$ 的位置情况，看哪种情况下乙和丙能满足“乙在左、丙在右、且不相邻”。\n\n    **情况一：$[甲丁]$ 在位置 (2, 3)**\n    *   排列结构：_ 甲 丁 _\n    *   剩余位置是第1位和第4位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第4位。\n    *   排列结果：**乙 甲 丁 丙**\n    *   检查条件：\n        *   甲不在第1位？是的（甲在第2位）。\n        *   乙在丙左边？是的（乙在第1位，丙在第4位）。\n        *   乙和丙不相邻？是的（中间隔了甲和丁）。\n        *   丁紧挨在甲右边？是的（甲第2，丁第3）。\n    *   此排列符合所有条件。\n\n    **情况二：$[甲丁]$ 在位置 (3, 4)**\n    *   排列结构：_ _ 甲 丁\n    *   剩余位置是第1位和第2位。\n    *   乙和丙必须填入这两个位置。\n    *   因为“乙在丙左边”，所以乙必须在第1位，丙必须在第2位。\n    *   排列结果：**乙 丙 甲 丁**\n    *   检查条件：\n        *   甲不在第1位？是的（甲在第3位）。\n        *   乙在丙左边？是的（乙在第1位，丙在第2位）。\n        *   **乙和丙不相邻？** **不满足**。乙在第1位，丙在第2位，他们是相邻的。\n    *   此排列不符合“乙和丙不相邻”的条件。\n\n4.  **结论**：\n    只有情况一符合所有条件。唯一排列是：乙、甲、丁、丙。\n\n答案=乙甲丁丙"
+        },
+        {
+          "key": "extract",
+          "passed": true,
+          "tokens": 18,
+          "finish": "stop",
+          "text": "{\"server\":66,\"ram_gb\":96,\"gpu_count\":2}"
+        }
+      ],
+      "parity": []
+    },
+    {
+      "name": "q5-frozen-penalty-parity",
+      "engine_sha256": "553947e92e7466b1127774607b286a2083c5efafbc8aae40d385e72899428bc2",
+      "metrics": {},
+      "min_available_gib": 31.883113861083984,
+      "hotspot_max_c": [
+        89.0,
+        67.0
+      ],
+      "vram_peak_gib": [
+        22.50155258178711,
+        22.37384033203125
+      ],
+      "quality_smoke": [],
+      "parity": [
+        {
+          "kind": "zh",
+          "serial_repeat_equal": true,
+          "equal": true
+        },
+        {
+          "kind": "code",
+          "serial_repeat_equal": true,
+          "equal": true
+        }
+      ]
+    }
+  ],
+  "completed": true,
+  "restored": true,
+  "source_config_unchanged": true,
+  "faults": [],
+  "length_mismatches": [],
+  "kernel_probes": [
+    {
+      "gpu": 0,
+      "rc": 0
+    },
+    {
+      "gpu": 1,
+      "rc": 0
+    }
+  ],
+  "aer_counter_changes": [
+    {
+      "port_index": 0,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 1,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 2,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 3,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {},
+        "aer_rootport_total_err_cor": {},
+        "aer_rootport_total_err_nonfatal": {},
+        "aer_rootport_total_err_fatal": {}
+      }
+    },
+    {
+      "port_index": 4,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 5,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 6,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 7,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {},
+        "aer_rootport_total_err_cor": {},
+        "aer_rootport_total_err_nonfatal": {},
+        "aer_rootport_total_err_fatal": {}
+      }
+    }
+  ]
+}

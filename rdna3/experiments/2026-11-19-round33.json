@@ -1,0 +1,38 @@
+[
+ {
+  "name": "r33-dev-light",
+  "exe": "<build>/strata-0216-lightprof",
+  "env": {
+   "STRATA_PW_WITH_BATCH": "1",
+   "STRATA_MTP_STAGE0": "0",
+   "STRATA_HYBRID_PENALTIES": "1",
+   "STRATA_IQ_MT_MIN": "1",
+   "STRATA_PIPELINE_DEBUG": "1",
+   "GPU_MAX_HW_QUEUES": "3",
+   "STRATA_GR_V3": "0",
+   "STRATA_HC_Q8": "0",
+   "STRATA_LAB_RDNA_GR": "1",
+   "STRATA_LAB_RDNA_MMVQ": "0",
+   "STRATA_Q6_PACKED": "0",
+   "STRATA_LAB_RDNA_Q5_HEAD": "0",
+   "STRATA_LAB_RDNA_KQUANTS": "0",
+   "STRATA_SH_STREAM": "1",
+   "STRATA_AUX_CPUS": "auto",
+   "STRATA_LAB_RDNA_GR_Q32": "0",
+   "STRATA_QFUSE_HC": "0",
+   "STRATA_LAB_RDNA_COMBINE_CPU": "0",
+   "STRATA_LAB_RDNA_ROUTE_PUBLISH": "0",
+   "STRATA_VERIFY_PROFILE": "1",
+   "STRATA_VERIFY_PROFILE_LIGHT": "1"
+  },
+  "args": {
+   "--pool-workers": "12",
+   "--adapt-every": "0",
+   "--adapt-swaps": "0",
+   "--suffix-draft": "0"
+  },
+  "repeats": 1,
+  "output_tokens": 512,
+  "single_only": true
+ }
+]

@@ -1,0 +1,27 @@
+{
+ "date": "2026-11-20",
+ "purpose": "serial-regime decomposition of the dev window cost (r35-pw0 logs; no new run)",
+ "finding": {
+  "dev_serial_ms_per_window": {
+   "zh": 31.33,
+   "code": 32.85,
+   "components": {
+    "pool_waits_ms_wait": 13.5,
+    "unaccounted_inside_verify_graph_execution": 14.6,
+    "per_layer_host_pool": 0.8,
+    "commit_emit": 0.79,
+    "draft": 1.3,
+    "adapt_wait_join": -1.25
+   }
+  },
+  "legacy_serial_ms_per_window": {
+   "zh": 14.06,
+   "code": 13.41,
+   "components": "everything embedded in GPU-reach wait 10-11.25 + host ~1; commit/emit 0.00, draft 0.00, adapt 0.00"
+  },
+  "counter_semantics": "verify=dt_run wall; GPU-reach wait=ms_wait; per-layer host=ms_pool; CPU=ms_run; stage=ms_host; the ~14.6ms unaccounted is the window graph execution itself (serial mode exposes it; pipelined mode hides it)",
+  "pipelined_note": "pipelined dev (r29): 16.18 total with ~3.1ms unaccounted inside verify - pipelining hides the pool waits but not the intrinsic GPU window cost; residual vs legacy ~2.8ms matches the r33 attribution (wait chain 0.82 + HC 0.38 + host/stage ~0.5 + ~1.1 still unattributed)"
+ },
+ "implication": "the wait-chain fix must let the pool compute rows AHEAD of the rings (cross-window look-ahead); reorder-only fixes were confirmed insufficient (r37). The next tooling step: per-ring pool/flag trace (which worker computed which layer rows when, and how long each A/B/C GPU wait kernel spun) to size the look-ahead window",
+ "source": "r35-pw0 logs, no new benchmark"
+}

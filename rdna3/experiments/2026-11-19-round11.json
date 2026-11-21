@@ -1,0 +1,48 @@
+{
+  "purpose": "Isolate legacy dense projection formats before full single/dual confirmation",
+  "output_tokens": 768,
+  "repeats": 2,
+  "single_request_only": true,
+  "common_env": {
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_PIPELINE_DEBUG": "1",
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_GR_V3": "0",
+    "STRATA_HC_Q8": "0",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_MMVQ": "0",
+    "STRATA_Q6_PACKED": "0"
+  },
+  "candidates": [
+    {
+      "name": "type-control",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "0"
+      }
+    },
+    {
+      "name": "type-iq4",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "1",
+        "STRATA_LAB_RDNA_KQUANT_TYPES": "23"
+      }
+    },
+    {
+      "name": "type-iq4-q6",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "1",
+        "STRATA_LAB_RDNA_KQUANT_TYPES": "14,23"
+      }
+    },
+    {
+      "name": "type-all",
+      "env": {
+        "STRATA_LAB_RDNA_KQUANTS": "1"
+      }
+    }
+  ],
+  "correctness": "Two GPUs: all formats, IQ4-only, IQ4+Q6; GPU0: empty/malformed/unknown/trailing-comma masks. Unselected formats must be bitwise equal to upstream; selected kernels keep existing tolerance and column/pair/graph checks."
+}

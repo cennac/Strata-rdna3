@@ -1,0 +1,256 @@
+{
+  "output_tokens": 768,
+  "repeats": 1,
+  "capacity_per_request": 131072,
+  "actual_long_input": false,
+  "results": [
+    {
+      "name": "round3-bf16",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            111.5
+          ],
+          "batch_tps": 106.96719596575443,
+          "ttft_s": [
+            0.3109962120070122
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            86.7,
+            85.1
+          ],
+          "batch_tps": 154.26258241174503,
+          "ttft_s": [
+            0.30904140399070457,
+            0.9523770529922331
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            150.6
+          ],
+          "batch_tps": 142.91513490001043,
+          "ttft_s": [
+            0.29278259399870876
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            108.3,
+            114.2
+          ],
+          "batch_tps": 201.52846958577075,
+          "ttft_s": [
+            0.28333554000710137,
+            0.8696342979965266
+          ]
+        }
+      }
+    },
+    {
+      "name": "round3-q8",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            111.4
+          ],
+          "batch_tps": 106.83150640507769,
+          "ttft_s": [
+            0.3114449869899545
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            80.1,
+            83.6
+          ],
+          "batch_tps": 150.9092941962384,
+          "ttft_s": [
+            0.3096369910053909,
+            0.9564808449940756
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            152.5
+          ],
+          "batch_tps": 144.67820740010413,
+          "ttft_s": [
+            0.2907461509894347
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            111.3,
+            112.9
+          ],
+          "batch_tps": 199.71509546844734,
+          "ttft_s": [
+            0.2845780920033576,
+            0.9049491089972435
+          ]
+        }
+      }
+    },
+    {
+      "name": "round3-a8",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            107.8
+          ],
+          "batch_tps": 103.62401234661283,
+          "ttft_s": [
+            0.3051811390032526
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            78.6,
+            87.7
+          ],
+          "batch_tps": 148.44186224943385,
+          "ttft_s": [
+            0.3026684320066124,
+            0.9918551449954975
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            154.6
+          ],
+          "batch_tps": 146.6368387098869,
+          "ttft_s": [
+            0.2866781189950416
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            114.9,
+            116.5
+          ],
+          "batch_tps": 205.88757158615343,
+          "ttft_s": [
+            0.27936939799110405,
+            0.8841521670110524
+          ]
+        }
+      }
+    }
+  ],
+  "kernel_probes": [
+    {
+      "mode": "bf16",
+      "injup": 0,
+      "gpu": 0,
+      "rc": 0
+    },
+    {
+      "mode": "bf16",
+      "injup": 0,
+      "gpu": 1,
+      "rc": 0
+    },
+    {
+      "mode": "q8",
+      "injup": 0,
+      "gpu": 0,
+      "rc": 0
+    },
+    {
+      "mode": "q8",
+      "injup": 0,
+      "gpu": 1,
+      "rc": 0
+    },
+    {
+      "mode": "a8",
+      "injup": 0,
+      "gpu": 0,
+      "rc": 0
+    },
+    {
+      "mode": "a8",
+      "injup": 0,
+      "gpu": 1,
+      "rc": 0
+    },
+    {
+      "mode": "a8",
+      "injup": 1,
+      "gpu": 0,
+      "rc": 0
+    },
+    {
+      "mode": "a8",
+      "injup": 1,
+      "gpu": 1,
+      "rc": 0
+    }
+  ],
+  "restored": true,
+  "completed": true,
+  "source_config_unchanged": true,
+  "faults": [],
+  "initial_probe_failure": {
+    "reason": "Upstream Q8 keeps lo in LDS and does not publish a.lo; stale temporary data was compared. R, rs, inject, mixed and graph replay passed. Corrected probe explicitly excludes this undefined workspace.",
+    "failed_fields": 16,
+    "engine_changed_for_correction": false
+  }
+}

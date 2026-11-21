@@ -1,0 +1,303 @@
+{
+  "output_tokens": 768,
+  "repeats": 1,
+  "capacity_per_request": 131072,
+  "actual_long_input": false,
+  "engine_sha256": "071e0bbbce38fcd277dd3ad216aaa5ba2c342e1bf2622a2dd132757eeb092c93",
+  "results": [
+    {
+      "name": "round5-control",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            113.8
+          ],
+          "batch_tps": 109.10805196512436,
+          "ttft_s": [
+            0.3100656080059707
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            85.4,
+            86.2
+          ],
+          "batch_tps": 155.92166876741842,
+          "ttft_s": [
+            0.3078939169936348,
+            0.9550629910081625
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            144.1
+          ],
+          "batch_tps": 137.02255151418333,
+          "ttft_s": [
+            0.293623656994896
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            113.0,
+            114.0
+          ],
+          "batch_tps": 202.2623835312543,
+          "ttft_s": [
+            0.2833561209990876,
+            0.8692851600062568
+          ]
+        }
+      },
+      "completed": true,
+      "min_available_gib": 31.80255126953125,
+      "hotspot_max_c": [
+        82.0,
+        67.0
+      ]
+    },
+    {
+      "name": "round5-wave",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            111.1
+          ],
+          "batch_tps": 106.60042822527448,
+          "ttft_s": [
+            0.3102923989936244
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            83.9,
+            82.4
+          ],
+          "batch_tps": 148.9051573516896,
+          "ttft_s": [
+            0.3093350940034725,
+            1.0118571509956382
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            151.2
+          ],
+          "batch_tps": 143.44253809878884,
+          "ttft_s": [
+            0.2916563679900719
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            112.1,
+            115.2
+          ],
+          "batch_tps": 202.73963890255763,
+          "ttft_s": [
+            0.2997024960059207,
+            0.9224561429873575
+          ]
+        }
+      },
+      "completed": true,
+      "min_available_gib": 31.70429229736328,
+      "hotspot_max_c": [
+        88.0,
+        70.0
+      ]
+    },
+    {
+      "name": "round5-wave-a8",
+      "metrics": {
+        "zh1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            113.1
+          ],
+          "batch_tps": 108.48524000258571,
+          "ttft_s": [
+            0.305129644999397
+          ]
+        },
+        "zh2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            80.1,
+            86.2
+          ],
+          "batch_tps": 151.19600679138983,
+          "ttft_s": [
+            0.3025899700005539,
+            0.9372258099901956
+          ]
+        },
+        "code1": {
+          "valid": true,
+          "tokens": [
+            768
+          ],
+          "decode_tps": [
+            155.6
+          ],
+          "batch_tps": 147.49346814558618,
+          "ttft_s": [
+            0.28680157600319944
+          ]
+        },
+        "code2": {
+          "valid": true,
+          "tokens": [
+            768,
+            768
+          ],
+          "decode_tps": [
+            113.8,
+            117.0
+          ],
+          "batch_tps": 207.52399453981445,
+          "ttft_s": [
+            0.279528928003856,
+            0.8506802079937188
+          ]
+        }
+      },
+      "completed": true,
+      "min_available_gib": 30.99121856689453,
+      "hotspot_max_c": [
+        90.0,
+        71.0
+      ]
+    }
+  ],
+  "completed": true,
+  "restored": true,
+  "source_config_unchanged": true,
+  "faults": [],
+  "length_mismatches": [],
+  "kernel_probes": [
+    {
+      "gpu": 0,
+      "rc": 0
+    },
+    {
+      "gpu": 1,
+      "rc": 0
+    }
+  ],
+  "aer_counter_changes": [
+    {
+      "port_index": 0,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 1,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 2,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 3,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {},
+        "aer_rootport_total_err_cor": {},
+        "aer_rootport_total_err_nonfatal": {},
+        "aer_rootport_total_err_fatal": {}
+      }
+    },
+    {
+      "port_index": 4,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 5,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 6,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {}
+      }
+    },
+    {
+      "port_index": 7,
+      "changes": {
+        "aer_dev_correctable": {},
+        "aer_dev_nonfatal": {},
+        "aer_dev_fatal": {},
+        "aer_rootport_total_err_cor": {},
+        "aer_rootport_total_err_nonfatal": {},
+        "aer_rootport_total_err_fatal": {}
+      }
+    }
+  ]
+}

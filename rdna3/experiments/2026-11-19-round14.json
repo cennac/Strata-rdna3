@@ -1,0 +1,68 @@
+[
+ {
+  "name": "r14-control",
+  "env": {
+   "STRATA_PW_WITH_BATCH": "1",
+   "STRATA_MTP_STAGE0": "0",
+   "STRATA_HYBRID_PENALTIES": "1",
+   "STRATA_IQ_MT_MIN": "1",
+   "STRATA_PIPELINE_DEBUG": "1",
+   "GPU_MAX_HW_QUEUES": "3",
+   "STRATA_GR_V3": "0",
+   "STRATA_HC_Q8": "0",
+   "STRATA_LAB_RDNA_GR": "1",
+   "STRATA_LAB_RDNA_MMVQ": "0",
+   "STRATA_Q6_PACKED": "0",
+   "STRATA_LAB_RDNA_Q5_HEAD": "0",
+   "STRATA_LAB_RDNA_KQUANTS": "0"
+  },
+  "repeats": 1,
+  "output_tokens": 768
+ },
+ {
+  "name": "r14-exact1",
+  "env": {
+   "STRATA_PW_WITH_BATCH": "1",
+   "STRATA_MTP_STAGE0": "0",
+   "STRATA_HYBRID_PENALTIES": "1",
+   "STRATA_PIPELINE_DEBUG": "1",
+   "GPU_MAX_HW_QUEUES": "3",
+   "STRATA_GR_V3": "0",
+   "STRATA_HC_Q8": "0",
+   "STRATA_LAB_RDNA_GR": "1",
+   "STRATA_LAB_RDNA_MMVQ": "0",
+   "STRATA_Q6_PACKED": "0",
+   "STRATA_LAB_RDNA_Q5_HEAD": "0",
+   "STRATA_LAB_RDNA_KQUANTS": "0",
+   "STRATA_CPU_IQ_ALL_EXACT1": "1"
+  },
+  "env_del": [
+   "STRATA_IQ_MT_MIN"
+  ],
+  "repeats": 1,
+  "output_tokens": 768,
+  "penalty_probe": true
+ },
+ {
+  "name": "r14-ggml1t",
+  "env": {
+   "STRATA_PW_WITH_BATCH": "1",
+   "STRATA_MTP_STAGE0": "0",
+   "STRATA_HYBRID_PENALTIES": "1",
+   "STRATA_PIPELINE_DEBUG": "1",
+   "GPU_MAX_HW_QUEUES": "3",
+   "STRATA_GR_V3": "0",
+   "STRATA_HC_Q8": "0",
+   "STRATA_LAB_RDNA_GR": "1",
+   "STRATA_LAB_RDNA_MMVQ": "0",
+   "STRATA_Q6_PACKED": "0",
+   "STRATA_LAB_RDNA_Q5_HEAD": "0",
+   "STRATA_LAB_RDNA_KQUANTS": "0"
+  },
+  "env_del": [
+   "STRATA_IQ_MT_MIN"
+  ],
+  "repeats": 1,
+  "output_tokens": 768
+ }
+]

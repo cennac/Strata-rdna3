@@ -1,0 +1,39 @@
+{
+ "date": "2026-11-20",
+ "purpose": "pool ring-handshake trace tool (r40) and serve-quantum anti-starvation fix (r41)",
+ "r40_tool": {
+  "switch": "STRATA_VERIFY_TRACE=1 now also dumps breadcrumbs at each request end (serve path; build 6397fafc)",
+  "findings": [
+   "four verifiers compete (pw2: two per stage); serve cadence ~0.5 ms/ring, median back-to-back",
+   "greedy bursts confirmed: one verifier serves 20-24 rings (~5 ms) while the other stage waits - the starvation behind stage-1 waitCPU",
+   "max unserved gaps 3.8-10.7 ms in the tail"
+  ]
+ },
+ "r41_quantum": {
+  "switch": "STRATA_LAB_RDNA_SERVE_QUANTUM=N (cap rings per service() call; build c3b96599)",
+  "screen": {
+   "r41-control": {
+    "zh1": 109.09,
+    "zh2": 160.65,
+    "code1": 146.17,
+    "code2": 202.66
+   },
+   "r41-q4": {
+    "zh1": 114.6,
+    "zh2": 155.24,
+    "code1": 143.18,
+    "code2": 203.6
+   },
+   "r41-q8": {
+    "zh1": 106.19,
+    "zh2": 144.42,
+    "code1": 145.84,
+    "code2": 204.32
+   }
+  },
+  "verdict": "rejected: q4 +5.0 zh single but -3.4 zh dual / -2.0 code single; q8 negative (-10.1 zh dual). Smoothing the bursts trades dual-lane batching for single-lane latency"
+ },
+ "conclusion": "bounded scheduling fixes (reorder r37, direct-B r37, quantum r41) all rejected with data; the remaining wait chain needs the deep serve-model redesign (cross-window work-ahead / async rows), a dedicated engineering effort",
+ "completed": true,
+ "restored": true
+}

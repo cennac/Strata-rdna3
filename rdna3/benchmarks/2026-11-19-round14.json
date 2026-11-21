@@ -1,0 +1,367 @@
+{
+ "date": "2026-11-19",
+ "purpose": "CPU expert single-token dispatch screen: MT_MIN=1 vs STRATA_CPU_IQ_ALL_EXACT1 vs ggml (local cennac-rdna3-dev worktree, fa6d445 upstream-intake check)",
+ "method": {
+  "output_tokens": 768,
+  "repeats": 1,
+  "lanes": "zh/code single+dual",
+  "penalty_probe_tokens": 384,
+  "binary": "fd9335314ceb2b3daa9b26fdfa7a549bbd6b09e1155c64e40c357ac1c32642a8 (no source change)"
+ },
+ "verdict": "STRATA_IQ_MT_MIN=1 stays; ALL_EXACT1 not adopted (slower on 3 of 4 lanes; the same-day frozen-parity failure was later shown to affect the control config too, see round18-20)",
+ "arms": [
+  {
+   "name": "r14-control",
+   "engine_version": "0.1.62",
+   "engine_sha256": "fd9335314ceb2b3daa9b26fdfa7a549bbd6b09e1155c64e40c357ac1c32642a8",
+   "env": {
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_MMVQ": "0",
+    "STRATA_LAB_RDNA_Q5_HEAD": "0",
+    "STRATA_LAB_RDNA_KQUANTS": "0"
+   },
+   "frozen_args": null,
+   "bursts": [
+    {
+     "kind": "zh",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 108.78,
+     "decode_tps": [
+      113.5
+     ],
+     "ttft_s": [
+      0.311
+     ],
+     "draft_n": 562,
+     "draft_n_accepted": 380,
+     "text_sha256": [
+      "7544867273ee8e8954de5b513b9c9c5652599aeea2fbad2fd69e42179aab5ebf"
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "kind": "zh",
+     "n": 2,
+     "valid": true,
+     "aggregate_tps": 155.26,
+     "decode_tps": [
+      82.5,
+      86.4
+     ],
+     "ttft_s": [
+      0.308,
+      0.954
+     ],
+     "draft_n": 0,
+     "draft_n_accepted": 0,
+     "text_sha256": [
+      "d1725d971791e4f36e244c56a931c19bf177fffbded3cc58f7955d9e395a0201",
+      "40fc45dbb8515b76eba56cf4cb4517bb3fdb55d172b6e773de85ccc484b608cb"
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "kind": "code",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 143.42,
+     "decode_tps": [
+      151.2
+     ],
+     "ttft_s": [
+      0.294
+     ],
+     "draft_n": 567,
+     "draft_n_accepted": 456,
+     "text_sha256": [
+      "47b0b9efd161e0bf10a883ac2261c3ed909fdd76660e9b392e9b447d198ba1ac"
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "kind": "code",
+     "n": 2,
+     "valid": true,
+     "aggregate_tps": 201.79,
+     "decode_tps": [
+      108.6,
+      113.6
+     ],
+     "ttft_s": [
+      0.282,
+      0.867
+     ],
+     "draft_n": 0,
+     "draft_n_accepted": 0,
+     "text_sha256": [
+      "76ff46d345e52b5b374f2360ebf532d3ae53ef74df4ee14674c2a2e3bd1c605a",
+      "7bf622fa0bd15ab949e7a5163a246568ec3b38ee33f0c703b5699f8cca649219"
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "r14-exact1",
+   "engine_version": "0.1.62",
+   "engine_sha256": "fd9335314ceb2b3daa9b26fdfa7a549bbd6b09e1155c64e40c357ac1c32642a8",
+   "env": {
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_CPU_IQ_ALL_EXACT1": "1",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_MMVQ": "0",
+    "STRATA_LAB_RDNA_Q5_HEAD": "0",
+    "STRATA_LAB_RDNA_KQUANTS": "0"
+   },
+   "frozen_args": null,
+   "bursts": [
+    {
+     "kind": "zh",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 105.08,
+     "decode_tps": [
+      109.5
+     ],
+     "ttft_s": [
+      0.311
+     ],
+     "draft_n": 566,
+     "draft_n_accepted": 371,
+     "text_sha256": [
+      "38ebac7e7aa7f45b2de8133646ef34aa0621f229a8f1b85d734789c9a49e2cb9"
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "kind": "zh",
+     "n": 2,
+     "valid": true,
+     "aggregate_tps": 149.27,
+     "decode_tps": [
+      85.8,
+      82.6
+     ],
+     "ttft_s": [
+      0.311,
+      1.011
+     ],
+     "draft_n": 0,
+     "draft_n_accepted": 0,
+     "text_sha256": [
+      "008f6e34b8e2727d5d4ee615265c1d3452fedff885506224f4003be11b5e8ac3",
+      "143ad6d021dc5e0efb5ebc101e6ff0ba5913013bb3182c17ad933476fadaa203"
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "kind": "code",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 137.53,
+     "decode_tps": [
+      144.6
+     ],
+     "ttft_s": [
+      0.291
+     ],
+     "draft_n": 567,
+     "draft_n_accepted": 448,
+     "text_sha256": [
+      "01e9cb58b95556eb69413f3acb58362a0c74e8281503a3d21d9e8239b4dbb948"
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "kind": "code",
+     "n": 2,
+     "valid": true,
+     "aggregate_tps": 201.85,
+     "decode_tps": [
+      112.2,
+      113.8
+     ],
+     "ttft_s": [
+      0.287,
+      0.875
+     ],
+     "draft_n": 0,
+     "draft_n_accepted": 0,
+     "text_sha256": [
+      "dcdc66d21d794d595302c94e35a8ef463bede2c9abc1d8c472e04c6090030b41",
+      "88221f314913bf3e1ca3a50293f3425e49e45b707bbabfec098cfd35761db90a"
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ],
+   "parity": [
+    {
+     "kind": "zh",
+     "serial_repeat_equal": false,
+     "equal": false,
+     "hashes": {
+      "serial": "f40838e8905a8d9a883420017b71f3124a9a74fb9f2bbe78a8d9e0c710e51796",
+      "serial_again": "617d71e5de87688896276aa0684185fd10ff671536b5ef74b443434d77f92b5d",
+      "piped": "8698be09f168eff0cdc1831077be4c797c6ced79f48456ab71e07a9ea415d56f",
+      "forced": "75e390a8ab5d64b76cafff1a53299190424d27b56bcf3b71c5c00daaa6f157b0"
+     }
+    },
+    {
+     "kind": "code",
+     "serial_repeat_equal": true,
+     "equal": true,
+     "hashes": {
+      "serial": "78b1040e5f520b3a37f6afd0b73cf8ec87356643ca06e61adb2ed66da496e1bd",
+      "serial_again": "78b1040e5f520b3a37f6afd0b73cf8ec87356643ca06e61adb2ed66da496e1bd",
+      "piped": "78b1040e5f520b3a37f6afd0b73cf8ec87356643ca06e61adb2ed66da496e1bd",
+      "forced": "78b1040e5f520b3a37f6afd0b73cf8ec87356643ca06e61adb2ed66da496e1bd"
+     }
+    }
+   ]
+  },
+  {
+   "name": "r14-ggml1t",
+   "engine_version": "0.1.62",
+   "engine_sha256": "fd9335314ceb2b3daa9b26fdfa7a549bbd6b09e1155c64e40c357ac1c32642a8",
+   "env": {
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_LAB_RDNA_MMVQ": "0",
+    "STRATA_LAB_RDNA_Q5_HEAD": "0",
+    "STRATA_LAB_RDNA_KQUANTS": "0"
+   },
+   "frozen_args": null,
+   "bursts": [
+    {
+     "kind": "zh",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 103.71,
+     "decode_tps": [
+      108.0
+     ],
+     "ttft_s": [
+      0.315
+     ],
+     "draft_n": 585,
+     "draft_n_accepted": 373,
+     "text_sha256": [
+      "9a0681fe3ee345858596f7608bcf3873b3f8c80d94d7d93418d49da6a1dbd345"
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "kind": "zh",
+     "n": 2,
+     "valid": true,
+     "aggregate_tps": 156.01,
+     "decode_tps": [
+      82.9,
+      86.8
+     ],
+     "ttft_s": [
+      0.311,
+      0.958
+     ],
+     "draft_n": 0,
+     "draft_n_accepted": 0,
+     "text_sha256": [
+      "8fa904098c4687475a6b705d1171bc180d1085210f174cb8ca6c0dd7eafb0c81",
+      "92e63ae396b5c541d0856d015d0f57144f994fc97c5cb4afaf24aeccb4c70b5d"
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    },
+    {
+     "kind": "code",
+     "n": 1,
+     "valid": true,
+     "aggregate_tps": 139.19,
+     "decode_tps": [
+      146.6
+     ],
+     "ttft_s": [
+      0.296
+     ],
+     "draft_n": 559,
+     "draft_n_accepted": 450,
+     "text_sha256": [
+      "3f44352d2fafbf37c2f73a2c655fe0f40c2168c9118a77f0827569685ecae2d7"
+     ],
+     "finish": [
+      "length"
+     ]
+    },
+    {
+     "kind": "code",
+     "n": 2,
+     "valid": true,
+     "aggregate_tps": 203.47,
+     "decode_tps": [
+      110.2,
+      115.4
+     ],
+     "ttft_s": [
+      0.286,
+      0.909
+     ],
+     "draft_n": 0,
+     "draft_n_accepted": 0,
+     "text_sha256": [
+      "103ca85f714f34268cfedbf5e885ac9200c7a3d6ee06bcfbae4efea2a388e68c",
+      "8837380f9b92104503684230442ae7d2614fb707b320ac9b01199c0ae855a01d"
+     ],
+     "finish": [
+      "length",
+      "length"
+     ]
+    }
+   ]
+  }
+ ],
+ "completed": true,
+ "restored": true,
+ "faults": [],
+ "verdict_note_20261119_evening": "original parity-based rejection evidence invalidated by round18-20 finding; speed rejection stands independently",
+ "source_worktree": {
+  "branch": "cennac-rdna3-dev",
+  "commit": "fa6d445a2c92901efb65544d2fcc23788286246f",
+  "repository": "E:/AIPorject/66/artifacts/strata_full_source_20261101/repository (worktree of nicejunjie/Strata-rdna3 clone)"
+ }
+}

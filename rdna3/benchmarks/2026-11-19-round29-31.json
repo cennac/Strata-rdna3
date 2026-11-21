@@ -1,0 +1,507 @@
+{
+ "date": "2026-11-19",
+ "purpose": "service-mode wait attribution (r29), fused router+doorbell publish port STRATA_LAB_RDNA_ROUTE_PUBLISH (r30), frozen bit-equivalence (r31)",
+ "r29_service_mode": {
+  "note": "STRATA_DECODE_TIMING only, fused paths intact, frozen adapt, single-lane 512",
+  "legacy_rebuild": "be601550...",
+  "dev": "5614920c...+adopted combo",
+  "legacy_decode_timing": {
+   "zh": 132.65,
+   "code": 178.56,
+   "ms_window_code": 13.41,
+   "gpu_reach_wait": 10.09,
+   "host_plan": 0.13,
+   "host_cpu": 1.83
+  },
+  "dev_decode_timing": {
+   "zh": 111.94,
+   "code": 140.59,
+   "ms_window_zh": 16.18,
+   "gpu_reach_wait": 11.8,
+   "host_plan": 0.3,
+   "host_cpu": 1.51
+  },
+  "attribution": "GPU-reach wait +1.71 ms/window is the dominant slice; host plan +0.17; dev CPU slice slightly lower"
+ },
+ "r30_port": {
+  "switch": "STRATA_LAB_RDNA_ROUTE_PUBLISH",
+  "default": "off",
+  "build": "strata-0216-routepub 4bd26459cd6389e4b5f2f181c2a5d073789a696a03b479fe2e4cd67349ad3d2c",
+  "files": [
+   "engine/src/kernels/cuda/native_router.cu (route_row helper + route_publish_res kernel + launcher)",
+   "engine/include/strata/kernels/native_router.hpp (declaration)",
+   "engine/src/core/verify.cpp (opt-in gate at the router, skip the later doorbell when fused; sh_fork_late order kept)"
+  ],
+  "source": "legacy 0.1.43 native_router_top10_publish_res; routing code = route_multi, publish contract = doorbell_publish_res",
+  "speed_1024x3": "flat: zh2 +1.1%, zh1 (2 valid) / code1 -0.3% / code2 -0.5% vs control 114.96/159.70/150.00/215.38",
+  "early_stop": "one content-level stop at 844/1024 (zh1 r2), recorded, campaign aborted by design",
+  "verdict": "NOT adopted: service-mode gain is within noise except zh2 +1.1%; one launch earlier for the CPU pool does not recover the legacy overlap design"
+ },
+ "r31_frozen_equivalence": {
+  "ctl": {
+   "zh": {
+    "serial_repeat": true,
+    "three_way": true
+   },
+   "code": {
+    "serial_repeat": true,
+    "three_way": true
+   }
+  },
+  "rp": {
+   "zh": {
+    "serial_repeat": true,
+    "three_way": true
+   },
+   "code": {
+    "serial_repeat": true,
+    "three_way": true
+   }
+  },
+  "cross_arm_serial_identical": {
+   "zh": true,
+   "code": true
+  },
+  "conclusion": "fused path is bit-exact vs the separate launches; correctness recorded, switch stays off"
+ },
+ "r30_bursts": {
+  "r30-control": [
+   {
+    "kind": "zh",
+    "n": 1,
+    "repeat": 0,
+    "tps": 117.34,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "a188e7d45b05134587cee6a5ec6888a363ac179f4c3ea42e1a488bbe66f3b460"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 2,
+    "repeat": 0,
+    "tps": 159.7,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "b87d8ece233ecd6ed15bcee92ab9cd677e93533a7dbb5535b21488b3ac5dc0af",
+     "47e87595b13292609308a55f80a127ffc3d3ae49dc236ff1025e877485f9f2e7"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 1,
+    "repeat": 0,
+    "tps": 147.14,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "239cb7904668976b8a6e19b2dc8fca00a62e425f3d969318c20e37d82b6271f5"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 2,
+    "repeat": 0,
+    "tps": 214.39,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "76256f8c87e740d2a30f27b2f34ac1629cccf035b588df9b99f72133e29372ac",
+     "b2cf2716221e33195aa80d3a2af04965b6ddf85cca1ea10fe6cd78f421ca87f4"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 2,
+    "repeat": 1,
+    "tps": 216.29,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "cea539be4081608e7cbf4d96ebedbf1b7486e28598a7f8e0122eb96a861f2677",
+     "7a2447e5f7b8ad662351b8e5246d40ab8b05695c3862649403bf3a0e3416a41f"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 1,
+    "repeat": 1,
+    "tps": 153.59,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "231359a9778eca597b634e9b01610007ac57592ea2694d8ceb0432349fb3ec25"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 2,
+    "repeat": 1,
+    "tps": 159.98,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "be9fa8d5ed93f9f44b2057461b44456d9a4bec3d50f2c34f55f2a23c1ed96431",
+     "0594e5a44cc6cdb469825c57bc48633cbee993394ac2ea04ed102997aaf2caa5"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 1,
+    "repeat": 1,
+    "tps": 114.96,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "239e0a115c5c61a53e27e0f4b4c08a2aeb605d0bafa36f77627cbccc0dd0b680"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 2,
+    "repeat": 2,
+    "tps": 215.38,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "2244b8a27cf2ff91f1951d83c1b5c551a6faeadbcb9f4c08e3a99d8d3e4cbe94",
+     "12cf262c390a915c603dd341c95eead8f12665de4e7eb200b6a42927da632d7c"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 1,
+    "repeat": 2,
+    "tps": 150.0,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "d792db9cc956d6851aaca543e92bcccd8f8aa9adfde884505730ec6df28816d3"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 2,
+    "repeat": 2,
+    "tps": 149.27,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "afab5cf535f0079b7158dd78ad6ff6c150e281470bafb9e28ea6ab049802d710",
+     "ec420cc84369e99acb9885e0d8cafa795c8427eb94fb7e6e1cb4563b8ff5e501"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 1,
+    "repeat": 2,
+    "tps": 111.01,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "9d22eb0f8e3feb324ee56b03cd23330fedf5dd23bb144760446b4fdd81bb92a5"
+    ]
+   }
+  ],
+  "r30-routepub": [
+   {
+    "kind": "zh",
+    "n": 1,
+    "repeat": 0,
+    "tps": 114.12,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "637147637ae6e3da26e5f1430c579fe66ee16f77c9f85bf25b7fb82c9bbc106d"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 2,
+    "repeat": 0,
+    "tps": 161.41,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "389a466a6b1c92cf4d645ea4daab4b2841103bd4bba2498cfe03982cf5ef0947",
+     "79a3d12380e53304d562b5c82d2077349e3f70e0b7641469cc8299951c635bcb"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 1,
+    "repeat": 0,
+    "tps": 149.59,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "dc27e7f15bc2e4737f52e6b1e8a3a992b648f5a7c3ea42fa766f55586873f41e"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 2,
+    "repeat": 0,
+    "tps": 212.83,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "658e1e1322578b9c354f506dd86bc05a24dcf7c3227e9991e46af06c1227d39c",
+     "51998a690fbec82aa0409ce5a99bd1e2dbd8761301aedba7e998a0a53b4b4a77"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 2,
+    "repeat": 1,
+    "tps": 214.33,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "326a764ef3736325ddf0548e610f12afc806340c1e71514e0ba1b5027690b592",
+     "e9cf01c288a17d2931e3b587d429a088f8a07a222408dd156d91cf02d9e5503d"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 1,
+    "repeat": 1,
+    "tps": 149.92,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "90f0eaf30bc95438df0cd551eeeee68abfe0281109165657213b3a7a3c179856"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 2,
+    "repeat": 1,
+    "tps": 161.21,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "b2ce9a2953c7cb228f51f95eba46fd4c6bfc9d0f4e183c21833fde718c434d9f",
+     "7e3ea8f5e4ca59c508ba6d8f1a6d4c056e2f937701e8e30b3339763f595ffefe"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 1,
+    "repeat": 1,
+    "tps": 107.95,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "25501dad0c2e83d340be6ed7cbc4ea15ed5193bf636a89bbd6993fdc8e2770a3"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 2,
+    "repeat": 2,
+    "tps": 217.32,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "2244b8a27cf2ff91f1951d83c1b5c551a6faeadbcb9f4c08e3a99d8d3e4cbe94",
+     "da82890069bcbbc598e9d672aa8c4e7b62e3453c73d7bf1a8278217b55f07db8"
+    ]
+   },
+   {
+    "kind": "code",
+    "n": 1,
+    "repeat": 2,
+    "tps": 148.65,
+    "valid": true,
+    "tokens": [
+     1024
+    ],
+    "finish": [
+     "length"
+    ],
+    "sha256": [
+     "c236e1f80c8c1222da4087a3c56772581479c45c9a7151322cf487a90f5295d5"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 2,
+    "repeat": 2,
+    "tps": 165.34,
+    "valid": true,
+    "tokens": [
+     1024,
+     1024
+    ],
+    "finish": [
+     "length",
+     "length"
+    ],
+    "sha256": [
+     "c8053ef27d679c4145cb4e1f476bd8a0cc9d886b16085be95315ccaa83424ffc",
+     "84862f0e190c78aee6a6b34dcb0e4cd9e5748e8653456b0d95997956c6725cf2"
+    ]
+   },
+   {
+    "kind": "zh",
+    "n": 1,
+    "repeat": 2,
+    "tps": 115.91,
+    "valid": false,
+    "tokens": [
+     844
+    ],
+    "finish": [
+     "stop"
+    ],
+    "sha256": [
+     "1f5ff5c0cd614d26b2fb80f093b3e4f02325929db76d845959d9289a18ca9b4a"
+    ]
+   }
+  ]
+ },
+ "r31_parity": {
+  "r31-ctl-frozen": true,
+  "r31-rp-frozen": true
+ },
+ "completed": {
+  "r29": true,
+  "r30": null,
+  "r31": true
+ },
+ "restored": {
+  "r29": true,
+  "r30": true,
+  "r31": true
+ }
+}

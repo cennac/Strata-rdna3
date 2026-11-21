@@ -1,0 +1,25 @@
+{
+  "purpose": "Check renamed HIP fusion switches and BF16 RDNA HC row grouping on v0.2.16-rdna3.1",
+  "screen_output_tokens": 768,
+  "confirmation_output_tokens": 1024,
+  "scenes": ["zh-single", "zh-dual", "code-single", "code-dual"],
+  "common_env": {
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_PIPELINE_DEBUG": "1",
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_GR_V3": "0",
+    "STRATA_HC_Q8": "0",
+    "STRATA_LAB_RDNA_GR": "1",
+    "STRATA_VERIFY_NODES": "1"
+  },
+  "candidates": [
+    {"name": "round2-baseline", "env": {}},
+    {"name": "round2-fusion", "env": {"STRATA_FUSE_WAIT": "1", "STRATA_FUSE_HITS": "1"}},
+    {"name": "round2-rw1", "env": {"STRATA_GR_RDNA_RW": "1"}},
+    {"name": "round2-rw4", "env": {"STRATA_GR_RDNA_RW": "4"}},
+    {"name": "round2-fusion-rw4", "env": {"STRATA_FUSE_WAIT": "1", "STRATA_FUSE_HITS": "1", "STRATA_GR_RDNA_RW": "4"}}
+  ]
+}

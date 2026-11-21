@@ -1,0 +1,193 @@
+{
+  "binary": "588549701c867dc5a4aafef8de48c1e77b3d2f0dff4fd8d6e3a71db72df50df2",
+  "completed": true,
+  "restored": true,
+  "method": "real production binary + runtime config, GR_FUSED bracketed pairs, 1024 tokens x 4 lanes, caches off",
+  "arms": {
+    "fused1": {
+      "aggregate_tps": [
+        [
+          "zh",
+          1,
+          131.5
+        ],
+        [
+          "zh",
+          2,
+          187.3
+        ],
+        [
+          "code",
+          1,
+          181.1
+        ],
+        [
+          "code",
+          2,
+          236.8
+        ]
+      ],
+      "windows_ms_per_window": [
+        [
+          "64",
+          "15.16"
+        ],
+        [
+          "536",
+          "14.10"
+        ],
+        [
+          "2",
+          "17.14"
+        ],
+        [
+          "411",
+          "13.22"
+        ],
+        [
+          "2",
+          "20.03"
+        ]
+      ]
+    },
+    "split1": {
+      "aggregate_tps": [
+        [
+          "zh",
+          1,
+          130.5
+        ],
+        [
+          "zh",
+          2,
+          183.5
+        ],
+        [
+          "code",
+          1,
+          176.8
+        ],
+        [
+          "code",
+          2,
+          237.4
+        ]
+      ],
+      "windows_ms_per_window": [
+        [
+          "69",
+          "15.59"
+        ],
+        [
+          "534",
+          "14.26"
+        ],
+        [
+          "2",
+          "17.59"
+        ],
+        [
+          "419",
+          "13.29"
+        ],
+        [
+          "2",
+          "18.05"
+        ]
+      ]
+    },
+    "split2": {
+      "aggregate_tps": [
+        [
+          "zh",
+          1,
+          129.4
+        ],
+        [
+          "zh",
+          2,
+          183.2
+        ],
+        [
+          "code",
+          1,
+          179.3
+        ],
+        [
+          "code",
+          2,
+          234.4
+        ]
+      ],
+      "windows_ms_per_window": [
+        [
+          "71",
+          "15.39"
+        ],
+        [
+          "538",
+          "14.27"
+        ],
+        [
+          "2",
+          "17.04"
+        ],
+        [
+          "414",
+          "13.26"
+        ],
+        [
+          "2",
+          "17.68"
+        ]
+      ]
+    },
+    "fused2": {
+      "aggregate_tps": [
+        [
+          "zh",
+          1,
+          139.4
+        ],
+        [
+          "zh",
+          2,
+          186.2
+        ],
+        [
+          "code",
+          1,
+          173.3
+        ],
+        [
+          "code",
+          2,
+          237.3
+        ]
+      ],
+      "windows_ms_per_window": [
+        [
+          "69",
+          "15.87"
+        ],
+        [
+          "511",
+          "13.92"
+        ],
+        [
+          "2",
+          "17.03"
+        ],
+        [
+          "430",
+          "13.22"
+        ],
+        [
+          "2",
+          "17.33"
+        ]
+      ]
+    }
+  },
+  "decision": "fused A8 port rejected: ~0.3 ms/window on zh, ~0 on code; below the grid-barrier port-risk threshold"
+}

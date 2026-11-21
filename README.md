@@ -4,10 +4,12 @@
 
 我在这里维护双 RX 7900 XTX 的 Strata 优化，重点是单请求速度、双并发吞吐，以及可复现的源码和配置。
 
-- **`main`：现役优化版**，legacy-20261110 / engine 0.1.43，作为首版性能基线。
-- **`dev/0.2.16`：正式版迁移研发**，基于上游 Strata v0.2.16 / engine 0.1.62。达到现役性能并完成正确性验证后再合入主分支。
+- **`main`：现役优化版**，Strata v0.1.43-rdna3.1 / engine 0.1.43，作为首版性能基线。
+- **`dev/0.2.16`：正式版迁移研发**，版本为 v0.2.16-rdna3.1，基于上游 Strata v0.2.16 / engine 0.1.62。达到现役性能并完成正确性验证后再合入主分支。
 
 这是一份独立维护的优化项目。上游为 [Niko1221/Strata](https://github.com/Niko1221/Strata)，RDNA3 参考实现为 [nicejunjie/Strata-rdna3](https://github.com/nicejunjie/Strata-rdna3)。保留原作者署名与许可证。
+
+最新结论见[全天优化总结](rdna3/benchmarks/2026-11-19-summary.md)：已采纳惩罚流水线、BF16 HC、shared stream、aux CPU放置和pool12。第26轮1024×3的开发版中文单路 **117.70**、双路合计 **163.49** tok/s，代码单路 **159.60**、双路合计 **212.89** tok/s。CPU结果合并迁移完成数值与冻结回滚检查，但没有全面性能收益，保持默认关闭。开发版仍未达到现役，不合入main。
 
 ## 本机与测试口径
 
@@ -15,7 +17,7 @@ MSI MPG Z490 GAMING CARBON WIFI、10900T ES、96GB DDR4，两张 24GB RX 7900 XT
 
 模型为 **Qwen3.8-Flash-Next，GSQ-RCO IQ3_XXS**。测试中的单路是一个请求使用两张卡；双路是两请求同时运行。每路容量131072不代表本轮输入了128K提示词。
 
-| 同机实测，中位数 tok/s | 现役优化版 | 0.2.16开发优化版 | 0.2.16正式版 |
+| 首轮同机实测，中位数 tok/s | 现役优化版 | 0.2.16开发优化版 | 0.2.16正式版 |
 |---|---:|---:|---:|
 | 中文单路生成 | 139.1 | 113.2 | 60.3 |
 | 中文双路整批吞吐 | 185.8 | 156.9 | 132.0 |
@@ -25,6 +27,14 @@ MSI MPG Z490 GAMING CARBON WIFI、10900T ES、96GB DDR4，两张 24GB RX 7900 XT
 各项3次，presence penalty=1.5，关闭提示/会话缓存，输出1024。单路是生成阶段速度，双路是包含首字等待的整批吞吐。开发版已有收益，仍落后于现役，暂不合并。
 
 公开源码全量重编也已实测：中文单路 **142.4**、双路合计 **182.9** tok/s；代码单路 **193.3**、双路合计 **236.4** tok/s。每项3次，达到现役量级。
+
+后续筛选与失败结果另存：[融合／行分组](rdna3/benchmarks/2026-11-19-round2.md)、[HC Q8/A8](rdna3/benchmarks/2026-11-19-round3.md)、[精确稠密矩阵路径](rdna3/benchmarks/2026-11-19-round5.md)。这些实验没有改变上表的默认推荐组合；开关、适用形状和数值探针见[实验说明](rdna3/experiments/README.md)。
+
+三次复测见[第六轮](rdna3/benchmarks/2026-11-19-round6.md)与[Q5_K输出头实验](rdna3/benchmarks/2026-11-19-round7.md)。输出头局部耗时改善没有形成明确整机收益；这些默认关闭的实验不代表上表成绩再次提高。
+
+新增[阶段计时](rdna3/benchmarks/2026-11-19-round8.md)、[流调度筛选](rdna3/benchmarks/2026-11-19-round9.md)及[旧版K-quant投影核迁移](rdna3/benchmarks/2026-11-19-round10.md)。K-quant实验的中文单／双路为111.3／162.9、代码为156.2／220.6 tok/s；同构建关闭开关的对照为113.9／155.1、152.0／210.3。双路约+5%，但中文单路−2.3%，保留默认关闭，不替换上表推荐模板。两卡各400组数值检查、冻结条件下的惩罚流水线与强制回滚对照通过；三题冒烟仍有算术错误。
+
+新增[第十一轮分格式筛选](rdna3/benchmarks/2026-11-19-round11.md)与[第十二轮三次复测](rdna3/benchmarks/2026-11-19-round12.md)。仅迁移内部IQ4_XS＋Q6_K时，中文单／双路为111.7／160.3，代码156.3／216.8 tok/s；同构建对照115.4／155.9、154.8／211.5。初筛中文收益没有保留，仍不替换默认组合。普通计数器显示中文窗口耗时近乎不变，但MTP接受token/窗口减少，需要更多验证窗口；证据与未获全面收益的结果一并保留。
 
 ## 现役版包含什么
 
@@ -46,7 +56,7 @@ git switch dev/0.2.16
 python3 rdna3/build.py --rocm /opt/rocm --jobs 4
 ```
 
-`dev/0.2.16` 使用正式版自带的计算核和依赖；`main` 携带历史构建对应的GGML与rocWMMA源码。模型 GGUF、pack、tokenizer 和 MTP runtime 由使用者单独准备，量化及模型家族必须匹配。
+`dev/0.2.16` 在正式版自带的计算核和依赖上迁入选定的本地优化；`main` 携带历史构建对应的GGML与rocWMMA源码。模型 GGUF、pack、tokenizer 和 MTP runtime 由使用者单独准备，量化及模型家族必须匹配。
 
 ## 生成配置并运行
 
@@ -90,3 +100,5 @@ python3 rdna3/bench.py --url http://127.0.0.1:8100 \
 后续开发与合并规则见 [DEVELOPMENT.md](rdna3/DEVELOPMENT.md)，改动记录见 [CHANGELOG.md](rdna3/CHANGELOG.md)。
 
 上游完整说明保留于 [UPSTREAM_README.md](UPSTREAM_README.md)。当前分支尚未达到主分支性能，日常服务仍用主分支基线。
+
+版本规则：`v<上游版本>-rdna3.<修订号>`。现役0.1.43基底包含后续MTP与调度回移，控制层也较新；源码版本核对记录见 [来源](rdna3/PROVENANCE.md)。

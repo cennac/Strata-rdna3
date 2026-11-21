@@ -1,0 +1,111 @@
+{
+  "completed": true,
+  "restored": true,
+  "engine_sha256": "bdec54532462bbf5957137913adfbf68f1f4da7f652b5f5897c9fc6454afe796",
+  "method": "production binary, frozen config, STRATA_GR_FUSED 1 vs 0, 7 requests per arm",
+  "arms": {
+    "fused": [
+      {
+        "label": "warmup",
+        "tokens": 128,
+        "wall_s": 3.52,
+        "ttft_s": 1.235,
+        "sha256": "b9c07515d6df179d173fa85a409c1d4f224e581122944e0cb583bbec35250623"
+      },
+      {
+        "label": "zh384a",
+        "tokens": 384,
+        "wall_s": 7.76,
+        "ttft_s": 0.938,
+        "sha256": "0d63fef29158a95affba6da7bbfbaf728b2e91f62cfdb8d4dae36759c99833b8"
+      },
+      {
+        "label": "zh384b",
+        "tokens": 384,
+        "wall_s": 8.42,
+        "ttft_s": 1.123,
+        "sha256": "c1416c2e9b55fa8eb0b7b57ebf987a50fa3127a92f8b5adc285e2b9e67b4f394"
+      },
+      {
+        "label": "code384a",
+        "tokens": 384,
+        "wall_s": 6.55,
+        "ttft_s": 0.775,
+        "sha256": "5e87edd8d5284360918b3c51afcfd43a0483878b5fcaec6a32f3b54f23f9ed0c"
+      },
+      {
+        "label": "code384b",
+        "tokens": 384,
+        "wall_s": 6.48,
+        "ttft_s": 0.766,
+        "sha256": "5e87edd8d5284360918b3c51afcfd43a0483878b5fcaec6a32f3b54f23f9ed0c"
+      },
+      {
+        "label": "zh1024",
+        "tokens": 1024,
+        "wall_s": 19.59,
+        "ttft_s": 0.945,
+        "sha256": "4508d6b4046907a011ae58e15567663aae8c8b7d553c0b004d11efe418238bc9"
+      },
+      {
+        "label": "code1024",
+        "tokens": 1024,
+        "wall_s": 15.41,
+        "ttft_s": 0.761,
+        "sha256": "4bfac5d044e9c114f8986caa67a2c439f85b31c8e9dd29a3e4104b8a2d49f597"
+      }
+    ],
+    "split": [
+      {
+        "label": "warmup",
+        "tokens": 128,
+        "wall_s": 3.2,
+        "ttft_s": 1.058,
+        "sha256": "634ea3f61c16b201b566e7675472598264b23e942adec7e9e880705b37f3677c"
+      },
+      {
+        "label": "zh384a",
+        "tokens": 384,
+        "wall_s": 7.79,
+        "ttft_s": 0.918,
+        "sha256": "095b670b6603de59804aec378191f66c544fe761f9d150494ecaf84e2f9c1cf3"
+      },
+      {
+        "label": "zh384b",
+        "tokens": 384,
+        "wall_s": 7.78,
+        "ttft_s": 0.92,
+        "sha256": "095b670b6603de59804aec378191f66c544fe761f9d150494ecaf84e2f9c1cf3"
+      },
+      {
+        "label": "code384a",
+        "tokens": 384,
+        "wall_s": 6.05,
+        "ttft_s": 0.756,
+        "sha256": "1bf51200fd833988c658746c4624a81e4bdf2b92fd81e1a3b4238a1d123dd4ab"
+      },
+      {
+        "label": "code384b",
+        "tokens": 384,
+        "wall_s": 6.1,
+        "ttft_s": 0.757,
+        "sha256": "d0ac68f5f6a64e571119424818fdb03602972e776ebaa6ac2a83212d53d3bb46"
+      },
+      {
+        "label": "zh1024",
+        "tokens": 1024,
+        "wall_s": 19.3,
+        "ttft_s": 0.935,
+        "sha256": "eb1ed6ae3c1d3f9869d33164f5908b05fecb494ca02e2cd7088b2c378aab77f5"
+      },
+      {
+        "label": "code1024",
+        "tokens": 1024,
+        "wall_s": 15.31,
+        "ttft_s": 0.753,
+        "sha256": "06c3e2dcbcd2a0503236c8e42996c8d29f8e8d8bf21ed86ac321987c3126b84b"
+      }
+    ]
+  },
+  "conclusion": "inconclusive: legacy texts nondeterministic under the frozen protocol; HC port deprioritized"
+}

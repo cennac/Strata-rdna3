@@ -1,0 +1,12 @@
+{
+ "date": "2026-11-20",
+ "purpose": "architecture analysis closing the async-C design and the residency/pinning hypotheses (no new benchmark)",
+ "findings": {
+  "pool_architecture": "ExpertPool is a serial batch machine: the calling (serve) thread participates in the compute (host drains phases through head_), and its state (mjobs_, split_multi_, nfmt_, mrows_) is reused batch-to-batch. Two in-flight multi-batches are impossible without a second pool instance; async-C therefore requires per-stage serve threads + per-stage pools - the true structural project, not a bounded patch.",
+  "residency_parity": "legacy: 12098 (CUDA0) + 9687 (CUDA1) = 21785 resident, 89% of experts; dev: 12013 + 9623 = 21636, CUDA1 9623/11264 (85.5%). Residency is at parity - the miss load is the same.",
+  "page_cache": "dev per-request log: 0 major faults, 0 storage MB for expert reads - every miss blob read is page-cache-warm RAM. The legacy 16GiB page-locked complement cannot explain the gap.",
+  "implication": "dev pipelining doubles the per-window CPU-expert demand vs legacy serial decode on ONE serve thread + ONE pool; the measured waits are scheduling artifacts of that demand. Reorder (r37) and quantum (r41) fixes rejected with data; the remaining path is per-stage serve threads + pools (multi-threaded serving), a defined structural project."
+ },
+ "next_project_spec": "per-stage serving: one serve thread + one ExpertPool per stage (workers split 6/6), each dispatch bound to its stage pool; C raises stay per-verifier; validation via frozen text equality + pool trace fairness + 1024x3. Estimated focused engineering block.",
+ "source": "r29/r40 logs + pool.cpp/expert_source.cpp reading"
+}

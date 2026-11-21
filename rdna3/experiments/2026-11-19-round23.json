@@ -1,0 +1,136 @@
+[
+  {
+    "name": "r23-control",
+    "exe": "<build>/strata-0216-kquant-select",
+    "env": {
+      "STRATA_PW_WITH_BATCH": "1",
+      "STRATA_MTP_STAGE0": "0",
+      "STRATA_HYBRID_PENALTIES": "1",
+      "STRATA_IQ_MT_MIN": "1",
+      "STRATA_PIPELINE_DEBUG": "1",
+      "GPU_MAX_HW_QUEUES": "3",
+      "STRATA_GR_V3": "0",
+      "STRATA_HC_Q8": "0",
+      "STRATA_LAB_RDNA_GR": "1",
+      "STRATA_LAB_RDNA_MMVQ": "0",
+      "STRATA_Q6_PACKED": "0",
+      "STRATA_LAB_RDNA_Q5_HEAD": "0",
+      "STRATA_LAB_RDNA_KQUANTS": "0",
+      "STRATA_SH_STREAM": "1",
+      "STRATA_AUX_CPUS": "auto"
+    },
+    "repeats": 1,
+    "output_tokens": 768,
+    "args": {
+      "--pool-workers": 12
+    }
+  },
+  {
+    "name": "r23-pin12",
+    "exe": "<build>/strata-0216-kquant-select",
+    "env": {
+      "STRATA_PW_WITH_BATCH": "1",
+      "STRATA_MTP_STAGE0": "0",
+      "STRATA_HYBRID_PENALTIES": "1",
+      "STRATA_IQ_MT_MIN": "1",
+      "STRATA_PIPELINE_DEBUG": "1",
+      "GPU_MAX_HW_QUEUES": "3",
+      "STRATA_GR_V3": "0",
+      "STRATA_HC_Q8": "0",
+      "STRATA_LAB_RDNA_GR": "1",
+      "STRATA_LAB_RDNA_MMVQ": "0",
+      "STRATA_Q6_PACKED": "0",
+      "STRATA_LAB_RDNA_Q5_HEAD": "0",
+      "STRATA_LAB_RDNA_KQUANTS": "0",
+      "STRATA_SH_STREAM": "1",
+      "STRATA_AUX_CPUS": "auto"
+    },
+    "repeats": 1,
+    "output_tokens": 768,
+    "args": {
+      "--pool-workers": 12,
+      "--pool-cores": "1-9,11-13"
+    }
+  },
+  {
+    "name": "r23-tasks13",
+    "exe": "<build>/strata-0216-kquant-select",
+    "env": {
+      "STRATA_PW_WITH_BATCH": "1",
+      "STRATA_MTP_STAGE0": "0",
+      "STRATA_HYBRID_PENALTIES": "1",
+      "STRATA_IQ_MT_MIN": "1",
+      "STRATA_PIPELINE_DEBUG": "1",
+      "GPU_MAX_HW_QUEUES": "3",
+      "STRATA_GR_V3": "0",
+      "STRATA_HC_Q8": "0",
+      "STRATA_LAB_RDNA_GR": "1",
+      "STRATA_LAB_RDNA_MMVQ": "0",
+      "STRATA_Q6_PACKED": "0",
+      "STRATA_LAB_RDNA_Q5_HEAD": "0",
+      "STRATA_LAB_RDNA_KQUANTS": "0",
+      "STRATA_SH_STREAM": "1",
+      "STRATA_AUX_CPUS": "auto"
+    },
+    "repeats": 1,
+    "output_tokens": 768,
+    "args": {
+      "--pool-workers": 12,
+      "--pool-tasks": 13
+    }
+  },
+  {
+    "name": "r23-pin12-tasks13",
+    "exe": "<build>/strata-0216-kquant-select",
+    "env": {
+      "STRATA_PW_WITH_BATCH": "1",
+      "STRATA_MTP_STAGE0": "0",
+      "STRATA_HYBRID_PENALTIES": "1",
+      "STRATA_IQ_MT_MIN": "1",
+      "STRATA_PIPELINE_DEBUG": "1",
+      "GPU_MAX_HW_QUEUES": "3",
+      "STRATA_GR_V3": "0",
+      "STRATA_HC_Q8": "0",
+      "STRATA_LAB_RDNA_GR": "1",
+      "STRATA_LAB_RDNA_MMVQ": "0",
+      "STRATA_Q6_PACKED": "0",
+      "STRATA_LAB_RDNA_Q5_HEAD": "0",
+      "STRATA_LAB_RDNA_KQUANTS": "0",
+      "STRATA_SH_STREAM": "1",
+      "STRATA_AUX_CPUS": "auto"
+    },
+    "repeats": 1,
+    "output_tokens": 768,
+    "args": {
+      "--pool-workers": 12,
+      "--pool-cores": "1-9,11-13",
+      "--pool-tasks": 13
+    }
+  },
+  {
+    "name": "r23-control-repeat",
+    "exe": "<build>/strata-0216-kquant-select",
+    "env": {
+      "STRATA_PW_WITH_BATCH": "1",
+      "STRATA_MTP_STAGE0": "0",
+      "STRATA_HYBRID_PENALTIES": "1",
+      "STRATA_IQ_MT_MIN": "1",
+      "STRATA_PIPELINE_DEBUG": "1",
+      "GPU_MAX_HW_QUEUES": "3",
+      "STRATA_GR_V3": "0",
+      "STRATA_HC_Q8": "0",
+      "STRATA_LAB_RDNA_GR": "1",
+      "STRATA_LAB_RDNA_MMVQ": "0",
+      "STRATA_Q6_PACKED": "0",
+      "STRATA_LAB_RDNA_Q5_HEAD": "0",
+      "STRATA_LAB_RDNA_KQUANTS": "0",
+      "STRATA_SH_STREAM": "1",
+      "STRATA_AUX_CPUS": "auto"
+    },
+    "repeats": 1,
+    "output_tokens": 768,
+    "args": {
+      "--pool-workers": 12
+    }
+  }
+]

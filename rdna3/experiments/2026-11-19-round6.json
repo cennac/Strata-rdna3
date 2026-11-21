@@ -1,0 +1,42 @@
+{
+  "purpose": "1024-output three-repeat confirmation of exact MMVQ and upstream Q6 packed heads",
+  "screen_output_tokens": 1024,
+  "confirmation_output_tokens": 1024,
+  "common_env": {
+    "STRATA_PW_WITH_BATCH": "1",
+    "STRATA_MTP_STAGE0": "0",
+    "STRATA_HYBRID_PENALTIES": "1",
+    "STRATA_IQ_MT_MIN": "1",
+    "STRATA_PIPELINE_DEBUG": "1",
+    "GPU_MAX_HW_QUEUES": "3",
+    "STRATA_GR_V3": "0",
+    "STRATA_HC_Q8": "0",
+    "STRATA_LAB_RDNA_GR": "1"
+  },
+  "candidates": [
+    {
+      "name": "confirm-bf16",
+      "env": {
+        "STRATA_LAB_RDNA_MMVQ": "0",
+        "STRATA_Q6_PACKED": "0"
+      }
+    },
+    {
+      "name": "confirm-wave",
+      "env": {
+        "STRATA_LAB_RDNA_MMVQ": "1",
+        "STRATA_Q6_PACKED": "0"
+      }
+    },
+    {
+      "name": "confirm-q6packed",
+      "env": {
+        "STRATA_LAB_RDNA_MMVQ": "0",
+        "STRATA_Q6_PACKED": "1",
+        "STRATA_Q6P_SELFTEST": "1"
+      }
+    }
+  ],
+  "correctness": "Compare both dispatch modes bitwise on Q4_0, Q5_0, Q8_0, IQ4_NL; 1..16 columns, eligible and fallback shapes, odd output rows, zero activations, graph replay. HC Q8/A8 retains the preceding numeric checks.",
+  "repeats": 3
+}

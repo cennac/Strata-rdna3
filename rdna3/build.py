@@ -14,7 +14,7 @@ def main():
  bitcode=rt/'lib/llvm/amdgcn/bitcode'
  if not bitcode.exists():bitcode=rt/'amdgcn/bitcode'
  env=os.environ.copy();env.update(HIP_PLATFORM='amd',HIP_COMPILER='clang',HIP_RUNTIME='rocclr',ROCM_PATH=str(rt),HIP_PATH=str(rt),PATH=str(rt/'bin')+':'+str(compiler.parent)+':'+env['PATH'],LD_LIBRARY_PATH=str(rt/'lib')+':'+str(rt/'lib/llvm/lib'))
- cmd=['cmake','-S',str(root/'engine'),'-B',str(build),'-DCMAKE_BUILD_TYPE=Release','-DSTRATA_ENABLE_HIP=ON','-DSTRATA_ENABLE_CUDA=OFF','-DSTRATA_BUILD_TESTS=OFF','-DSTRATA_BUILD_CONVERSATION_TESTS=OFF','-DCMAKE_HIP_ARCHITECTURES=gfx1100','-DCMAKE_HIP_COMPILER='+str(compiler),'-DCMAKE_HIP_COMPILER_ROCM_ROOT='+str(rt),'-DCMAKE_HIP_FLAGS=--rocm-path='+str(rt)+' --rocm-device-lib-path='+str(bitcode),'-DCMAKE_PREFIX_PATH='+str(rt)]
+ cmd=['cmake','--fresh','-S',str(root/'engine'),'-B',str(build),'-DCMAKE_BUILD_TYPE=Release','-DSTRATA_ENABLE_HIP=ON','-DSTRATA_ENABLE_CUDA=OFF','-DSTRATA_BUILD_TESTS=OFF','-DSTRATA_BUILD_CONVERSATION_TESTS=OFF','-DCMAKE_HIP_ARCHITECTURES=gfx1100','-DCMAKE_HIP_COMPILER='+str(compiler),'-DCMAKE_HIP_COMPILER_ROCM_ROOT='+str(rt),'-DCMAKE_HIP_FLAGS=--rocm-path='+str(rt)+' --rocm-device-lib-path='+str(bitcode),'-DCMAKE_PREFIX_PATH='+str(rt)]
  # The legacy engine uses pinned GGML and rocWMMA sources. The 0.2.16 engine has its own kernels.
  llama=root/'third_party/llama.cpp';wmma=root/'third_party/rocwmma/library/include'
  if llama.exists():cmd+=['-DSTRATA_GGML_DIR='+str(llama),'-DSTRATA_PREFILL_MMQ=ON','-DSTRATA_MMQ_KQUANTS=ON','-DSTRATA_ROCWMMA_INCLUDE_DIR='+str(wmma)]
