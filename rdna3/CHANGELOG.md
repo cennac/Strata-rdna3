@@ -1,5 +1,10 @@
 # 更新记录
 
+## Residency-upload deadlock fixed; local Q8 rejected (2026-11-21)
+
+- Root-caused the flaky layer-24 stall: the adaptive tier's thread called the residency upload's blocking legacy-stream `cudaMemcpy` beside pipelined windows — a host↔GPU circular wait with the window spin kernels (reproduced 3/3 with a scoring-then-load recipe; captured by gdb before the watchdog). `res_put` now uploads async on a per-device stream and only waits in serial-window mode; six recipe cycles clean, frozen four-mode parity byte-identical.
+- The freed-up three-pair Q8 confirmation: −4.5%/−3.8%/−2.4%/+0.2% — **local Q8 rejected**; BF16 stays the default. See the [resolved record](benchmarks/2026-11-21-hc-q8-resolved.md).
+
 ## Local HC Q8 confirmation blocked (2026-11-21)
 
 - The three-pair confirmation of local Q8 HC weights on the adopted baseline could not run: 2 of 8 Q8 loads deadlocked at the layer-24 CPU-expert dispatch and were killed by the watchdog with an identical signature; three targeted reproductions (fresh load, two-load sequence, exact warmup body) ran clean, so the race is flaky. The one completed pair shows no clear gain. Local Q8 stays off until the deadlock is root-caused. See the [blocked record](benchmarks/2026-11-21-hc-q8-blocked.md).

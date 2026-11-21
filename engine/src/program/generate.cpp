@@ -10431,9 +10431,29 @@ int main(int argc, char** argv) {
     // The residency table is read by kernels on non-blocking streams, which do not wait for the legacy stream a plain
     // cudaMemcpy runs on, and a pageable copy can return before its DMA has landed: each upload waits for its own copy
     // (the current device's legacy stream, stream 0 - nothing else; HIP has no cudaStreamLegacy name, #550).
-    auto res_put = [&host_res](int32_t* dst) -> cudaError_t {
-        const cudaError_t e = cudaMemcpy(dst, host_res.data(), host_res.size() * sizeof(int32_t), cudaMemcpyHostToDevice);
-        return e != cudaSuccess ? e : cudaStreamSynchronize(nullptr);
+    bool res_serial_wait = true;   // startup and the pre-serve paths: nothing is in flight, waiting is free
+    auto res_put = [&host_res, &res_serial_wait](int32_t* dst) -> cudaError_t {
+        // A blocking cudaMemcpy here runs on the legacy stream, and the adaptive thread calling it beside
+        // pipelined windows deadlocks: the copy waits behind the window graphs' spin kernels while those
+        // wait for the host's flags (the 180 s issue #29 stalls of the Q8 loads).  Upload on the device's
+        // own stream instead: pipelined mode never waits - a mid-flight table update is as safe as the
+        // res_patch kernels the tier already posts on the verifiers' streams (the pool's plan is what the
+        // window actually follows) - and serial windows keep the wait, where nothing is in flight.
+        static thread_local std::map<int, cudaStream_t> up_streams;
+        const int dev = [] { int d = 0; return cudaGetDevice(&d) == cudaSuccess ? d : 0; }();
+        cudaStream_t& up = up_streams[dev];
+        if (up == nullptr)
+            if (cudaStreamCreateWithFlags(&up, cudaStreamNonBlocking) != cudaSuccess) {
+                up = nullptr;
+                const cudaError_t e = cudaMemcpy(dst, host_res.data(), host_res.size() * sizeof(int32_t), cudaMemcpyHostToDevice);
+                return e != cudaSuccess ? e : cudaStreamSynchronize(nullptr);
+            }
+        cudaError_t e = cudaMemcpyAsync(dst, host_res.data(), host_res.size() * sizeof(int32_t),
+                                        cudaMemcpyHostToDevice, up);
+        if (e != cudaSuccess) return e;
+        if (res_serial_wait) return cudaStreamSynchronize(up);
+        e = cudaStreamQuery(up);
+        return e == cudaErrorNotReady ? cudaSuccess : e;
     };
     int32_t* d_res = nullptr;
     int32_t* d_hit_count = nullptr;
@@ -14486,6 +14506,7 @@ int main(int argc, char** argv) {
         // STRATA_ADAPT_CHECKRES=1 reads the tables back at each launch and compares them with the host's.
         const bool piped_groups = o.batch > 0 && o.batch_groups > 1 && !stages.empty();
         const bool serial_windows = !pipe && !piped_groups;
+        res_serial_wait = serial_windows;   // pipelined serving: the upload stream never waits
         const bool tier_lags = !drive.d.usage.empty() && (adapt_nowait() || adapt_lag() > 1);
         drive.d.evict_sync = serial_windows && tier_lags && (adapt_evict_sync() || drive.d.fetch_admit > 0);
         if (piped_groups && tier_lags && adapt_evict_sync()) {

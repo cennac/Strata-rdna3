@@ -31,3 +31,4 @@ A single pair never decides adoption; the earlier one-load screen's +3.55% Chine
 ## Standing decision
 
 Local Q8 stays off (BF16 remains the template default). Any future confirmation requires first root-causing the layer-24 deadlock — the productive next step is a gdb attach onto a hanging campaign-style load (the watch­dog leaves a 180-second window), which three simplified reproductions failed to trigger; reproducing it may need the full campaign harness. Production 0.1.43 was restored and verified after every window. Attempt records: [campaign b429/b430 evidence and diagnostics](2026-11-21-hc-q8-blocked.json).
+> **Resolved (later the same day):** the deadlock was root-caused and fixed (`res_put` stream-ordered), the confirmation ran, and local Q8 was rejected on throughput. See [the resolved record](2026-11-21-hc-q8-resolved.md).
