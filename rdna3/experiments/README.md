@@ -24,6 +24,10 @@ Set `STRATA_LAB_RDNA_ZERO_PCIE_GRAPH=1` before loading a native HIP service on a
 
 Use `STRATA_VERIFY_NODES=1` in a separate diagnostic run to compare window and batch graph histograms by device, layer range and verifier; the verifier identity distinguishes parity graphs within a process. Leave diagnostics off during throughput tests. Run `cmake --build build --target hip_flag_order_test` and execute `build/hip_flag_order_test` with the matching ROCm runtime on idle GPUs. The [paired results](../benchmarks/2026-11-20-zero-pcie-graph.md) support enabling this only in the fixed-zero dual-card development template. Unset the switch if the service needs request-level nonzero shares.
 
+## Fixed-zero PCIe host planner
+
+`STRATA_LAB_RDNA_ZERO_PCIE_PLAN=1` enables indexed grouping for eligible native fixed-zero host plans (512 experts, top-10, 2–4 rows). It is separate from the fixed-zero graph switch. Build `zero_pcie_plan_test` with `STRATA_BUILD_TESTS=ON`, then run `ctest -R '^zero_pcie_plan_test$'` in the build directory for parity or run the test executable with `--bench` for CPU timing. Use `STRATA_LAB_RDNA_ZERO_PCIE_PLAN_STATS=1` only in separate diagnostic runs; the layer, width and miss-count buckets are emitted at thread exit. Leave the planner off in the default template: [the paired test](../benchmarks/2026-11-21-zero-pcie-plan.md) did not show a general throughput gain.
+
 ## Routing look-ahead off
 
 `STRATA_LOOKAHEAD=0` disables the routing-aware file-tier prefetch worker (`RouterLookahead`), the documented upstream A/B arm. On this rig its read-ahead measures zero used bytes while the gate bookkeeping keeps running, so it was screened on the fixed-zero template. The result was mixed (Chinese dual up in every pair, code single down in every pair) and the switch was **not** adopted; see the [paired record](../benchmarks/2026-11-20-lookahead-off.md) before touching it.
