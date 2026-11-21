@@ -19,17 +19,18 @@ audits it (service active, config hash unchanged, test port closed, AER counters
   [build.py](build.py), [bench.py](bench.py), [dual-xxs.template.json](dual-xxs.template.json).
   A day-level wrap-up in Chinese is in [benchmarks/2026-11-19-summary.md](benchmarks/2026-11-19-summary.md).
 
-## Where the numbers stand (round 26, 1024x3 medians)
+## Where the numbers stand (same-day measurement, 2026-11-21)
 
 | build | zh single | zh dual | code single | code dual |
 |---|---:|---:|---:|---:|
-| stock upstream v0.2.16 | 60.30 | 131.97 | 75.30 | 174.41 |
-| **dev/0.2.16 adopted combo** | **117.70** | **163.49** | **159.60** | **212.89** |
-| production baseline (`main`) | 139.10 | 185.75 | 195.50 | 235.83 |
+| production legacy 0.1.43 (today, degraded) | 60.3 | 130.5 | 74.5 | 171.5 |
+| **dev/0.2.16 adopted combo (today)** | **124.6** | **158.0** | **161.9** | **216.7** |
+| production legacy 0.1.43 (2026-11-19 reference) | 139.1 | 185.8 | 195.5 | 235.8 |
 
-Remaining gap: −15.4% / −11.9% / −18.3% / −9.7%. Dual-lane TTFT has been ahead of the
-baseline since round 1. Cross-campaign numbers show progress only; adoption decisions rest
-on interleaved same-build controls inside each campaign.
+The 11-21 same-day campaign found production running at roughly half its 11-19 speed
+(GPUs 45–54% busy during decode; the loss sits in legacy's fused-A8 grid-barrier region).
+The dev baseline leads every lane on the day it was measured; see the
+[same-day record](benchmarks/2026-11-21-legacy-dev-sameday.md) before comparing across dates.
 
 ## Adopted (template revision `shstream-aux-pool12-zero-pcie`)
 

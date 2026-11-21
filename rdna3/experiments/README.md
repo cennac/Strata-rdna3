@@ -28,6 +28,10 @@ Use `STRATA_VERIFY_NODES=1` in a separate diagnostic run to compare window and b
 
 `STRATA_LOOKAHEAD=0` disables the routing-aware file-tier prefetch worker (`RouterLookahead`), the documented upstream A/B arm. On this rig its read-ahead measures zero used bytes while the gate bookkeeping keeps running, so it was screened on the fixed-zero template. The result was mixed (Chinese dual up in every pair, code single down in every pair) and the switch was **not** adopted; see the [paired record](../benchmarks/2026-11-20-lookahead-off.md) before touching it.
 
+## File-tier prefetch off
+
+On the tested mapped `experts.bin` pack, `STRATA_IO_PREFETCH=0` disables both file-tier prefetch and routing look-ahead; it is not an I/O-only counterpart to `STRATA_LOOKAHEAD=0`. The [paired test](../benchmarks/2026-11-21-file-tier-prefetch-off.md) found a code-dual gain but slower single-request medians. Keep the default for the general-purpose dual-card template.
+
 ## MTP draft stream priority
 
 `STRATA_MTP_HIP_PRIO=1` raises the drafter's stream to the highest priority (own hardware queue per ROCm's per-level allocation; default-on for gfx12, opt-in here). gfx1100 exposes a real range (1..-1), and when the switch is set the engine logs `strata mtp: draft stream priority raised (range …)`. Screened on the fixed-zero template: mixed result, **not** adopted; see the [paired record](../benchmarks/2026-11-20-mtp-prio.md).

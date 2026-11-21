@@ -1,5 +1,13 @@
 # 更新记录
 
+## Same-day legacy-vs-dev: production degraded, dev leads every lane (2026-11-21)
+
+- Three interleaved fresh-load pairs plus a live-service probe: production 0.1.43 now decodes at ~60/130/74/171 tok/s (median) — roughly half its 11-19 values — with GPUs 45–54% busy at ~95 W during decode, while the dev baseline runs 125/158/162/217 at 170–240 W on the same cards. The ~15 ms of new per-window time sits in legacy's fused-A8 grid-barrier region (inferred mechanism; trigger unidentified). **The dev branch is now the faster engine on every lane**; promotion is the owner's call. See the [same-day record](benchmarks/2026-11-21-legacy-dev-sameday.md).
+
+## File-tier prefetch off (2026-11-21)
+
+- `STRATA_IO_PREFETCH=0` also disabled routing look-ahead on the tested mapped `experts.bin` configuration. Across three fresh-load pairs, Chinese single/dual and code single/dual throughput changed by −2.21% / +0.14% / −2.12% / +3.03%. Frozen texts matched across arms and modes. The template is unchanged; see the [paired record](benchmarks/2026-11-21-file-tier-prefetch-off.md).
+
 ## Residency-upload deadlock fixed; local Q8 rejected (2026-11-21)
 
 - Root-caused the flaky layer-24 stall: the adaptive tier's thread called the residency upload's blocking legacy-stream `cudaMemcpy` beside pipelined windows — a host↔GPU circular wait with the window spin kernels (reproduced 3/3 with a scoring-then-load recipe; captured by gdb before the watchdog). `res_put` now uploads async on a per-device stream and only waits in serial-window mode; six recipe cycles clean, frozen four-mode parity byte-identical.
