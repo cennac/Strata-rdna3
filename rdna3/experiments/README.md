@@ -24,6 +24,16 @@ Set `STRATA_LAB_RDNA_ZERO_PCIE_GRAPH=1` before loading a native HIP service on a
 
 Use `STRATA_VERIFY_NODES=1` in a separate diagnostic run to compare window and batch graph histograms by device, layer range and verifier; the verifier identity distinguishes parity graphs within a process. Leave diagnostics off during throughput tests. Run `cmake --build build --target hip_flag_order_test` and execute `build/hip_flag_order_test` with the matching ROCm runtime on idle GPUs. The [paired results](../benchmarks/2026-11-20-zero-pcie-graph.md) support enabling this only in the fixed-zero dual-card development template. Unset the switch if the service needs request-level nonzero shares.
 
+## Shared-expert gate/up pair
+
+`STRATA_LAB_RDNA_SH_PAIR=1` attempts the shared expert's gate+up MMVQ pair launch on the doorbell path too（lfuse 的 pair 位只覆盖全驻留窗口）. 构建前先跑双目标中的 `rdna_kquant_probe`（两张卡各一次，模板 env）：原生 pair 对**偶数 n_out** 的全部列数逐位等于两个 solo（含图捕获重放），奇数 n_out（641）有 ~1e-7 相对差、守卫强制回退——探针按此边界断言 `usedn`。lab 家族自身的 pair 在 642 与其 solo 不一致（`pairl=0`，预存在，只记录不设门）。实测覆盖：本包仅 front 4 层 + final 2 层的 gate/up 同为 IQ4_XS（−12 节点/窗对，~0.7%），b441 计分窗又遇一次中文双路提前 EOS 未完成三对——开关保持默认关；未来同类型层较多的包可直接复用这套已钉死的机器与边界。见[配对记录](../benchmarks/2026-11-21-sh-pair.md)。
+
+```sh
+cmake --build build --target strata rdna_kquant_probe -j 4
+build/rdna_kquant_probe 0
+build/rdna_kquant_probe 1
+```
+
 ## Routing look-ahead off
 
 `STRATA_LOOKAHEAD=0` disables the routing-aware file-tier prefetch worker (`RouterLookahead`), the documented upstream A/B arm. On this rig its read-ahead measures zero used bytes while the gate bookkeeping keeps running, so it was screened on the fixed-zero template. The result was mixed (Chinese dual up in every pair, code single down in every pair) and the switch was **not** adopted; see the [paired record](../benchmarks/2026-11-20-lookahead-off.md) before touching it.

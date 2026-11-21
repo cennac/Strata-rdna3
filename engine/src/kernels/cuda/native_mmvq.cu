@@ -3536,15 +3536,23 @@ void native_q5_0_f32(const void* weights, const float* x, void* scratch_q8_1,
     small_f32<Q50Block, 4>(weights, x, scratch_q8_1, y, n_in, n_out, ncols, stream);
 }
 
-template<int NCOLS>
-void q8_0_pair_launch(const Q80Block* w1, const Q80Block* w2, const Q81Block* x, float* y1, float* y2, int n_in, int n_out,
-                      cudaStream_t s) {
-    using F = SmallTraits<Q80Block, 8>;
+// one launch, two matrices of one shape on one input: grid 2*n_out with ROWS=1 splits exactly (odd n_out
+// included; the ROWS=2 pair form would drop matrix 1's last row), and the PAIR switch only rebinds w/y, so
+// every row keeps the solo kernel's own walk, partial sums and cross-warp reduction.
+template<typename F, int NCOLS>
+void pair_launch(const typename F::Block* w1, const typename F::Block* w2, const Q81Block* x, float* y1, float* y2,
+                 int n_in, int n_out, cudaStream_t s) {
     const dim3 threads(WARP, WARPS);
     if (s26_tsum_on())
         native_mmvq_multi_kernel<F, NCOLS, WARPS, 1, true, true><<<unsigned(2 * n_out), threads, 0, s>>>(w1, x, y1, n_in, n_out, w2, y2);
     else
         native_mmvq_multi_kernel<F, NCOLS, WARPS, 1, false, true><<<unsigned(2 * n_out), threads, 0, s>>>(w1, x, y1, n_in, n_out, w2, y2);
+}
+
+template<int NCOLS>
+void q8_0_pair_launch(const Q80Block* w1, const Q80Block* w2, const Q81Block* x, float* y1, float* y2, int n_in, int n_out,
+                      cudaStream_t s) {
+    pair_launch<SmallTraits<Q80Block, 8>, NCOLS>(w1, w2, x, y1, y2, n_in, n_out, s);
 }
 
 bool native_mmvq_pair(int ggml_type, const void* w1, const void* w2, const void* x_q8_1, float* y1, float* y2,
@@ -3555,6 +3563,42 @@ bool native_mmvq_pair(int ggml_type, const void* w1, const void* w2, const void*
         return true;
     }
 #endif
+    // IQ4_XS gate/up pairs (STRATA_LAB_RDNA_SH_PAIR): the exact multi path native_iq4_xs_mmvq takes for
+    // ncols > 1, and - probe-pinned per column count - the multi-as-ncols-1 form where ncols == 1.  Same
+    // conditions as the solo dispatch: the exact layout (g_multi_exact), no B6 rows mode (a different
+    // kernel), whole 256-byte blocks.  TS mirrors s26_tsum_on so the reduction variant matches whatever
+    // the solo launch would use.  Measured on gfx1100 (b441): bitwise vs both solo kernels for even n_out
+    // at cols 1..8 (640, 512, 10240, 2560; captured replays included) but a ~1e-7-relative float
+    // difference at odd n_out (641) - whether that is the solo's ROWS=2 tail block or the pair's odd row0
+    // bases is not established.  Odd n_out keeps the exact two solos; the service gate/up shapes are even.
+    if (ggml_type == 23) {
+        using F = IQ4XSTraits;
+        if (!g_multi_exact || b6_rows_mode() > 0 || ncols < 1 || ncols > 8 || n_out <= 0 || (n_out & 1) != 0 ||
+            n_in <= 0 || n_in % F::DIV != 0 || !w1 || !w2 || !x_q8_1 || !y1 || !y2 || !stream)
+            return false;
+        const auto* a = static_cast<const IQ4XSBlock*>(w1);
+        const auto* b = static_cast<const IQ4XSBlock*>(w2);
+        const auto* x = static_cast<const Q81Block*>(x_q8_1);
+        const auto s = static_cast<cudaStream_t>(stream);
+        switch (ncols) {
+            case 1: pair_launch<F, 1>(a, b, x, y1, y2, n_in, n_out, s); break;
+            case 2: pair_launch<F, 2>(a, b, x, y1, y2, n_in, n_out, s); break;
+            case 3: pair_launch<F, 3>(a, b, x, y1, y2, n_in, n_out, s); break;
+            case 4: pair_launch<F, 4>(a, b, x, y1, y2, n_in, n_out, s); break;
+            case 5: pair_launch<F, 5>(a, b, x, y1, y2, n_in, n_out, s); break;
+            case 6: pair_launch<F, 6>(a, b, x, y1, y2, n_in, n_out, s); break;
+            case 7: pair_launch<F, 7>(a, b, x, y1, y2, n_in, n_out, s); break;
+            default: pair_launch<F, 8>(a, b, x, y1, y2, n_in, n_out, s); break;
+        }
+        launch_check();
+        static bool noted = false;   // one line per process: the first pair this build actually took
+        if (!noted) {
+            noted = true;
+            std::fprintf(stderr, "strata native mmvq pair: type=%d in=%d out=%d cols=%d\n",
+                         ggml_type, n_in, n_out, ncols);
+        }
+        return true;
+    }
     using F = SmallTraits<Q80Block, 8>;
     // only where both calls would run native_mmvq_multi_kernel<F, ncols, WARPS, 1> (exact layout, not packed)
     if (ggml_type != 8 || !g_multi_exact || ncols < 2 || ncols > 8 || n_out <= 0 || n_in <= 0 || n_in % 32 != 0 ||
