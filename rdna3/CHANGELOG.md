@@ -1,5 +1,11 @@
 # 更新记录
 
+## dev/0.2.17: upstream v0.2.17 integrated, engine 0.1.63, measured baseline pinned (2026-11-22)
+
+- Imported upstream v0.2.17 (engine 0.1.63; 339 changed / 389 added / 14 removed files vs v0.2.16) on top of the five experiment commits b437–b441. Manual conflicts were five files: `expert_source.cpp` (kept the b437 planner wrap; upstream's peer-P2P scatter tail and the #6023 peer-resident note ride along), `verify.cpp`/`verify.hpp`/`generate.cpp` (CRLF-vs-LF whole-file conflicts; re-merged on normalized content — zero genuine conflicts in verify.hpp/generate.cpp, two in verify.cpp resolved keeping the RDNA3 `log_hip_graph_nodes` refactor + upstream's STRATA_L2_PF block and the #5636 pending-error drain), and `expert_source.hpp` (both field sets kept).
+- Upstream 0.2.17 defaults that shift the measured baseline are pinned OFF in the template pending their own screens: `STRATA_POOL_DEP=0` (dependency-batched pool schedule) and `STRATA_SPLIT_CPU_SHARE=0` (CPU prefill share armed by default on a two-card split). `STRATA_ADAPT_FETCH=2` was verified CC12-only (gfx1100 unaffected); `STRATA_ROUTE_TAIL_SKIP=0` stays as the now-upstream default; L2 prefetch is CUDA-only at runtime.
+- Template deployment metadata: `0.2.17-rdna3.1`, engine 0.1.63, revision `v0217-shstream-aux-pool12-zero-pcie`; `source-snapshot.json` records the v0.2.17 API-tarball provenance (codeload unreachable) and the 28 local engine changes. Build and paired validation on 66 to follow in the integration record.
+
 ## Shared-expert gate/up pair: probe-pinned but coverage too small to screen (2026-11-21)
 
 - Extended `native_mmvq_pair` to IQ4_XS gate/up pairs behind default-off `STRATA_LAB_RDNA_SH_PAIR`. The probe pinned the real boundaries: bitwise vs both solo kernels for even `n_out` at cols 1..8 (including captured replays and the discriminating 642 shape), a ~1e-7 relative difference at odd `n_out` (guard falls back), and a pre-existing lab-family pair inconsistency at 642 (recorded, not gated). Frozen token/rollback/sampled/objective gates all passed with the pair active. Measured coverage is only 4 front + 2 final layers (−12 nodes per window pair, ~0.7%), far below the node-analysis estimate, and the scored screen aborted on one early-EOS burst — the switch stays off; see the [record](benchmarks/2026-11-21-sh-pair.md).
