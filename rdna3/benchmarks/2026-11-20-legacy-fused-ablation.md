@@ -17,3 +17,4 @@ Every request's text hash differs across repeats and arms — inside the same ar
 ## Decision
 
 The HC fused-A8 port is shelved: the measured ceiling (~0.4–1 ms/window) is small against its port risk (the grid barrier needs workgroup co-residency proof in dev's overlapping graphs), and today's service route cannot refine it. Revisit only with a fixed-work probe if the pool serve work lands and a per-window HC gap remains. The next primary target is the pool serve model (stage-0 waitA ~1.0 ms + stage-1 waitCPU ~1.7 ms per the [light profile](2026-11-20-light-profile.md)).
+> **Superseded (2026-11-21):** this attempt's preflight engine path pointed at an upstream 0.1.62 package with no legacy HC kernels, so `STRATA_GR_FUSED` never engaged. The ablation was redone on the real production binary and the port was rejected on measurement: [real-binary record](2026-11-21-real-fused-ablation.md).

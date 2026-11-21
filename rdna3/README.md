@@ -72,6 +72,10 @@ is not the same as recovering the legacy engine's speed).
   bit-exact, throughput −4.8% to −10.4% — the synchronous inline serve model wins; every
   bounded serve-model restructure on this rig has now measured slower
   ([2026-11-21 screen](benchmarks/2026-11-21-pool-queue.md)).
+- Legacy fused-A8 HC port: **rejected on measurement** — on the real production binary the
+  fusion is worth ~0.3 ms/window on Chinese and nothing on code, below the grid-barrier
+  port-risk threshold ([2026-11-21 record](benchmarks/2026-11-21-real-fused-ablation.md); the
+  earlier "inconclusive" verdict had tested an upstream package by mistake).
 - Local HC Q8 on the zero-PCIe baseline: **rejected** — after root-causing and fixing the
   tier-thread residency-upload deadlock it tripped (`res_put`, now stream-ordered), the
   three-pair confirmation measured −4.5%/−3.8%/−2.4%/+0.2%; the earlier one-load

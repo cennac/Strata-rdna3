@@ -1,5 +1,9 @@
 # 更新记录
 
+## Fused-A8 port rejected on the real binary (2026-11-21)
+
+- Redid the fused-vs-split HC ablation on the real production binary (`58854970…`, its own runtime config; the earlier attempt had unknowingly tested an upstream 0.1.62 package with no legacy HC kernels): split costs ~0.3 ms/window on Chinese (service −4.0% single / −1.8% dual) and nothing on code. **The fused-A8 single-launch port is rejected** — a grid-barrier port into overlapping development graphs is not worth one lane's ~2%. See the [record](benchmarks/2026-11-21-real-fused-ablation.md).
+
 ## CORRECTION: no production incident; official arms were measuring an upstream package (2026-11-21)
 
 - The same-day campaign's "production at half speed" conclusion was wrong: the campaign preflight's engine path has pointed at the 2026-11-19 update package (an upstream 0.1.62 build, `bdec5453`) since 11-18, and that binary has always measured ≈57–75 single-lane under this methodology (matching the R26 stock row). A four-lane probe of the live service (real 0.1.43, `58854970…`) measured 139.5 / ~204† / 188.3 / ~269† — its historical speed. The same-day pairs stand as dev-vs-stock (+21% to +117%); dev trails real production by ~11–14% on single lanes. Preflight engine paths are no longer trusted for production-representative arms. See the [corrected record](benchmarks/2026-11-21-legacy-dev-sameday.md).
