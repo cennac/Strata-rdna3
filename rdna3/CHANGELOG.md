@@ -1,5 +1,8 @@
 # 更新记录
 
+## Shared-expert fork stream confirmed on the fixed-zero template (2026-11-21)
+
+- First paired screen of `STRATA_SH_STREAM` on the current template (carried =1 since r28, never A/B'd there; production runs the HIP default off). The fork arm won every workload median (+3.78% / +0.09% / +2.07% / +3.39% for zh/code single/dual) with TTFT medians down 2.4–3.4%, so the predeclared removal rule did not fire and the template keeps `=1`. The fork's extra per-layer quantize (qdedup is fork-exclusive) does not outweigh its cross-stream overlap on this dual-card doorbell path; the single-GPU HIP evidence in the engine comment does not transfer. See the [paired record](benchmarks/2026-11-21-sh-stream-ab.md).
 ## Pinned penalty-history upload rejected (2026-11-21)
 
 - Staged the solo pw2 penalty upload through page-locked memory and removed the full-stream synchronize that protected the pageable buffer. All frozen-output gates passed byte-identically (token IDs, sampled repeats, continuation, graph histograms). The service pairs rejected it: Chinese single/dual fell in every pair (−5.81% / −4.68% medians); the sync was useful pacing, not a bottleneck. Host-blocking at this upload is ruled out of the remaining window gap. Switch stays off; see the [paired record](benchmarks/2026-11-21-pin-penalty-hist.md).
@@ -11,6 +14,7 @@
 - Added a default-off indexed routing planner for eligible grouped host plans. Frozen token IDs matched and both stages published plans faster, but the three service pairs did not show a general gain (Chinese single −1.70%). Keep the template unchanged. See the [paired record](benchmarks/2026-11-21-zero-pcie-plan.md).
 (PLE history advance and snapshot fusion: one node fewer per row, no service gain (off))
 (Pinned penalty-history staging: removing the post-upload stream sync costs the Chinese lanes (off))
+(Shared-expert fork stream confirmed on the fixed-zero template (keep STRATA_SH_STREAM=1))
 
 ## Fused-A8 port rejected on the real binary (2026-11-21)
 
