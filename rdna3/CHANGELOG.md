@@ -1,8 +1,12 @@
 # 更新记录
 
+## PLE history snapshot fusion stays off (2026-11-21)
+
+- Combining history advance and snapshot removed one node per snapshotted row on the front stage. Both HIP probes and frozen token, rollback, and sampled continuation checks passed. Three fresh-load pairs changed median decode or batch throughput by +4.03% / −0.18% / −2.24% / +1.70% for Chinese single/dual and code single/dual. No lane improved in all three pairs; the development template is unchanged. See the [paired record](benchmarks/2026-11-21-ple-history-snap.md).
 ## Fixed-zero PCIe host planner (2026-11-21)
 
 - Added a default-off indexed routing planner for eligible grouped host plans. Frozen token IDs matched and both stages published plans faster, but the three service pairs did not show a general gain (Chinese single −1.70%). Keep the template unchanged. See the [paired record](benchmarks/2026-11-21-zero-pcie-plan.md).
+(PLE history advance and snapshot fusion: one node fewer per row, no service gain (off))
 
 ## Fused-A8 port rejected on the real binary (2026-11-21)
 

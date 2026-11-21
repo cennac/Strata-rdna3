@@ -1601,6 +1601,13 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
                 return e != nullptr && std::atoi(e) != 0;
             }();
             const bool ple_post = ple_batch_kv && ple_post_env && !batch_rec_;
+            // The fixed-zero graph gate already requires a native dual gfx1100 pack. Keep the post-row
+            // snapshots at the same addresses for both regular and deferred commits.
+            static const bool ple_snap_env = [] {
+                const char* e = std::getenv("STRATA_LAB_RDNA_PLE_HISTORY_SNAP");
+                return e && e[0] == '1' && e[1] == '\0';
+            }();
+            const bool ple_snap = ple_snap_env && sink_.fixed_zero_pcie && NE == 512 && !keep_rows;
             // #783 PR-g (stuchapin909): the window's residual writes in one launch (STRATA_NO_MULTI_GR=1: per token)
             const bool multi_write = !ple_post && dec_batch && !g_no_multi_gr && n > 1;
             if (multi_write) gr_write_multi(Rt(tb), bo_ + tb * N, inj2_ + tb * HC, gs, Rt(tb), n, cs);
@@ -1635,12 +1642,15 @@ bool Verifier::record_window(int T, cudaStream_t cs, std::string& err) {
                     } else {
                         ple_block(ple_ + t * N, Rt(t), hist, pw, po, ss.ple.scratch, cs);
                     }
-                    ple_history_advance(hist, normalized, cs);
+                    if (ple_snap)
+                        ple_history_advance_snap(hist, normalized, hist_snap_ + (size_t) t * HS, cs);
+                    else
+                        ple_history_advance(hist, normalized, cs);
                 } catch (const std::exception& e) {
                     err = std::string("verify PLE: ") + e.what();
                     return false;
                 }
-                if (!keep_rows) copy_from_mapped(hist_snap_ + (size_t) t * HS, hist, HS, cs);
+                if (!keep_rows && !ple_snap) copy_from_mapped(hist_snap_ + (size_t) t * HS, hist, HS, cs);
             }
             pending = false;
         }

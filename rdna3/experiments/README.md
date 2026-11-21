@@ -24,9 +24,21 @@ Set `STRATA_LAB_RDNA_ZERO_PCIE_GRAPH=1` before loading a native HIP service on a
 
 Use `STRATA_VERIFY_NODES=1` in a separate diagnostic run to compare window and batch graph histograms by device, layer range and verifier; the verifier identity distinguishes parity graphs within a process. Leave diagnostics off during throughput tests. Run `cmake --build build --target hip_flag_order_test` and execute `build/hip_flag_order_test` with the matching ROCm runtime on idle GPUs. The [paired results](../benchmarks/2026-11-20-zero-pcie-graph.md) support enabling this only in the fixed-zero dual-card development template. Unset the switch if the service needs request-level nonzero shares.
 
+## PLE history advance and snapshot
+
+Set `STRATA_LAB_RDNA_PLE_HISTORY_SNAP=1` before capturing graphs to combine the row's PLE history advance and post-row snapshot. This is off by default and requires the native 512-expert fixed-zero PCIe graph. Rows that do not save a snapshot and the separate `STRATA_DF_PLE` path are unchanged. The live history and per-row snapshot retain their existing addresses, layout, and commit semantics.
+
+```sh
+cmake --build build --target strata hip_ple_history_snap_test -j 4
+build/hip_ple_history_snap_test 0
+build/hip_ple_history_snap_test 1
+```
+
+Run on isolated GPUs with the matching ROCm runtime. The probe compares live history and snapshots bitwise against the original kernels, including graph replays, truncated commits, and the following window. In a separate fixed-input run with `STRATA_VERIFY_NODES=1` and profiling unset, check for one fewer node per snapshotted row on the front stage and no change on the final stage. Run the token ID, rollback, and answer regression checks before timing the service with diagnostics unset. See the [b438 record](../benchmarks/2026-11-21-ple-history-snap.md).
 ## Fixed-zero PCIe host planner
 
 `STRATA_LAB_RDNA_ZERO_PCIE_PLAN=1` enables indexed grouping for eligible native fixed-zero host plans (512 experts, top-10, 2–4 rows). It is separate from the fixed-zero graph switch. Build `zero_pcie_plan_test` with `STRATA_BUILD_TESTS=ON`, then run `ctest -R '^zero_pcie_plan_test$'` in the build directory for parity or run the test executable with `--bench` for CPU timing. Use `STRATA_LAB_RDNA_ZERO_PCIE_PLAN_STATS=1` only in separate diagnostic runs; the layer, width and miss-count buckets are emitted at thread exit. Leave the planner off in the default template: [the paired test](../benchmarks/2026-11-21-zero-pcie-plan.md) did not show a general throughput gain.
+(PLE history advance and snapshot fusion: one node fewer per row, no service gain (off))
 
 ## Routing look-ahead off
 

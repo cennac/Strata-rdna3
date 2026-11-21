@@ -52,6 +52,23 @@ __global__ void history_advance_kernel(float* __restrict__ history, const float*
     column[NG_HIST - 1] = normalized[channel];
 }
 
+__global__ void history_advance_snap_kernel(float* __restrict__ history, const float* __restrict__ normalized,
+                                            float* __restrict__ snapshot) {
+    const int channel = blockIdx.x * blockDim.x + threadIdx.x;
+    if (channel >= NG_HC_DIM) return;
+    const size_t offset = (size_t) channel * NG_HIST;
+    float* column = history + offset;
+    float* saved = snapshot + offset;
+    for (int row = 0; row + 1 < NG_HIST; ++row) {
+        const float next = column[row + 1];
+        column[row] = next;
+        saved[row] = next;
+    }
+    const float next = normalized[channel];
+    column[NG_HIST - 1] = next;
+    saved[NG_HIST - 1] = next;
+}
+
 __device__ __forceinline__ uint16_t bf16_bits(float f) {
     uint32_t i;
     memcpy(&i, &f, 4);
@@ -210,6 +227,23 @@ void ple_history_advance(float* hist, const float* normalized, void* stream) {
         throw std::invalid_argument("ple_history_advance: history and normalized input overlap");
     history_advance_kernel<<<(NG_HC_DIM + THREADS - 1) / THREADS, THREADS, 0, (cudaStream_t) stream>>>(hist, normalized);
     ck(cudaGetLastError(), "history advance launch");
+}
+
+void ple_history_advance_snap(float* hist, const float* normalized, float* snap, void* stream) {
+    if (snap == nullptr) {
+        ple_history_advance(hist, normalized, stream);
+        return;
+    }
+    if (hist == nullptr || normalized == nullptr)
+        throw std::invalid_argument("ple_history_advance_snap: null history or normalized input");
+    constexpr size_t norm_bytes = (size_t) NG_HC_DIM * sizeof(float);
+    constexpr size_t hist_bytes = norm_bytes * NG_HIST;
+    if (overlap(hist, hist_bytes, normalized, norm_bytes) || overlap(hist, hist_bytes, snap, hist_bytes) ||
+        overlap(normalized, norm_bytes, snap, hist_bytes))
+        throw std::invalid_argument("ple_history_advance_snap: overlapping history, input or snapshot");
+    history_advance_snap_kernel<<<(NG_HC_DIM + THREADS - 1) / THREADS, THREADS, 0, (cudaStream_t) stream>>>(
+        hist, normalized, snap);
+    ck(cudaGetLastError(), "history advance snapshot launch");
 }
 
 bool ple_block_available() {
