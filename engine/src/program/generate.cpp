@@ -12552,6 +12552,30 @@ int main(int argc, char** argv) {
             std::fprintf(stderr, "strata serve: the penalty-history allocation failed\n");
             return 1;
         }
+        // STRATA_LAB_RDNA_PIN_PENALTY_HIST=1: the pipelined windows stage their uploads through one
+        // page-locked buffer, so the upload is a true async DMA and the serve thread need not drain the
+        // last stage's stream (the previous commit replay and sampling) before enqueueing the window.
+        // The event guards the buffer's rewrite: pl_finish samples and synchronizes the same stream
+        // before the next window is built, so the wait is bounded and in practice already complete.
+        static const bool pin_hist_env = [] {
+            const char* e = std::getenv("STRATA_LAB_RDNA_PIN_PENALTY_HIST");
+            return e != nullptr && e[0] == '1' && e[1] == '\0';
+        }();
+        int32_t* h_hist = nullptr;   // null: keep the pageable staging and its synchronizing upload
+        cudaEvent_t hist_ev = nullptr;
+        bool hist_copy_out = false;
+        if (pin_hist_env) {
+            const strata::core::OnDevice on_h(hist_dev);
+            cudaError_t he = cudaHostAlloc((void**) &h_hist, kHistSlots * sizeof(int32_t), cudaHostAllocPortable);
+            if (he == cudaSuccess) he = cudaEventCreateWithFlags(&hist_ev, cudaEventDisableTiming);
+            if (he != cudaSuccess) {
+                if (h_hist != nullptr) { cudaFreeHost(h_hist); h_hist = nullptr; }
+                if (hist_ev != nullptr) { cudaEventDestroy(hist_ev); hist_ev = nullptr; }
+                (void) cudaGetLastError();
+                std::fprintf(stderr, "strata serve: the pinned penalty-history staging is unavailable; "
+                                     "keeping the pageable upload\n");
+            }
+        }
         strata::core::Verifier ver;
         strata::core::VerifyHits vh;
         vh.d_res = thits.d_res;
@@ -21262,16 +21286,27 @@ int main(int argc, char** argv) {
                             // Preserve #4590's reply-only history and continued-request boundary.
                             if ((int64_t) consumed.size() != A.p || pen_gen0 > consumed.size())
                                 return die("hybrid: penalty prefix position mismatch");
+                            if (h_hist != nullptr && hist_copy_out && cudaEventSynchronize(hist_ev) != cudaSuccess)
+                                return die("hybrid: penalty history staging failed");
+                            int32_t* hist_src = h_hist != nullptr ? h_hist : hist_stage.data();
                             strata::kernels::penalty_rows(consumed.data() + pen_gen0,
                                                           (int64_t) (consumed.size() - pen_gen0),
-                                                          A.tok, A.T, hist_n, hist_stage.data());
+                                                          A.tok, A.T, hist_n, hist_src);
                             const strata::core::OnDevice on_h(hist_dev);
-                            if (cudaMemcpyAsync(d_hist, hist_stage.data(), (size_t) A.T * hist_n * sizeof(int32_t),
+                            if (cudaMemcpyAsync(d_hist, hist_src, (size_t) A.T * hist_n * sizeof(int32_t),
                                                 cudaMemcpyHostToDevice, V1(A).stream()) != cudaSuccess)
                                 return die("hybrid: penalty history upload failed");
-                            // Keep the pageable staging vector alive and unchanged until it is copied.
-                            if (cudaStreamSynchronize(V1(A).stream()) != cudaSuccess)
+                            if (h_hist != nullptr) {
+                                // Page-locked: the DMA reads the buffer itself, and the copy, the window
+                                // graph and the sampling are ordered on this one stream - the serve thread
+                                // returns to the pump instead of draining the last stage here.
+                                if (cudaEventRecord(hist_ev, V1(A).stream()) != cudaSuccess)
+                                    return die("hybrid: penalty history staging failed");
+                                hist_copy_out = true;
+                            } else if (cudaStreamSynchronize(V1(A).stream()) != cudaSuccess) {
+                                // Keep the pageable staging vector alive and unchanged until it is copied.
                                 return die("hybrid: penalty history staging failed");
+                            }
                         }
                         if (!V1(A).pl_launch(A.T, A.tok, A.p, err)) return die(err);
                         A.s1 = true;
