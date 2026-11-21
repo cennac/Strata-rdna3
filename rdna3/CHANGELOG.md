@@ -1,5 +1,9 @@
 # 更新记录
 
+## Pinned penalty-history upload rejected (2026-11-21)
+
+- Staged the solo pw2 penalty upload through page-locked memory and removed the full-stream synchronize that protected the pageable buffer. All frozen-output gates passed byte-identically (token IDs, sampled repeats, continuation, graph histograms). The service pairs rejected it: Chinese single/dual fell in every pair (−5.81% / −4.68% medians); the sync was useful pacing, not a bottleneck. Host-blocking at this upload is ruled out of the remaining window gap. Switch stays off; see the [paired record](benchmarks/2026-11-21-pin-penalty-hist.md).
+
 ## Fused-A8 port rejected on the real binary (2026-11-21)
 
 - Redid the fused-vs-split HC ablation on the real production binary (`58854970…`, its own runtime config; the earlier attempt had unknowingly tested an upstream 0.1.62 package with no legacy HC kernels): split costs ~0.3 ms/window on Chinese (service −4.0% single / −1.8% dual) and nothing on code. **The fused-A8 single-launch port is rejected** — a grid-barrier port into overlapping development graphs is not worth one lane's ~2%. See the [record](benchmarks/2026-11-21-real-fused-ablation.md).
