@@ -1,5 +1,9 @@
 # 更新记录
 
+## PLE history snapshot fusion stays off (2026-11-21)
+
+- Combining history advance and snapshot removed one node per snapshotted row on the front stage. Both HIP probes and frozen token, rollback, and sampled continuation checks passed. Three fresh-load pairs changed median decode or batch throughput by +4.03% / −0.18% / −2.24% / +1.70% for Chinese single/dual and code single/dual. No lane improved in all three pairs; the development template is unchanged. See the [paired record](benchmarks/2026-11-21-ple-history-snap.md).
+
 ## Fused-A8 port rejected on the real binary (2026-11-21)
 
 - Redid the fused-vs-split HC ablation on the real production binary (`58854970…`, its own runtime config; the earlier attempt had unknowingly tested an upstream 0.1.62 package with no legacy HC kernels): split costs ~0.3 ms/window on Chinese (service −4.0% single / −1.8% dual) and nothing on code. **The fused-A8 single-launch port is rejected** — a grid-barrier port into overlapping development graphs is not worth one lane's ~2%. See the [record](benchmarks/2026-11-21-real-fused-ablation.md).

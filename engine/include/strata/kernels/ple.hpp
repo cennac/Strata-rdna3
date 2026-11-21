@@ -122,6 +122,10 @@ void ple_block_projected(const float* projected_key, const float* projected_valu
 /// Async on stream, allocation-free and capture-safe. Throws on null or overlapping regions.
 void ple_history_advance(float* hist, const float* normalized, void* stream);
 
+/// Also save the post-advance history in a disjoint NG_HIST*NG_HC_DIM device region.
+/// A null snapshot uses the ordinary advance. Same stream and lifetime rules as above.
+void ple_history_advance_snap(float* hist, const float* normalized, float* snap, void* stream);
+
 /// Whether the CUDA path is available.  The host hash and the table read work without it; the block does not.
 bool ple_block_available();
 

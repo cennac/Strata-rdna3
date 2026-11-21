@@ -24,6 +24,18 @@ Set `STRATA_LAB_RDNA_ZERO_PCIE_GRAPH=1` before loading a native HIP service on a
 
 Use `STRATA_VERIFY_NODES=1` in a separate diagnostic run to compare window and batch graph histograms by device, layer range and verifier; the verifier identity distinguishes parity graphs within a process. Leave diagnostics off during throughput tests. Run `cmake --build build --target hip_flag_order_test` and execute `build/hip_flag_order_test` with the matching ROCm runtime on idle GPUs. The [paired results](../benchmarks/2026-11-20-zero-pcie-graph.md) support enabling this only in the fixed-zero dual-card development template. Unset the switch if the service needs request-level nonzero shares.
 
+## PLE history advance and snapshot
+
+Set `STRATA_LAB_RDNA_PLE_HISTORY_SNAP=1` before capturing graphs to combine the row's PLE history advance and post-row snapshot. This is off by default and requires the native 512-expert fixed-zero PCIe graph. Rows that do not save a snapshot and the separate `STRATA_DF_PLE` path are unchanged. The live history and per-row snapshot retain their existing addresses, layout, and commit semantics.
+
+```sh
+cmake --build build --target strata hip_ple_history_snap_test -j 4
+build/hip_ple_history_snap_test 0
+build/hip_ple_history_snap_test 1
+```
+
+Run on isolated GPUs with the matching ROCm runtime. The probe compares live history and snapshots bitwise against the original kernels, including graph replays, truncated commits, and the following window. In a separate fixed-input run with `STRATA_VERIFY_NODES=1` and profiling unset, check for one fewer node per snapshotted row on the front stage and no change on the final stage. Run the token ID, rollback, and answer regression checks before timing the service with diagnostics unset. See the [b438 record](../benchmarks/2026-11-21-ple-history-snap.md).
+
 ## Routing look-ahead off
 
 `STRATA_LOOKAHEAD=0` disables the routing-aware file-tier prefetch worker (`RouterLookahead`), the documented upstream A/B arm. On this rig its read-ahead measures zero used bytes while the gate bookkeeping keeps running, so it was screened on the fixed-zero template. The result was mixed (Chinese dual up in every pair, code single down in every pair) and the switch was **not** adopted; see the [paired record](../benchmarks/2026-11-20-lookahead-off.md) before touching it.
