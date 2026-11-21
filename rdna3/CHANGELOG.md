@@ -1,5 +1,11 @@
 # 更新记录
 
+## dev/0.2.17 validated: the reference divergence chased to upstream #6110, first screen at parity (2026-11-22)
+
+- Six measured bisect windows isolated the frozen-probe divergence vs the 0.2.16 baseline to ONE upstream line: the #6110 stage-trim fix (`trim = ... && !stage_trim`) — 0.2.16 trims stage weights twice on a two-card split, 0.2.17 once, and with `--trim-stage-weights` set that changes the residency the run starts with. With that single line restored to 0.2.16 the ENTIRE integration (upstream v0.2.17 + b437–b441) reproduces the adopted baseline bitwise (14 raw + 12 sampled probes, forced rolls 32/23). Excluded with measured runs along the way: the rope HIP rounding hunk, all 10 changed GPU kernel files, b437's own restructure, verify.cpp/mtp.cpp.
+- The completion run (b443) on the integrated binary passed every gate: self-reproducibility (a fresh load reproduced the first run token-for-token on all 26 probes), internal consistency, objective (same five shared failures), graph structure. Two fresh-load scored screens: Chinese single/dual 125.9/163.7, code single/dual 162.1/200.2 tok/s medians — parity with the adopted 0.2.16 arm within this rig's pair spread. Production 0.1.43 verified restored after every window.
+- Next candidates on the new line: `STRATA_POOL_DEP` (upstream-measured −2.9% window, bit-exact), `STRATA_SPLIT_CPU_SHARE`, `STRATA_SLOT_READ_WIDE/_AHEAD`, the P2P pair. See the [integration record](benchmarks/2026-11-22-v0217-integration.md).
+
 ## dev/0.2.17: upstream v0.2.17 integrated, engine 0.1.63, measured baseline pinned (2026-11-22)
 
 - Imported upstream v0.2.17 (engine 0.1.63; 339 changed / 389 added / 14 removed files vs v0.2.16) on top of the five experiment commits b437–b441. Manual conflicts were five files: `expert_source.cpp` (kept the b437 planner wrap; upstream's peer-P2P scatter tail and the #6023 peer-resident note ride along), `verify.cpp`/`verify.hpp`/`generate.cpp` (CRLF-vs-LF whole-file conflicts; re-merged on normalized content — zero genuine conflicts in verify.hpp/generate.cpp, two in verify.cpp resolved keeping the RDNA3 `log_hip_graph_nodes` refactor + upstream's STRATA_L2_PF block and the #5636 pending-error drain), and `expert_source.hpp` (both field sets kept).
