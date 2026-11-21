@@ -1,5 +1,9 @@
 # 更新记录
 
+## Shared-expert fork stream confirmed on the fixed-zero template (2026-11-21)
+
+- First paired screen of `STRATA_SH_STREAM` on the current template (carried =1 since r28, never A/B'd there; production runs the HIP default off). The fork arm won every workload median (+3.78% / +0.09% / +2.07% / +3.39% for zh/code single/dual) with TTFT medians down 2.4–3.4%, so the predeclared removal rule did not fire and the template keeps `=1`. The fork's extra per-layer quantize (qdedup is fork-exclusive) does not outweigh its cross-stream overlap on this dual-card doorbell path; the single-GPU HIP evidence in the engine comment does not transfer. See the [paired record](benchmarks/2026-11-21-sh-stream-ab.md).
+
 ## Fused-A8 port rejected on the real binary (2026-11-21)
 
 - Redid the fused-vs-split HC ablation on the real production binary (`58854970…`, its own runtime config; the earlier attempt had unknowingly tested an upstream 0.1.62 package with no legacy HC kernels): split costs ~0.3 ms/window on Chinese (service −4.0% single / −1.8% dual) and nothing on code. **The fused-A8 single-launch port is rejected** — a grid-barrier port into overlapping development graphs is not worth one lane's ~2%. See the [record](benchmarks/2026-11-21-real-fused-ablation.md).

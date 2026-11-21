@@ -24,6 +24,10 @@ Set `STRATA_LAB_RDNA_ZERO_PCIE_GRAPH=1` before loading a native HIP service on a
 
 Use `STRATA_VERIFY_NODES=1` in a separate diagnostic run to compare window and batch graph histograms by device, layer range and verifier; the verifier identity distinguishes parity graphs within a process. Leave diagnostics off during throughput tests. Run `cmake --build build --target hip_flag_order_test` and execute `build/hip_flag_order_test` with the matching ROCm runtime on idle GPUs. The [paired results](../benchmarks/2026-11-20-zero-pcie-graph.md) support enabling this only in the fixed-zero dual-card development template. Unset the switch if the service needs request-level nonzero shares.
 
+## Shared-expert fork stream
+
+`STRATA_SH_STREAM` 控制 shared expert 是否逐层 fork 到独立流（HIP 默认关；开发模板自 r28 起恒为 1）。b440 在固定零 PCIe 图模板上首次配对实测：fork 开启在四个负载中位数上全部更快（zh 单 +3.78%、zh 双 +0.09%、code 单 +2.07%、code 双 +3.39%，TTFT 中位数 −2.4~−3.4%），预声明的"off 赢才移除"判据不成立，模板保持 `=1`。机制注记：fork 臂每层多一次量化 launch（fork 与 qdedup 互斥）加事件链，仍然全胜——引擎注释里的 HIP 单卡实测（gfx1201/gfx1030 fork 更慢）不迁移到本机双卡 doorbell 路径。首测因图门零差异假设缺少该量化增量被正确中止，复测门编码了实测变换后全过。见[配对记录](../benchmarks/2026-11-21-sh-stream-ab.md)。
+
 ## Routing look-ahead off
 
 `STRATA_LOOKAHEAD=0` disables the routing-aware file-tier prefetch worker (`RouterLookahead`), the documented upstream A/B arm. On this rig its read-ahead measures zero used bytes while the gate bookkeeping keeps running, so it was screened on the fixed-zero template. The result was mixed (Chinese dual up in every pair, code single down in every pair) and the switch was **not** adopted; see the [paired record](../benchmarks/2026-11-20-lookahead-off.md) before touching it.
