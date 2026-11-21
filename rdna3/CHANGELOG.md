@@ -1,8 +1,8 @@
 # 更新记录
 
-## Same-day legacy-vs-dev: production degraded, dev leads every lane (2026-11-21)
+## CORRECTION: no production incident; official arms were measuring an upstream package (2026-11-21)
 
-- Three interleaved fresh-load pairs plus a live-service probe: production 0.1.43 now decodes at ~60/130/74/171 tok/s (median) — roughly half its 11-19 values — with GPUs 45–54% busy at ~95 W during decode, while the dev baseline runs 125/158/162/217 at 170–240 W on the same cards. The ~15 ms of new per-window time sits in legacy's fused-A8 grid-barrier region (inferred mechanism; trigger unidentified). **The dev branch is now the faster engine on every lane**; promotion is the owner's call. See the [same-day record](benchmarks/2026-11-21-legacy-dev-sameday.md).
+- The same-day campaign's "production at half speed" conclusion was wrong: the campaign preflight's engine path has pointed at the 2026-11-19 update package (an upstream 0.1.62 build, `bdec5453`) since 11-18, and that binary has always measured ≈57–75 single-lane under this methodology (matching the R26 stock row). A four-lane probe of the live service (real 0.1.43, `58854970…`) measured 139.5 / ~204† / 188.3 / ~269† — its historical speed. The same-day pairs stand as dev-vs-stock (+21% to +117%); dev trails real production by ~11–14% on single lanes. Preflight engine paths are no longer trusted for production-representative arms. See the [corrected record](benchmarks/2026-11-21-legacy-dev-sameday.md).
 
 ## File-tier prefetch off (2026-11-21)
 

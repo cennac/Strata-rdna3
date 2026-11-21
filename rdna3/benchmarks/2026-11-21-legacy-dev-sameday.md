@@ -1,38 +1,37 @@
-# Same-day interleaved legacy 0.1.43 vs dev baseline — production is degraded; dev leads every lane
+# Same-day interleaved comparison — CORRECTED: no production incident
 
-**Finding: the production engine is running at roughly half its 2026-11-19 measured speed on this rig, and the development baseline now beats it on all four lanes.** Three interleaved fresh-load pairs plus a direct probe of the live service. The engine and template are unchanged by this campaign; this is a measurement and a production incident report.
+**Correction.** This campaign's original conclusion ("production degraded to half speed; dev leads every lane") was wrong, for two reasons discovered while re-verifying: (1) the campaign preflight's `engine` path has pointed at the **2026-11-19 update package — an upstream 0.1.62 build (`bdec5453`), not the production binary** — since it was captured, so every "official/legacy" arm in this campaign series measured the stock upstream engine, which has always run ≈57–75 single-lane under this methodology (identical to the R26 table's stock row: 60.3/131.97/75.30/174.41); and (2) the initial live-service probe (66.9 tok/s) used a 192-token short request whose decode average is not comparable to the 1,024-token benchmark protocol. A proper four-lane probe of the **live production service** (real 0.1.43, `/data/strata-mtp-cache-20261110/strata`, sha `58854970…`, measured in place on port 8100 with its own config) gave:
 
-## Throughput (1,024 tokens, three pairs, same day)
+| Lane | Live production 0.1.43 (decode tok/s) | Historical reference |
+|---|---:|---:|
+| Chinese single | **139.5** | 139.1 |
+| Code single | **188.3** | 195.5 |
+| Chinese dual (per lane) | 101.2 / 107.2 | 185.8 aggregate |
+| Code dual (per lane) | 125.5 / 143.0 | 235.8 aggregate |
 
-| Workload | Legacy 0.1.43 (median) | Dev baseline (median) | Dev vs legacy |
+**Production is at its historical speed. There is no incident.** The GPU "45–54% busy" telemetry and the ~16 ms unattributed per-window time belong to the upstream 0.1.62 build, not to 0.1.43 — consistent with the R35/R38 analyses of stock pipelining, not evidence of a barrier regression.
+
+## What the campaign actually measured
+
+The interleaved pairs remain valid as a same-day comparison of **dev baseline vs stock upstream 0.1.62** (all matched: prompts, penalties, seed, caches off, 1,024 tokens, three fresh-load pairs):
+
+| Workload | Upstream 0.1.62 (median) | Dev baseline (median) | Dev vs upstream |
 |---|---:|---:|---:|
-| Chinese single | 60.3 | 124.6 | **+106.6%** |
+| Chinese single | 60.3 | 124.6 | +106.6% |
 | Chinese dual | 130.5 | 158.0 | +21.1% |
-| Code single | 74.5 | 161.9 | **+117.3%** |
+| Code single | 74.5 | 161.9 | +117.3% |
 | Code dual | 171.5 | 216.7 | +26.4% |
 
-Every legacy number in every pair sits far below its 2026-11-19 same-methodology values (139.1/185.8/195.5/235.8 medians then; 57–75/129–131/70–75/147–172 per-load now). A direct probe of the **live production service on port 8100** — untouched config, its own profile — measured 66.9 tok/s decode, matching the campaign's legacy arms, so this is not a test-harness artifact.
+This matches the R26-era stock-vs-dev relationship and confirms the adopted combination's cumulative gains over stock; it says nothing about 0.1.43.
 
-## Where the time goes
+## Where dev actually stands against real production
 
-Both engines logged per-window decode timing in the same campaign:
+Combining the same-day live production probe with the dev campaign medians: dev trails production by roughly **−11% (zh single), −14% (code single)** and by a wider margin on dual lanes measured this way (dev aggregate 158/217 vs production per-lane sums ≈204–208/251–286). Live-production numbers came through the service's own config (caches as configured), so the dual comparison is indicative, not methodology-matched; the singles are decode rates and comparable. The optimization target remains the same structural per-window gap already documented.
 
-- Legacy: 34.54 ms/window (2.08 tokens/window, 492 windows per zh request) — verify 32.11 of which GPU-reach wait 14.90 and ~16.3 ms sits outside every counter.
-- Dev: 16.20 ms/window (2.05 tokens/window) — GPU-reach wait 12.26, host ~1.0, ~2.9 unattributed.
+## Process corrections
 
-Acceptance is equivalent (2.08 vs 2.05 tokens/window), so the whole difference is per-window cost. On 2026-11-19 the same legacy engine ran 14.06 ms/window with ~1.2 ms unattributed; the ~15 ms of new unattributed verify time is where legacy's fused-A8 HC read runs — the one legacy kernel with a cross-workgroup grid barrier requiring all 168 workgroups co-resident.
+- The preflight `engine` path must not be trusted for production-representative arms; any future "production" arm must resolve the binary from `strata.service`'s runtime config and record its hash (`58854970…` today).
+- Short-prompt probes are not comparable to the benchmark protocol; the four-lane probe above is the fast health check to use.
+- The earlier same-day README table and changelog entry claiming production degradation are superseded by this record.
 
-Telemetry during the Chinese-single bursts is the discriminator: the legacy arms left the GPUs **45–54% busy at 92–108 W**, while the dev arms on the same cards minutes apart drove **57–84% busy at 169–241 W**. The legacy engine's GPUs are half idle while it decodes — spin-waiting, not computing.
-
-## What is established and what is inferred
-
-Established: the same-day numbers above; the live-service probe; the per-window timing split; the GPU busy/power gap; the historical 11-19 legacy values under the same methodology. Inferred (marked as such): the degradation mechanism — the grid-barrier kernel starving when co-residency is perturbed (a desktop session — gnome-shell, Xwayland — holds these cards, and an engine log this week recorded `GPU work paused by the graphics driver: 725 ms`); and the degradation window — between 2026-11-19 (last official-arm measurement, R26/R29 era) and now. Not identified: the trigger that changed in that window. No amdgpu errors in dmesg; no zombie GPU processes; thermals and power caps normal; production restarts do not recover it (it was freshly restarted when probed).
-
-Legacy 0.1.43 is also text-nondeterministic under the frozen protocol on this rig ([11-20 record](2026-11-20-legacy-fused-ablation.md)), so no cross-engine frozen parity was attempted; all 36 scored requests reached full budget.
-
-## Consequences
-
-1. **Production incident**: the live service is at ~half speed. Worth investigating on the legacy side (its barrier kernel's co-residency assumptions on a desktop-shared GPU) or by scheduling a promotion.
-2. **The dev branch is now the faster engine on this rig on every lane**, same-day, matched conditions — with the correctness evidence accumulated across this campaign series (frozen four-mode parity byte-identical in every screen, rollback checks, graph-node verifications). Whether to promote it to production is the owner's call; this record is the performance evidence.
-
-Per-load numbers, engine logs and telemetry: [structured record](2026-11-21-legacy-dev-sameday.json). Production 0.1.43 was restored and verified loaded after the campaign; config hash unchanged; port 8101 closed; no monitor faults.
+All 36 campaign requests reached full budget; production was restored and verified after the window; the live probes were ordinary requests to the running service. Per-load data: [structured record](2026-11-21-legacy-dev-sameday.json).

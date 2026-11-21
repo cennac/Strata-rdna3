@@ -19,18 +19,20 @@ audits it (service active, config hash unchanged, test port closed, AER counters
   [build.py](build.py), [bench.py](bench.py), [dual-xxs.template.json](dual-xxs.template.json).
   A day-level wrap-up in Chinese is in [benchmarks/2026-11-19-summary.md](benchmarks/2026-11-19-summary.md).
 
-## Where the numbers stand (same-day measurement, 2026-11-21)
+## Where the numbers stand (same-day, 2026-11-21)
 
 | build | zh single | zh dual | code single | code dual |
 |---|---:|---:|---:|---:|
-| production legacy 0.1.43 (today, degraded) | 60.3 | 130.5 | 74.5 | 171.5 |
-| **dev/0.2.16 adopted combo (today)** | **124.6** | **158.0** | **161.9** | **216.7** |
-| production legacy 0.1.43 (2026-11-19 reference) | 139.1 | 185.8 | 195.5 | 235.8 |
+| stock upstream v0.1.62 (same-day, 3 pairs) | 60.3 | 130.5 | 74.5 | 171.5 |
+| **dev/0.2.16 adopted combo (same-day, 3 pairs)** | **124.6** | **158.0** | **161.9** | **216.7** |
+| production legacy 0.1.43 (live probe, own config) | 139.5 | ~204† | 188.3 | ~269† |
 
-The 11-21 same-day campaign found production running at roughly half its 11-19 speed
-(GPUs 45–54% busy during decode; the loss sits in legacy's fused-A8 grid-barrier region).
-The dev baseline leads every lane on the day it was measured; see the
-[same-day record](benchmarks/2026-11-21-legacy-dev-sameday.md) before comparing across dates.
+† per-lane decode sums through the live config; not methodology-matched (see the
+[same-day record](benchmarks/2026-11-21-legacy-dev-sameday.md)). Production is at its
+historical speed — an earlier claim of degradation was a preflight-path error (the
+campaign "official" arms had been measuring an upstream 0.1.62 package since 11-18).
+Dev trails production by ~11–14% on single lanes; the remaining work is the documented
+structural per-window gap.
 
 ## Adopted (template revision `shstream-aux-pool12-zero-pcie`)
 
