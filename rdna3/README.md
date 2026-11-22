@@ -1,6 +1,8 @@
-# rdna3 — dev/0.2.16 optimization campaign (2026-11-19)
+# rdna3 — dev/0.2.17 optimization campaign (upstream v0.2.17, engine 0.1.63; records from 2026-11-19)
 
-Development records for the `dev/0.2.16` branch (upstream v0.2.16, engine 0.1.62) on the
+Development records for the `dev/0.2.17` branch (upstream v0.2.17, engine 0.1.63, integrated
+on top of the measured `dev/0.2.16` line and verified bitwise against it — see
+[benchmarks/2026-11-22-v0217-integration.md](benchmarks/2026-11-22-v0217-integration.md)) on the
 dual RX 7900 XTX rig. The goal is set in [DEVELOPMENT.md](DEVELOPMENT.md): match the
 production baseline — `main`, v0.1.43-rdna3.1, engine 0.1.43 — in measured service speed and
 correctness before anything merges. Production keeps serving from `main` throughout; every

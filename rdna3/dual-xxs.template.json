@@ -136,6 +136,8 @@
     "STRATA_HYBRID_WINDOWS": "1",
     "STRATA_HYBRID_PENALTIES": "1",
     "STRATA_SH_STREAM": "1",
+    "STRATA_POOL_DEP": "0",
+    "STRATA_SPLIT_CPU_SHARE": "0",
     "LD_LIBRARY_PATH": "@ROCM@/lib:@ROCM@/lib/llvm/lib",
     "ROCM_PATH": "@ROCM@",
     "HIP_PATH": "@ROCM@",
@@ -163,12 +165,12 @@
   "max_active_requests": 2,
   "deployment": {
     "framework": "Strata",
-    "version": "0.2.16-rdna3.1",
-    "engine_version": "0.1.62",
+    "version": "0.2.17-rdna3.1",
+    "engine_version": "0.1.63",
     "optimization": "RDNA3 penalty pipeline + BF16 HC + SH stream + aux auto + pool12 + fixed-zero PCIe graph",
-    "revision": "shstream-aux-pool12-zero-pcie",
+    "revision": "v0217-shstream-aux-pool12-zero-pcie",
     "weights_variant": "GSQ-RCO IQ3_XXS",
-    "upstream_version": "0.2.16",
+    "upstream_version": "0.2.17",
     "rdna3_revision": 1
   }
 }
