@@ -98,7 +98,7 @@
     "STRATA_HEAD_MIX_MULTI": "1",
     "STRATA_ONE_TOKEN_COMMIT": "0",
     "STRATA_AUX_CPUS": "auto",
-    "STRATA_GR_RDNA": "1",
+    "STRATA_GR_RDNA": "0",
     "STRATA_GR_RDNA_Q8": "1",
     "STRATA_RDNA_Q6K": "1",
     "STRATA_GR_RDNA_A8": "1",
