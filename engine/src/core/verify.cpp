@@ -4296,6 +4296,8 @@ void Verifier::complete_pool_rows(void* ctx, uint32_t want) {
     // STRATA_LAB_RDNA_POOL_QUEUE: the runner's batch landed (its own fences precede this call)
     Verifier* v = (Verifier*) ctx;
     *(volatile uint32_t*) v->h_flag_ = want;
+}
+
 void Verifier::ensure_head_logits(int T) {
     if (!head_bitplane_used_ || head_ == nullptr || !head_->loaded() || head_mixed_ == nullptr || head_logits_ == nullptr)
         return;
