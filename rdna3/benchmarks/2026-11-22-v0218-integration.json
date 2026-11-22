@@ -1,0 +1,171 @@
+{
+  "experiment": "b450 dev/0.2.18 integration validation + two-load speed screen",
+  "engine_sha256": "88c0861580629f0ca0120b30ac891d5eb6ce20d0e9d0a30a64bd76ccb7c0f05c",
+  "engine_version": "0.1.64",
+  "anchor": "8cf64f1ce53b44b05343bcfa7debfd7649c8ad9a",
+  "vendor": "upstream v0.2.18 (c0df826c...), almost purely additive (Hy4-Flash family), zero decode-path changes",
+  "reference_passed": true,
+  "reference_note": "all 26 frozen probes bitwise-identical to the pinned 0.1.63 b442/b443 reference \u2014 strongest possible integration proof for a version bump",
+  "objective_passed": true,
+  "completed": true,
+  "production_restored": true,
+  "production_after_sha256": "588549701c867dc5a4aafef8de48c1e77b3d2f0dff4fd8d6e3a71db72df50df2",
+  "production_config_unchanged": true,
+  "test_port_closed": true,
+  "loads": [
+    {
+      "load": 1,
+      "bursts": [
+        {
+          "kind": "zh",
+          "n": 1,
+          "tps": 118.4,
+          "valid": true,
+          "batch_wall_s": 8.924818656989373,
+          "requests": [
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.28819972701603547,
+              "sha256": "e4e35effd3f0bd5806ab10f6e55391aedd674fa5322f2bc4c6fbb4058abc8173"
+            }
+          ]
+        },
+        {
+          "kind": "zh",
+          "n": 2,
+          "tps": 162.10590733072883,
+          "valid": true,
+          "batch_wall_s": 12.633716029988136,
+          "requests": [
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.2854843829991296,
+              "sha256": "625164c86eb5706ae800981981e6967ddcd12d46e2e83f5fa77991dc04a41761"
+            },
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.8827050959807821,
+              "sha256": "e63367d492241e8e07d93bc298bd5648f20bfade51d2a6178f61c767e7f9722d"
+            }
+          ]
+        },
+        {
+          "kind": "code",
+          "n": 1,
+          "tps": 166.7,
+          "valid": true,
+          "batch_wall_s": 6.396357506979257,
+          "requests": [
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.2684690430178307,
+              "sha256": "6dbfebc5d7de6f1d080a1beb7d36c03704b8193feddb30c1cd38a170f995f56a"
+            }
+          ]
+        },
+        {
+          "kind": "code",
+          "n": 2,
+          "tps": 220.83812085641262,
+          "valid": true,
+          "batch_wall_s": 9.273761215037666,
+          "requests": [
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.26525300700450316,
+              "sha256": "c236e1f80c8c1222da4087a3c56772581479c45c9a7151322cf487a90f5295d5"
+            },
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.8058745810412802,
+              "sha256": "da82890069bcbbc598e9d672aa8c4e7b62e3453c73d7bf1a8278217b55f07db8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "load": 2,
+      "bursts": [
+        {
+          "kind": "code",
+          "n": 2,
+          "tps": 176.11305846753115,
+          "valid": true,
+          "batch_wall_s": 11.628893495013472,
+          "requests": [
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.8231365300016478,
+              "sha256": "c236e1f80c8c1222da4087a3c56772581479c45c9a7151322cf487a90f5295d5"
+            },
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.2702465439797379,
+              "sha256": "3198314c3e8c0240de3bc91d9bbf83e0f2f1921413c2b8a68c558f32f3471885"
+            }
+          ]
+        },
+        {
+          "kind": "code",
+          "n": 1,
+          "tps": 163.6,
+          "valid": true,
+          "batch_wall_s": 6.50829236098798,
+          "requests": [
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.26287656102795154,
+              "sha256": "94f17a1dce967fcec0353978a67a23cf4b7275a172b26e8905ad2a237749b532"
+            }
+          ]
+        },
+        {
+          "kind": "zh",
+          "n": 2,
+          "tps": 170.05203384067443,
+          "valid": true,
+          "batch_wall_s": 12.043372571002692,
+          "requests": [
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.2915971499751322,
+              "sha256": "de2f8bdaeaabaa7a9dcbad65fc150c2d0c8284a8d39a37702693ad720957aee6"
+            },
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.8909721240052022,
+              "sha256": "f462fe2f2578de61d99044ad758c5ac2edb458470955c2cedc7bdf593f225e73"
+            }
+          ]
+        },
+        {
+          "kind": "zh",
+          "n": 1,
+          "tps": 121.5,
+          "valid": true,
+          "batch_wall_s": 8.698717179999221,
+          "requests": [
+            {
+              "tokens": 1024,
+              "finish": "length",
+              "ttft_s": 0.2863545560394414,
+              "sha256": "13c3c5a53d188d8bcd873f00b017ef6229702f2f2ed37745a68d8a7bf615e102"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

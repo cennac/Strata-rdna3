@@ -1,8 +1,8 @@
 # 更新记录
 
-## dev/0.2.18: upstream v0.2.18 merged (engine 0.1.64), zero decode-path changes (2026-11-22)
+## dev/0.2.18 validated: bitwise-identical to dev/0.2.17, first screen at parity (2026-11-22)
 
-- Upstream v0.2.18 is almost purely additive: the new Tencent Hy4-Flash model family (dedicated HIP/Metal/SYCL backends, sk_codecs, zstd-dec third-party) plus a version bump. Only 4 existing engine files change and none touch the Qwen3.8 decode path — the vendor merge into the validated dev/0.2.17 line completed with ZERO conflicts. Template metadata bumped to 0.2.18-rdna3.1 / 0.1.64; build and validation on 66 follow.
+- The vendor merge (engine 0.1.64) completed with ZERO conflicts and the validation confirmed the prediction: all 26 frozen probes bitwise-identical to the pinned 0.1.63 reference (the 0.1.63→0.1.64 bump is behavior-transparent for this workload — upstream 0.2.18 adds the Hy4-Flash model family without touching the Qwen3.8 decode path). Two-load screen at parity: Chinese single/dual 121.5/170.1, code single/dual 166.7/220.8 tok/s medians; no regression. Production 0.1.43 verified restored. See the [integration record](benchmarks/2026-11-22-v0218-integration.md). Template metadata: 0.2.18-rdna3.1 / 0.1.64.
 
 ## dev/0.2.17 validated: the reference divergence chased to upstream #6110, first screen at parity (2026-11-22)
 
