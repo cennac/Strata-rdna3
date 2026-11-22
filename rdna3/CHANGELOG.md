@@ -1,5 +1,9 @@
 # 更新记录
 
+## dev/0.2.18: upstream v0.2.18 merged (engine 0.1.64), zero decode-path changes (2026-11-22)
+
+- Upstream v0.2.18 is almost purely additive: the new Tencent Hy4-Flash model family (dedicated HIP/Metal/SYCL backends, sk_codecs, zstd-dec third-party) plus a version bump. Only 4 existing engine files change and none touch the Qwen3.8 decode path — the vendor merge into the validated dev/0.2.17 line completed with ZERO conflicts. Template metadata bumped to 0.2.18-rdna3.1 / 0.1.64; build and validation on 66 follow.
+
 ## dev/0.2.17 validated: the reference divergence chased to upstream #6110, first screen at parity (2026-11-22)
 
 - Six measured bisect windows isolated the frozen-probe divergence vs the 0.2.16 baseline to ONE upstream line: the #6110 stage-trim fix (`trim = ... && !stage_trim`) — 0.2.16 trims stage weights twice on a two-card split, 0.2.17 once, and with `--trim-stage-weights` set that changes the residency the run starts with. With that single line restored to 0.2.16 the ENTIRE integration (upstream v0.2.17 + b437–b441) reproduces the adopted baseline bitwise (14 raw + 12 sampled probes, forced rolls 32/23). Excluded with measured runs along the way: the rope HIP rounding hunk, all 10 changed GPU kernel files, b437's own restructure, verify.cpp/mtp.cpp.
