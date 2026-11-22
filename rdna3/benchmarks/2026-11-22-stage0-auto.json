@@ -1,0 +1,208 @@
+{
+  "experiment": "b452 MTP_STAGE0 auto-vs-auto under the authorized quality deliberation",
+  "engine_sha256": "88c0861580629f0ca0120b30ac891d5eb6ce20d0e9d0a30a64bd76ccb7c0f05c",
+  "engine_version": "0.1.64",
+  "anchor": "8cf64f1ce53b44b05343bcfa7debfd7649c8ad9a",
+  "switch": "STRATA_MTP_STAGE0 (0: drafters CUDA1 / 1: drafters CUDA0; cache capacity shifts with the drafter reserve, auto caches both arms)",
+  "authorization": "user-approved quality deliberation 2026-11-22: the quality bar moves from bitwise to no-worse (objective no-worse + real-prompt mechanical degeneration); divergence is recorded evidence",
+  "placement": {
+    "off": {
+      "count": 2,
+      "card": 1,
+      "mib": 8.0,
+      "free_gib": 19.78,
+      "note_2637": false
+    },
+    "on": {
+      "count": 2,
+      "card": 0,
+      "mib": 8.0,
+      "free_gib": 19.93,
+      "note_2637": false
+    }
+  },
+  "quality_gates": {
+    "objective": {
+      "passed": true,
+      "failed_off": [
+        4,
+        8,
+        16,
+        19,
+        27
+      ],
+      "failed_on": [
+        4,
+        8,
+        16,
+        19,
+        27
+      ],
+      "new_vs_control": [],
+      "note": "identical failure sets; case 19 wrong in BOTH arms (the b448 equal-capacity flip did not reproduce on this binary)"
+    },
+    "real_prompts": {
+      "passed": true,
+      "degenerate": [],
+      "on_degraded": [],
+      "identical_prompts": [
+        5,
+        6,
+        11
+      ],
+      "tokens_ratios": [
+        1.0,
+        1.0,
+        1.02,
+        1.01,
+        1.0,
+        1.0,
+        1.0,
+        0.74,
+        1.14,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "note": "12 fixed real prompts, greedy seed 42 presence 1.5; 3/12 byte-identical across arms, wording/length differences recorded, no mechanical degeneration in either arm"
+    },
+    "internal": {
+      "raw": true,
+      "sample": true,
+      "graph_structure": "per-arm only"
+    },
+    "divergence_recorded": {
+      "control_vs_reference": [],
+      "on_vs_off_probes": 5,
+      "forced_rolls": {
+        "off": {
+          "zh-forced": 30,
+          "code-forced": 22
+        },
+        "on": {
+          "zh-forced": 34,
+          "code-forced": 22
+        }
+      },
+      "note": "off arm bitwise-reproduces the pinned reference; the on arm diverges on 5/14 probes with zh rolls 30->34 - the measured residency signature"
+    }
+  },
+  "scored": {
+    "workloads": {
+      "zh-n1": {
+        "median_tps_pct": -14.81,
+        "median_ttft_pct": -0.41,
+        "all_pairs_improved": false,
+        "per_pair_tps": [
+          [
+            124.2,
+            105.8
+          ],
+          [
+            125.3,
+            105.1
+          ],
+          [
+            117.2,
+            109.1
+          ]
+        ]
+      },
+      "zh-n2": {
+        "median_tps_pct": 5.1,
+        "median_ttft_pct": -0.18,
+        "all_pairs_improved": true,
+        "per_pair_tps": [
+          [
+            157.8,
+            160.9
+          ],
+          [
+            160.7,
+            168.9
+          ],
+          [
+            161.6,
+            169.9
+          ]
+        ]
+      },
+      "code-n1": {
+        "median_tps_pct": -4.49,
+        "median_ttft_pct": -0.62,
+        "all_pairs_improved": false,
+        "per_pair_tps": [
+          [
+            160.3,
+            152.7
+          ],
+          [
+            162.7,
+            153.1
+          ],
+          [
+            159.7,
+            153.6
+          ]
+        ]
+      },
+      "code-n2": {
+        "median_tps_pct": 3.11,
+        "median_ttft_pct": -0.21,
+        "all_pairs_improved": true,
+        "per_pair_tps": [
+          [
+            222.3,
+            223.2
+          ],
+          [
+            163.1,
+            168.8
+          ],
+          [
+            216.5,
+            223.7
+          ]
+        ]
+      }
+    },
+    "gate_passed": false,
+    "qualifying_improvements": [
+      "zh-n2",
+      "code-n2"
+    ],
+    "throughput_loss": [
+      "zh-n1",
+      "code-n1"
+    ]
+  },
+  "window_ms": {
+    "zh-pw2": {
+      "off": 18.42,
+      "on": 19.76,
+      "delta": 1.34
+    },
+    "zh-forced": {
+      "off": 18.68,
+      "on": 21.51,
+      "delta": 2.83
+    },
+    "code-pw2": {
+      "off": 15.95,
+      "on": 16.9,
+      "delta": 0.95
+    },
+    "code-forced": {
+      "off": 17.93,
+      "on": 19.7,
+      "delta": 1.77
+    }
+  },
+  "completed": true,
+  "scored_requests": 36,
+  "production_restored": true,
+  "production_after_sha256": "588549701c867dc5a4aafef8de48c1e77b3d2f0dff4fd8d6e3a71db72df50df2",
+  "production_config_unchanged": true,
+  "test_port_closed": true,
+  "decision": "REJECTED by the predeclared speed screen: zh single -14.81% and code single -4.49% median (both beyond the -2% loss line) despite both dual lanes improving (+5.10% / +3.11%) and every deliberation gate passing. The b447 +3-6% solo ceiling hypothesis is refuted by measurement: putting the draft chain on the FRONT card makes stage-0's windows contend with it (+0.95 to +2.83 ms/window on frozen loads), and stage-1 waits on stage-0's hand-off, so the solo pipeline pays more than the bottleneck card's +517 expert slots give back. STRATA_MTP_STAGE0 stays 0 in the template; the placement axis is now measured in all three configurations (default, equal-capacity, front-card) and closed."
+}
