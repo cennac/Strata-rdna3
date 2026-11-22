@@ -1,14 +1,14 @@
 {
   "upstream": "https://github.com/Niko1221/Strata",
-  "tag": "v0.2.17",
-  "engine_version": "0.1.63",
-  "archive_sha256": "9939e299440f71a7efdc1194889875e33cebae17c9bb556271837d9566b240ad",
-  "archive_note": "fetched via api.github.com tarball (codeload.github.com unreachable from this network); tar-gz of the v0.2.17 tag tree",
-  "vendor_import_commit": "9d44bc6",
+  "tag": "v0.2.18",
+  "engine_version": "0.1.64",
+  "archive_sha256": "c0df826cf62517afd560ce533cfd5955c78771f481e239311fc8a9e956065f2b",
+  "archive_note": "fetched via api.github.com tarball (codeload.github.com unreachable from this network); tar-gz of the v0.2.18 tag tree",
+  "vendor_import_commit": "382abb6",
   "local_changes": [
     {
       "path": "engine/CMakeLists.txt",
-      "sha256": "58573ebf864ea3bd6bdb3584593960c2158023bc7644caf4073dba85042468d4"
+      "sha256": "54237404d8b3defe955e2b8b9bdf42b4d111a02beff13e88843fa43755ba6f15"
     },
     {
       "path": "engine/cmake/backends/cpu.cmake",
@@ -119,9 +119,10 @@
       "sha256": "bb866a31fe709bce5befcb8bc4fe02de7b743db7a35fea59b6067e55e210c092"
     }
   ],
-  "release_version": "0.2.17-rdna3.1",
+  "release_version": "0.2.18-rdna3.1",
   "baseline_pinned_env": {
-    "STRATA_POOL_DEP": "0 (upstream 0.2.17 default on; pinned to the measured 0.2.16 pool schedule)",
-    "STRATA_SPLIT_CPU_SHARE": "0 (upstream 0.2.17 arms the CPU prefill share on a two-card split by default; pinned to the measured streaming baseline)"
+    "STRATA_POOL_DEP": "0 (screened mixed on 0.1.63; upstream default on since 0.1.63)",
+    "STRATA_SPLIT_CPU_SHARE": "0 (HIP-inert; kept for CUDA symmetry)",
+    "STRATA_MTP_STAGE0": "0 (placement rejected: capacity-coupled and not output-preserving even at equal pinned cache)"
   }
 }

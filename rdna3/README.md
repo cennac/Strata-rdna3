@@ -1,8 +1,6 @@
-# rdna3 — dev/0.2.17 optimization campaign (upstream v0.2.17, engine 0.1.63; records from 2026-11-19)
+# rdna3 — dev/0.2.18 optimization campaign (upstream v0.2.18, engine 0.1.64; records from 2026-11-19)
 
-Development records for the `dev/0.2.17` branch (upstream v0.2.17, engine 0.1.63, integrated
-on top of the measured `dev/0.2.16` line and verified bitwise against it — see
-[benchmarks/2026-11-22-v0217-integration.md](benchmarks/2026-11-22-v0217-integration.md)) on the
+Development records for the `dev/0.2.18` branch (upstream v0.2.18, engine 0.1.64, merged on top of the validated `dev/0.2.17` line — upstream 0.2.18 is almost purely additive, adding the Tencent Hy4-Flash model family without touching the Qwen3.8 decode path) on the
 dual RX 7900 XTX rig. The goal is set in [DEVELOPMENT.md](DEVELOPMENT.md): match the
 production baseline — `main`, v0.1.43-rdna3.1, engine 0.1.43 — in measured service speed and
 correctness before anything merges. Production keeps serving from `main` throughout; every
