@@ -1,5 +1,11 @@
 # 更新记录
 
+## dev/0.2.19 integrated: merged, built, running; the reference gate holds at zh token 12 (2026-11-23)
+
+- Upstream v0.2.19 (engine 0.1.65, 55 commits/278 files) triggered the campaign's documented reopen condition. Merged on dev/0.2.19 (vendor c84f22a + carry/fix chain to 72744d1): upstream ports supersede rdna_gr_local/rdna_kquant_lab/zero_pcie_plan (dropped); the adopted fixed-zero graph, pool queue, PLE-snap test and probes carry. Five build iterations converged (binary 0f4ae265); production restored+verified after all four validation windows.
+- Two upstream-port hazards pinned for later screens: STRATA_GR_FUSED=1 (old inert template pin) makes the persistent fusion query occupancy inside the first capture (illegal, abort); the port's BF16 branch then SEGFAULTS inside the captured window graph on discrete gfx1100 -> STRATA_GR_RDNA=0 for the integration. Upstream's +7.5% decode (Strix Halo) rides this port - fixing+screening it on our card is a candidate.
+- With the port off, the engine runs end-to-end: all 14 raw probes complete and the frozen reference gate fails closed exactly as designed - every Chinese probe diverges at token 12 (rolls 30->35), every code probe bitwise. Attribution pass next (suspects: the new staged HC read, verify.cpp +178, the plan-loop rework). The three NEW gfx1100 default tables (24 exact + 12 WMMA + 9 parallel switches) stay pinned off via STRATA_GFX11_DEFAULTS=0 and are the next screen batch. See the [integration record](benchmarks/2026-11-23-v0219-integration.md).
+
 ## Per-bucket profile A/B closes the campaign: the gap is pool row delivery, mapped kernel by kernel (b453, 2026-11-22)
 
 - Paired diagnostic on the identical test config: production binary (0.1.43) vs dev binary (0.1.64) under the same strict VERIFY_PROFILE (same fused-path set disabled → comparable buckets), plus a dev LIGHT arm (fused on). Paired strict walls: dev +2.94 ms/window (zh), +3.44 (code); the net bucketed delta (+3.43/request) reconciles.

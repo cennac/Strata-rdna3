@@ -1,0 +1,51 @@
+{
+  "experiment": "b455/b454: dev/0.2.19 integration (engine 0.1.65) - engineering complete, reference gate holds",
+  "binary_sha256": "0f4ae265aced8d61bb84fa71c41d493ade201f7c0013320ae853a854032c5026",
+  "engine_version": "0.1.65",
+  "anchor": "72744d1",
+  "vendor_import_commit": "c84f22a",
+  "upstream": {
+    "tag": "v0.2.19",
+    "archive_sha256": "b24ec9b057e510a5cedb582bfe2a9f6d440dc6311ba5451082949307b8ba81b9",
+    "commits": 55,
+    "files": 278
+  },
+  "merge": {
+    "carried": [
+      "fixed-zero PCIe verifier graph (adopted)",
+      "pool compute queue",
+      "PLE-snap test",
+      "rdna_hc/cpu_combine/mmvq probes"
+    ],
+    "dropped_superseded": [
+      "rdna_gr_local.cu (upstream rdna_gr.cu port)",
+      "rdna_kquant_lab + probe (upstream rdna_mmvq.cu, same rdna_kq_mmvq symbol)",
+      "zero_pcie_plan files (upstream device-hit planning)"
+    ],
+    "template_pins": {
+      "STRATA_GFX11_DEFAULTS": "0 (all three new gfx1100 tables off for the integration)",
+      "STRATA_GR_FUSED": "0 (upstream persistent fusion queries occupancy inside first capture - illegal)",
+      "STRATA_GR_RDNA": "0 (upstream port's BF16 branch segfaults inside the captured window graph on discrete gfx1100)"
+    }
+  },
+  "validation": {
+    "attempts": 4,
+    "all_restored": true,
+    "final_state": "raw handshake OK, all 14 raw probes complete, reference gate failed closed as designed",
+    "reference_mismatch": {
+      "zh": "all 7 zh probes diverge at generated token 12; zh forced rolls 30->35",
+      "code": "all probes bitwise vs the pinned reference",
+      "neutral": "zh-neutral-serial/pw2 diverge at 21",
+      "sample": "zh-sample/continue diverge (43/3), code sample bitwise"
+    },
+    "interpretation": "the #6110-class behavioral step of 0.2.19's decode path; attribution pass next (suspects: staged HC read, verify.cpp +178, expert_source plan rework)"
+  },
+  "candidates_unlocked": [
+    "gfx11 exact defaults (24 switches)",
+    "gfx11 WMMA defaults (12, incl. HIP_FAST_DEC)",
+    "gfx11 parallel defaults (9)",
+    "rdna_gr port fixed+screened on discrete gfx1100 (upstream: +7.5% decode on Strix Halo)"
+  ],
+  "production_after_sha256": "588549701c867dc5a4aafef8de48c1e77b3d2f0dff4fd8d6e3a71db72df50df2",
+  "decision": "integration engineering complete; behavioral validation continues with the attribution round before any screen/adoption"
+}
