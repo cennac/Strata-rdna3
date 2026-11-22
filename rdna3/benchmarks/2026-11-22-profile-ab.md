@@ -27,12 +27,12 @@ Paired strict delta: **+2.94 ms/window (zh), +3.44 (code)**. The net bucketed de
 | **waitCPU (s1 gdn)** | 0.22 | 1.70 | **+1.48** |
 | copy+combine (s1 gdn) | 1.54 | 0.28 | −1.26 |
 | waitCPU (s0 gdn) | 0.07 | 1.04 | **+0.97** |
-| router+plan+bell / plan+bell+router (proj+topk) | 0.46–0.52 | rebucketed | ≈0 net |
+| router+plan+bell → plan+bell + router (proj+topk) | 3.85 | 4.73 | **+0.29/request net** |
 | copy+combine (s0 gdn) | 0.82 | 0.33 | −0.49 |
 | waitCPU (qsa, both stages) | 0.03–0.06 | 0.45–0.67 | +0.45…+0.64 |
 | everything else | — | — | parity or dev-better |
 
-Reading: legacy computes CPU-expert rows **early and copies/combines them inline** (its copy+combine bucket is 5× dev's), while dev defers rows to the pool and the window **waits** for their delivery — waitCPU ~+2.5 ms/request net of the offsets. This is the wait chain round 33 attributed at +0.82; under today's strict accounting it is larger, and it is the same slice the five bounded repairs (pump-age, serve-quantum, B-direct, dual pools, async pool queue) each attacked and each measured **negative on throughput** — shrinking the wait does not shrink the pipelined wall, because the chain overlaps the other card's GPU work in service mode. The one unbuilt idea (cross-window pool look-ahead) keeps its eroded premise: the delivery wait is real pool work, not idle-worker slack.
+Correction (by-name aggregation, post-publication): the router family nets **+0.29 ms/request dev-side** (not ≈0 as first drafted), and the shared+quant (+0.42) / gemv (+0.30) rows are strict-mode artifacts - dev's strict profile disables its SH fork, which production runs on. Reading: legacy computes CPU-expert rows **early and copies/combines them inline** (its copy+combine bucket is 5× dev's), while dev defers rows to the pool and the window **waits** for their delivery — waitCPU ~+2.5 ms/request net of the offsets. This is the wait chain round 33 attributed at +0.82; under today's strict accounting it is larger, and it is the same slice the five bounded repairs (pump-age, serve-quantum, B-direct, dual pools, async pool queue) each attacked and each measured **negative on throughput** — shrinking the wait does not shrink the pipelined wall, because the chain overlaps the other card's GPU work in service mode. The one unbuilt idea (cross-window pool look-ahead) keeps its eroded premise: the delivery wait is real pool work, not idle-worker slack.
 
 Also measured: on 0.1.64 the fused paths are worth ~−0.5 ms/window (dev light 21.03 vs dev strict 21.57); 0.1.43 has no light mode, so its fused truth stays the b436 number (fused −0.16 vs split). Compute kernels (gemv/conv/z/rec/out-proj/attention/heads) show no regression — the 0.1.64 window graph is not kernel-slower, it is scheduled differently.
 
