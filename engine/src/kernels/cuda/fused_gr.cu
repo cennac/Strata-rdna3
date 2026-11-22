@@ -3604,25 +3604,15 @@ static bool fused_gr_read_multi_slice(const FusedGrArgs* a, int n_tok, float* xn
     m.xn = xn_scratch;
     m.T = n_tok;
     cudaStream_t st = (cudaStream_t) stream;
-#if defined(STRATA_USE_HIP) && !defined(STRATA_HIP_GFX906)
-    // gfx1100-only local build. Q8_0 uses upstream-owned weights, enabled separately from BF16.
-    const bool rdna_bf16 = a[0].q8_down == nullptr && a[0].w_down != nullptr && a[0].w_up != nullptr;
-    const bool rdna_q8 = rdna_gr_q8_enabled() && a[0].q8_down != nullptr && a[0].q8_up != nullptr;
-    if (rdna_gr_enabled() && (rdna_bf16 || rdna_q8) && a[0].s_down == nullptr && a[0].q8_inject == nullptr) {
-        // q8 also observes the caller's HC quantization policy. If that policy
-        // cleared the image pointers above, never report an image as produced.
-        bool rq = q8 && (a[0].q8_cnt != nullptr || (rdna_bf16 && rdna_gr_q32_enabled()));
-        for (int t = 0; t < n_tok; ++t) rq = rq && a[t].q8_mixed != nullptr;
-        if (!rq) for (int t = 0; t < n_tok; ++t) m.a[t].q8_mixed = nullptr;
+    if (rdna_gr_enabled()) {   // upstream's port of the fork's local RDNA3 read (rdna_gr.cu)
         rdna_gr_read_multi(m.a, n_tok, xn_scratch, stream, stamp_buf, stamp_i0);
         const cudaError_t er = cudaGetLastError();
         if (er != cudaSuccess) {
-            std::fprintf(stderr, "local RDNA3 HC read: %s\n", cudaGetErrorString(er));
+            std::fprintf(stderr, "fused_gr_read_multi rdna: %s\n", cudaGetErrorString(er));
             std::exit(1);
         }
-        return rq;
+        return q8;
     }
-#endif
     if (a[0].q8_down != nullptr && a[0].q8_up != nullptr) {   // inject: Q8_0 copy, or the BF16 rows
         launch_q8(m, xn_scratch, st, stamp_buf, stamp_i0);   // S23 experiment: STRATA_HC_Q8=1
         const cudaError_t eq = cudaGetLastError();
