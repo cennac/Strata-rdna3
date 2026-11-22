@@ -1,10 +1,10 @@
 {
   "upstream": "https://github.com/Niko1221/Strata",
-  "tag": "v0.2.18",
-  "engine_version": "0.1.64",
-  "archive_sha256": "c0df826cf62517afd560ce533cfd5955c78771f481e239311fc8a9e956065f2b",
-  "archive_note": "fetched via api.github.com tarball (codeload.github.com unreachable from this network); tar-gz of the v0.2.18 tag tree",
-  "vendor_import_commit": "382abb6",
+  "tag": "v0.2.19",
+  "engine_version": "0.1.65",
+  "archive_sha256": "b24ec9b057e510a5cedb582bfe2a9f6d440dc6311ba5451082949307b8ba81b9",
+  "archive_note": "fetched via api.github.com tarball (codeload/github-web unreachable); tar-gz of the v0.2.19 tag tree",
+  "vendor_import_commit": "c84f22a",
   "local_changes": [
     {
       "path": "engine/CMakeLists.txt",
@@ -124,5 +124,6 @@
     "STRATA_POOL_DEP": "0 (screened mixed on 0.1.63; upstream default on since 0.1.63)",
     "STRATA_SPLIT_CPU_SHARE": "0 (HIP-inert; kept for CUDA symmetry)",
     "STRATA_MTP_STAGE0": "0 (placement rejected: capacity-coupled and not output-preserving even at equal pinned cache)"
-  }
+  },
+  "merge_note": "dev/0.2.19 = vendor c84f22a + fork carry (pool queue, PLE-snap test, 3 probes, fixed-zero verifier graph via set_fixed_zero_pcie); upstream ports supersede rdna_gr_local/rdna_kquant_lab/zero_pcie_plan (dropped); STRATA_GFX11_DEFAULTS=0 pins the three new gfx1100 default tables for a bitwise-equivalent integration"
 }
