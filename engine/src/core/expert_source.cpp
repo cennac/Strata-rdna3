@@ -1,7 +1,5 @@
 // src/core/expert_source.cpp - the adapter.  See the header for the three clauses of the contract.
-#include "strata/platform/cpu_relax.hpp"
 #include "strata/core/expert_source.hpp"
-#include "strata/core/zero_pcie_plan.hpp"
 #include "strata/core/expert_nibble.hpp"
 #include "strata/core/tail_skip_default.hpp"
 #include "strata/core/conversation_memory.hpp"
@@ -5438,272 +5436,222 @@ void expert_pool_dispatch_multi(ExpertDispatch& d, const float* x_f, const int32
     const int64_t n = n_tok * k;
     int32_t kind[kMaxWindowEntries];       // per entry: -1 CPU, 0 VRAM, 1 PCIe
     if (d.plan != nullptr && n <= kMaxWindowEntries && n <= d.plan->cap) {
-        GpuPlanSink& P = *d.plan;
-        int groups = 0, entries = 0, fetches = 0;
-        const uint8_t* dma_src[64];
-        const uint64_t bb = lay.blob_bytes(d.layers);
+        int64_t distinct[kMaxWindowEntries], first_of[kMaxWindowEntries];
+        int nd = 0, nmiss = 0;
+        // a helper GPU (RemoteExperts) holding the expert computes it in its own VRAM once begin() claims the row: like
+        // the peer tier's, such an expert is no miss of this plan and never part of the PCIe share, which would read it
+        // over the primary's link instead (2x RX 6900 XT, IQ3_S, --remote-expert-opt with the probed share 0.39: ~4
+        // helper experts per layer-window moved to PCIe, 59 ms per window against 34 ms)
+        auto helper_holds = [&](int32_t e) {
+            for (int r = 0; r < d.remote_count; ++r)
+                if (d.remote[r]->holds(d.layers, e)) return true;
+            return false;
+        };
+        for (int64_t i = 0; i < n; ++i) {
+            first_of[i] = i;
+            for (int64_t j = 0; j < i; ++j)
+                if (ids[j] == ids[i]) { first_of[i] = first_of[j]; break; }
+            if (first_of[i] == i) {
+                distinct[nd++] = i;
+                const int32_t e = ids[i];
+                if (e >= 0 && e < d.n_expert && d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e] < 0 &&
+                    !(d.peer != nullptr && d.peer->has(d.layers, e)) && !helper_holds(e)) ++nmiss;
+            }
+        }
+        // STRATA_ROUTE_TAIL_SKIP=R (default 7 on CUDA serve, =0 off; changes the output): a missed expert that EVERY token of the window routes
+        // only at rank >= R (the smallest weights of the top-10) is neither copied nor computed; its contribution is
+        // zero, without renormalisation (the others keep the weight the router gave them).  Less PCIe and CPU work.
         const int tail_rank = tail_skip_rank();
-        static std::FILE* const route_dump = [] { const char* f = std::getenv("STRATA_ROUTE_DUMP"); return f != nullptr && f[0] != '\0' ? std::fopen(f, "a") : nullptr; }();
-        static const bool fast_plan = [] {
-            const char* v = std::getenv("STRATA_LAB_RDNA_ZERO_PCIE_PLAN");
-            return v != nullptr && v[0] == '1';
-        }();
-        static const bool plan_stats = [] {
-            const char* v = std::getenv("STRATA_LAB_RDNA_ZERO_PCIE_PLAN_STATS");
-            return v != nullptr && v[0] == '1';
-        }();
-        const bool eligible = (fast_plan || plan_stats) && P.fixed_zero_pcie && native && d.host_res != nullptr &&
-                              d.pcie_num == 0 && !d.pcie_model.on && d.fetch_admit == 0 &&
-                              d.peer == nullptr && d.remote_count == 0 && d.fs == nullptr && tail_rank == 0 &&
-                              route_dump == nullptr && zero_pcie_plan::supported(n_tok, k, d.n_expert, P.cap);
-        const bool measure = plan_stats && eligible && d.layers >= 0 && d.layers < 48;
-        const auto plan_start = measure ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
-        const bool built = fast_plan && eligible &&
-                           zero_pcie_plan::build(ids, (int) n, d.host_res + (size_t) d.layers * (size_t) d.n_expert,
-                                                 d.cache_base, d.cache_slot_off, (size_t) d.cache_blob,
-                                                 kind, P.ptr, P.start, P.dst, P.tok, groups, entries);
-        if (!built) {
-            int64_t distinct[kMaxWindowEntries], first_of[kMaxWindowEntries];
-            int nd = 0, nmiss = 0;
-            // a helper GPU (RemoteExperts) holding the expert computes it in its own VRAM once begin() claims the row: like
-            // the peer tier's, such an expert is no miss of this plan and never part of the PCIe share, which would read it
-            // over the primary's link instead (2x RX 6900 XT, IQ3_S, --remote-expert-opt with the probed share 0.39: ~4
-            // helper experts per layer-window moved to PCIe, 59 ms per window against 34 ms)
-            auto helper_holds = [&](int32_t e) {
-                for (int r = 0; r < d.remote_count; ++r)
-                    if (d.remote[r]->holds(d.layers, e)) return true;
-                return false;
-            };
+        bool skip_d[kMaxWindowEntries];
+        for (int q = 0; q < nd; ++q) skip_d[q] = false;
+        // (not taken from #6023: the tail skip with a peer card - it changes the bits of a --peer-device run that sets
+        // STRATA_ROUTE_TAIL_SKIP, and the owner's default for the skip is off; the peer-resident test below stays, it is right)
+        if (tail_rank > 0 && d.peer == nullptr && d.remote_count == 0) {
+            int minr[kMaxWindowEntries];
+            for (int q = 0; q < nd; ++q) minr[q] = 99;
             for (int64_t i = 0; i < n; ++i) {
-                first_of[i] = zero_pcie_plan::first_entry(ids, i);
-                if (first_of[i] == i) {
-                    distinct[nd++] = i;
-                    const int32_t e = ids[i];
-                    if (e >= 0 && e < d.n_expert && d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e] < 0 &&
-                        !(d.peer != nullptr && d.peer->has(d.layers, e)) && !helper_holds(e)) ++nmiss;
-                }
-            }
-            // STRATA_ROUTE_TAIL_SKIP=R (default 7 on CUDA serve, =0 off; changes the output): a missed expert that EVERY token of the window routes
-            // only at rank >= R (the smallest weights of the top-10) is neither copied nor computed; its contribution is
-            // zero, without renormalisation (the others keep the weight the router gave them).  Less PCIe and CPU work.
-            bool skip_d[kMaxWindowEntries];
-            for (int q = 0; q < nd; ++q) skip_d[q] = false;
-            if (tail_rank > 0 && d.peer == nullptr && d.remote_count == 0) {
-                int minr[kMaxWindowEntries];
-                for (int q = 0; q < nd; ++q) minr[q] = 99;
-                for (int64_t i = 0; i < n; ++i) {
-                    int q = 0;
-                    while (q < nd && distinct[q] != first_of[i]) ++q;
-                    if (q < nd) minr[q] = std::min(minr[q], (int) (i % k));
-                }
-                for (int q = 0; q < nd; ++q) {
-                    const int32_t e = ids[distinct[q]];
-                    if (e < 0 || e >= d.n_expert || minr[q] < tail_rank) continue;
-                    if (d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e] >= 0) continue;   // resident
-                    skip_d[q] = true;
-                    --nmiss;
-                    ++d.tail_experts;
-                }
-            }
-            // STRATA_ROUTE_DUMP=<file> (bench only, off by default): one text line per layer-window, "layer n_tok nd nmiss | e:rows:res ..." in routing
-            // order (res 1 = resident in the GPU cache, 0 = a miss the CPU computes unless the PCIe share takes it, 2 = tail-skipped), for replaying placement
-            // policies offline on the routing the engine really produced (round 0216 P3.1).
-            if (route_dump != nullptr) {
-                std::fprintf(route_dump, "%lld %lld %d %d |", (long long) d.layers, (long long) n_tok, nd, nmiss);
-                for (int q = 0; q < nd; ++q) {
-                    const int32_t e = ids[distinct[q]];
-                    int rows = 0;
-                    for (int64_t i = 0; i < n; ++i) rows += first_of[i] == distinct[q];
-                    const int res = skip_d[q] ? 2 : (e >= 0 && e < d.n_expert && d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e] >= 0) ? 1 : 0;
-                    std::fprintf(route_dump, " %d:%d:%d", (int) e, rows, res);
-                }
-                std::fputc(10, route_dump);
-            }
-            // STRATA_PCIE_BALANCE (opt-in, #1548): the count comes from the measured CPU and GPU costs instead of the share
-            const bool pcie_ok = (d.pcie_num > 0 || d.pcie_model.on) && d.src->pcie_layer(d.layers);
-            int m = pcie_ok ? d.pcie_model.pick(nmiss, (nmiss * d.pcie_num) >> 8) : 0;
-            // STRATA_PCIE_MIN1 (opt-in): the share rounds to 0 for 1-2 misses per layer, so the PCIe lane idles on the typical
-            // decode step; with >= 2 misses give it at least one (the last in routing order).  It only flies if its blob is
-            // pinned (the fetch below checks), else it stays a CPU miss exactly as before.  Read once.
-            static const bool pcie_min1 = [] { const char* v = std::getenv("STRATA_PCIE_MIN1"); return v && std::atoi(v) != 0; }();
-            if (pcie_min1 && pcie_ok && m < 1 && nmiss >= 2) m = 1;
-            int miss_rank = 0;
-            int64_t pcie_i0[64];
-            // STRATA_ADAPT_FETCH: the share is the layer's most-routed misses, and the ones the tier would swap in are copied
-            // into a slot as they are fetched (ExpertDispatch::fetch_admit)
-            const bool fetch_on = m > 0 && d.fetch_can(d.layers);
-            const float* use = d.usage.empty() ? nullptr : d.usage.data() + (size_t) d.layers * (size_t) d.n_expert;
-            bool pick[kMaxWindowEntries];
-            if (fetch_on) {
-                int mq[kMaxWindowEntries], nm = 0;
-                for (int q = 0; q < nd; ++q) {
-                    pick[q] = false;
-                    const int32_t e = ids[distinct[q]];   // a tail-skipped miss is not fetched
-                    // (an unpinned blob cannot be fetched: under STRATA_PIN_BY_NEED a PCIe layer is pinned in part)
-                    if (!skip_d[q] && e >= 0 && e < d.n_expert && d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e] < 0 &&
-                        d.src->pinned(d.layers, e))
-                        mq[nm++] = q;
-                }
-                std::stable_sort(mq, mq + nm, [&](int a, int b) { return use[ids[distinct[a]]] > use[ids[distinct[b]]]; });
-                for (int j = 0; j < m && j < nm; ++j) pick[mq[j]] = true;
+                int q = 0;
+                while (q < nd && distinct[q] != first_of[i]) ++q;
+                if (q < nd) minr[q] = std::min(minr[q], (int) (i % k));
             }
             for (int q = 0; q < nd; ++q) {
-                const int64_t i0 = distinct[q];
-                const int32_t e = ids[i0];
-                int kd = -1;
-                unsigned long long ptr = 0;
-                if (skip_d[q]) {                       // STRATA_ROUTE_TAIL_SKIP: neither copied nor computed
-                    for (int64_t i = i0; i < n; ++i)
-                        if (first_of[i] == i0) kind[i] = -2;
-                    continue;
-                }
-                if (e >= 0 && e < d.n_expert) {
-                    const int32_t slot = d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e];
-                    if (slot >= 0) {
-                        kd = 0;
-                        ptr = zero_pcie_plan::resident_ptr(d.cache_base, d.cache_slot_off, slot, (size_t) d.cache_blob);
-                    } else if (d.peer != nullptr && d.peer->has(d.layers, e)) {
-                        kd = 2;                        // multi-GPU: the second GPU computes it
-                    } else if (helper_holds(e)) {
-                        // left to the helper: kind -1 until RemoteExperts::begin() claims the row (see above)
-                    } else if (d.fs != nullptr && d.fs->take(d.layers, e, ptr)) {
-                        kd = 0;                        // Foresight: a landed swap-space slot holds it - a GPU group like a hit
-                    } else {
-                        if (d.fs != nullptr) d.fs->note_miss(d.src, d.layers, e);
-                        if ((fetch_on ? pick[q] : miss_rank >= nmiss - m) && fetches < P.staging_cap && fetches < 64) {
-                            const uint8_t* src = d.src->pinned(d.layers, e) ? d.src->blob(d.layers, e) : nullptr;
-                            if (src != nullptr) {
-                                kd = 1;
-                                dma_src[fetches] = src;
-                                pcie_i0[fetches] = i0;
-                                ++fetches;
-                            }
+                const int32_t e = ids[distinct[q]];
+                if (e < 0 || e >= d.n_expert || minr[q] < tail_rank) continue;
+                if (d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e] >= 0 ||
+                    (d.peer != nullptr && d.peer->has(d.layers, e))) continue;   // resident
+                skip_d[q] = true;
+                --nmiss;
+                ++d.tail_experts;
+            }
+        }
+        // STRATA_ROUTE_DUMP=<file> (bench only, off by default): one text line per layer-window, "layer n_tok nd nmiss | e:rows:res ..." in routing
+        // order (res 1 = resident in the GPU cache, 0 = a miss the CPU computes unless the PCIe share takes it, 2 = tail-skipped), for replaying placement
+        // policies offline on the routing the engine really produced (round 0216 P3.1).
+        static std::FILE* const route_dump = [] { const char* f = std::getenv("STRATA_ROUTE_DUMP"); return f != nullptr && f[0] != '\0' ? std::fopen(f, "a") : nullptr; }();
+        if (route_dump != nullptr) {
+            std::fprintf(route_dump, "%lld %lld %d %d |", (long long) d.layers, (long long) n_tok, nd, nmiss);
+            for (int q = 0; q < nd; ++q) {
+                const int32_t e = ids[distinct[q]];
+                int rows = 0;
+                for (int64_t i = 0; i < n; ++i) rows += first_of[i] == distinct[q];
+                const int res = skip_d[q] ? 2 : (e >= 0 && e < d.n_expert && d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e] >= 0) ? 1 : 0;
+                std::fprintf(route_dump, " %d:%d:%d", (int) e, rows, res);
+            }
+            std::fputc(10, route_dump);
+        }
+        // STRATA_PCIE_BALANCE (opt-in, #1548): the count comes from the measured CPU and GPU costs instead of the share
+        const bool pcie_ok = (d.pcie_num > 0 || d.pcie_model.on) && d.src->pcie_layer(d.layers);
+        int m = pcie_ok ? d.pcie_model.pick(nmiss, (nmiss * d.pcie_num) >> 8) : 0;
+        // STRATA_PCIE_MIN1 (opt-in): the share rounds to 0 for 1-2 misses per layer, so the PCIe lane idles on the typical
+        // decode step; with >= 2 misses give it at least one (the last in routing order).  It only flies if its blob is
+        // pinned (the fetch below checks), else it stays a CPU miss exactly as before.  Read once.
+        static const bool pcie_min1 = [] { const char* v = std::getenv("STRATA_PCIE_MIN1"); return v && std::atoi(v) != 0; }();
+        if (pcie_min1 && pcie_ok && m < 1 && nmiss >= 2) m = 1;
+        int miss_rank = 0, groups = 0, entries = 0, fetches = 0;
+        GpuPlanSink& P = *d.plan;
+        const uint8_t* dma_src[64];
+        int64_t pcie_i0[64];
+        // STRATA_ADAPT_FETCH: the share is the layer's most-routed misses, and the ones the tier would swap in are copied
+        // into a slot as they are fetched (ExpertDispatch::fetch_admit)
+        const bool fetch_on = m > 0 && d.fetch_can(d.layers);
+        const float* use = d.usage.empty() ? nullptr : d.usage.data() + (size_t) d.layers * (size_t) d.n_expert;
+        bool pick[kMaxWindowEntries];
+        if (fetch_on) {
+            int mq[kMaxWindowEntries], nm = 0;
+            for (int q = 0; q < nd; ++q) {
+                pick[q] = false;
+                const int32_t e = ids[distinct[q]];   // a tail-skipped miss is not fetched
+                // (an unpinned blob cannot be fetched: under STRATA_PIN_BY_NEED a PCIe layer is pinned in part)
+                if (!skip_d[q] && e >= 0 && e < d.n_expert && d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e] < 0 &&
+                    d.src->pinned(d.layers, e))
+                    mq[nm++] = q;
+            }
+            std::stable_sort(mq, mq + nm, [&](int a, int b) { return use[ids[distinct[a]]] > use[ids[distinct[b]]]; });
+            for (int j = 0; j < m && j < nm; ++j) pick[mq[j]] = true;
+        }
+        for (int q = 0; q < nd; ++q) {
+            const int64_t i0 = distinct[q];
+            const int32_t e = ids[i0];
+            int kd = -1;
+            unsigned long long ptr = 0;
+            if (skip_d[q]) {                       // STRATA_ROUTE_TAIL_SKIP: neither copied nor computed
+                for (int64_t i = i0; i < n; ++i)
+                    if (first_of[i] == i0) kind[i] = -2;
+                continue;
+            }
+            if (e >= 0 && e < d.n_expert) {
+                const int32_t slot = d.host_res[(size_t) d.layers * (size_t) d.n_expert + (size_t) e];
+                if (slot >= 0) {
+                    kd = 0;
+                    ptr = (unsigned long long) (d.cache_base + (d.cache_slot_off ? (size_t) d.cache_slot_off[slot]
+                                                                                 : (size_t) slot * (size_t) d.cache_blob));
+                } else if (d.peer != nullptr && d.peer->has(d.layers, e)) {
+                    kd = 2;                        // multi-GPU: the second GPU computes it
+                } else if (helper_holds(e)) {
+                    // left to the helper: kind -1 until RemoteExperts::begin() claims the row (see above)
+                } else if (d.fs != nullptr && d.fs->take(d.layers, e, ptr)) {
+                    kd = 0;                        // Foresight: a landed swap-space slot holds it - a GPU group like a hit
+                } else {
+                    if (d.fs != nullptr) d.fs->note_miss(d.src, d.layers, e);
+                    if ((fetch_on ? pick[q] : miss_rank >= nmiss - m) && fetches < P.staging_cap && fetches < 64) {
+                        const uint8_t* src = d.src->pinned(d.layers, e) ? d.src->blob(d.layers, e) : nullptr;
+                        if (src != nullptr) {
+                            kd = 1;
+                            dma_src[fetches] = src;
+                            pcie_i0[fetches] = i0;
+                            ++fetches;
                         }
-                        ++miss_rank;
                     }
+                    ++miss_rank;
                 }
-                zero_pcie_plan::each_entry(first_of, n, i0, [&](int64_t i) { kind[i] = kd; });
-                if (kd != 0) continue;                 // the VRAM groups first; the PCIe groups below
-                P.ptr[groups] = ptr;
-                P.start[groups] = entries;
-                zero_pcie_plan::each_entry(first_of, n, i0, [&](int64_t i) {
+            }
+            for (int64_t i = i0; i < n; ++i)
+                if (first_of[i] == i0) kind[i] = kd;
+            if (kd != 0 || P.device_hits_only) continue;   // the VRAM groups first; skipped when planned on-device
+            P.ptr[groups] = ptr;
+            P.start[groups] = entries;
+            for (int64_t i = i0; i < n; ++i)
+                if (first_of[i] == i0) {
                     P.dst[entries] = (int32_t) i;
                     P.tok[entries] = (int32_t) (i / k);
                     ++entries;
-                });
-                ++groups;
-            }
-            P.start[groups] = entries;
-            for (int q = 0; q < fetches; ++q) {       // the PCIe groups: staging slot q, entries after the VRAM ones
-                const int64_t i0 = pcie_i0[q];
-                P.ptr2[q] = P.pcie_mode != 0 ? (unsigned long long) d.src->device_alias(d.layers, ids[i0])
-                                     : P.staging + (unsigned long long) q * (unsigned long long) bb;
-                P.start2[q] = entries;
-                for (int64_t i = i0; i < n; ++i)
-                    if (first_of[i] == i0) {
-                        P.dst[entries] = (int32_t) i;
-                        P.tok[entries] = (int32_t) (i / k);
-                        ++entries;
-                    }
-                ++d.pcie_experts;
-            }
-            if (d.fetch_admit > 0 && P.dst2 != nullptr)
-                for (int q = 0; q < fetches; ++q) P.dst2[q] = 0;   // staging
-            if (fetch_on && fetches > 0 && (size_t) d.layers < d.fetch_avail.size()) d.fetch_avail[(size_t) d.layers] = 1;
-            if (fetch_on && fetches > 0) {
-                // the fetched experts routed enough, most-routed first, each against the next least-routed resident expert
-                // of the layer that the window does not route (its slot is read by nothing until the next window)
-                const size_t lb = (size_t) d.layers * (size_t) d.n_expert;
-                if (d.fetch_mark.size() != (size_t) d.n_expert) d.fetch_mark.assign((size_t) d.n_expert, 0);
-                for (int64_t i = 0; i < n; ++i)
-                    if (ids[i] >= 0 && ids[i] < d.n_expert) d.fetch_mark[(size_t) ids[i]] = 1;
-                int cq[64], nc = 0;
-                for (int q = 0; q < fetches; ++q) {
-                    const int32_t e = ids[pcie_i0[q]];
-                    if (use[e] >= d.fetch_min && (d.in_flight.empty() || d.in_flight[lb + (size_t) e] == 0)) cq[nc++] = q;
                 }
-                std::stable_sort(cq, cq + nc, [&](int a, int b) { return use[ids[pcie_i0[a]]] > use[ids[pcie_i0[b]]]; });
-                int32_t vic[64];
-                int nv = 0;
-                for (int32_t e = 0; e < (int32_t) d.n_expert && nc > 0; ++e) {
-                    if (d.res_mut[lb + (size_t) e] < 0 || d.fetch_mark[(size_t) e] != 0) continue;
-                    if (nv < nc) vic[nv++] = e;
-                    else if (use[e] < use[vic[nv - 1]]) vic[nv - 1] = e;
-                    else continue;
-                    for (int j = nv - 1; j > 0 && use[vic[j]] < use[vic[j - 1]]; --j) std::swap(vic[j], vic[j - 1]);
-                }
-                for (int j = 0; j < nc && j < nv; ++j) {
-                    const int q = cq[j];
-                    const int32_t e = ids[pcie_i0[q]], v = vic[j];
-                    if (use[e] < use[v] + d.fetch_margin) break;
-                    const int32_t slot = d.res_mut[lb + (size_t) v];
-                    P.dst2[q] = (unsigned long long) (d.cache_base + (d.cache_slot_off ? (size_t) d.cache_slot_off[slot]
-                                                                                       : (size_t) slot * (size_t) d.cache_blob));
-                    d.res_mut[lb + (size_t) v] = -1;   // kNotResident
-                    d.res_mut[lb + (size_t) e] = slot;
-                    ++d.fetch_admitted;
-                    d.res_dirty = true;
-                    d.res_dirty_idx.push_back((int32_t) (lb + (size_t) v));
-                    d.res_dirty_idx.push_back((int32_t) (lb + (size_t) e));
-                    if (d.fetch_log_on) d.fetch_log.emplace_back((int64_t) (lb + (size_t) e), slot);
-                }
-                for (int64_t i = 0; i < n; ++i)
-                    if (ids[i] >= 0 && ids[i] < d.n_expert) d.fetch_mark[(size_t) ids[i]] = 0;
-            }
+            ++groups;
         }
-        if (built) P.start[groups] = entries;
-        P.start2[fetches] = entries;
-        const bool peer_p2p_hit = d.peer != nullptr && d.peer->p2p() && P.hit_out_dev != nullptr && d.peer->direct_mode();
-        if (peer_p2p_hit) {
+        P.start[groups] = entries;
+        const uint64_t bb = lay.blob_bytes(d.layers);
+        for (int q = 0; q < fetches; ++q) {       // the PCIe groups: staging slot q, entries after the VRAM ones
+            const int64_t i0 = pcie_i0[q];
+            P.ptr2[q] = P.pcie_mode != 0 ? (unsigned long long) d.src->device_alias(d.layers, ids[i0])
+                                 : P.staging + (unsigned long long) q * (unsigned long long) bb;
+            P.start2[q] = entries;
+            for (int64_t i = i0; i < n; ++i)
+                if (first_of[i] == i0) {
+                    P.dst[entries] = (int32_t) i;
+                    P.tok[entries] = (int32_t) (i / k);
+                    ++entries;
+                }
+            ++d.pcie_experts;
+        }
+        if (d.fetch_admit > 0 && P.dst2 != nullptr)
+            for (int q = 0; q < fetches; ++q) P.dst2[q] = 0;   // staging
+        if (fetch_on && fetches > 0 && (size_t) d.layers < d.fetch_avail.size()) d.fetch_avail[(size_t) d.layers] = 1;
+        if (fetch_on && fetches > 0) {
+            // the fetched experts routed enough, most-routed first, each against the next least-routed resident expert
+            // of the layer that the window does not route (its slot is read by nothing until the next window)
+            const size_t lb = (size_t) d.layers * (size_t) d.n_expert;
+            if (d.fetch_mark.size() != (size_t) d.n_expert) d.fetch_mark.assign((size_t) d.n_expert, 0);
             for (int64_t i = 0; i < n; ++i)
-                if (kind[i] == 2) P.dst[entries++] = (int32_t) i;
+                if (ids[i] >= 0 && ids[i] < d.n_expert) d.fetch_mark[(size_t) ids[i]] = 1;
+            int cq[64], nc = 0;
+            for (int q = 0; q < fetches; ++q) {
+                const int32_t e = ids[pcie_i0[q]];
+                if (use[e] >= d.fetch_min && (d.in_flight.empty() || d.in_flight[lb + (size_t) e] == 0)) cq[nc++] = q;
+            }
+            std::stable_sort(cq, cq + nc, [&](int a, int b) { return use[ids[pcie_i0[a]]] > use[ids[pcie_i0[b]]]; });
+            int32_t vic[64];
+            int nv = 0;
+            for (int32_t e = 0; e < (int32_t) d.n_expert && nc > 0; ++e) {
+                if (d.res_mut[lb + (size_t) e] < 0 || d.fetch_mark[(size_t) e] != 0) continue;
+                if (nv < nc) vic[nv++] = e;
+                else if (use[e] < use[vic[nv - 1]]) vic[nv - 1] = e;
+                else continue;
+                for (int j = nv - 1; j > 0 && use[vic[j]] < use[vic[j - 1]]; --j) std::swap(vic[j], vic[j - 1]);
+            }
+            for (int j = 0; j < nc && j < nv; ++j) {
+                const int q = cq[j];
+                const int32_t e = ids[pcie_i0[q]], v = vic[j];
+                if (use[e] < use[v] + d.fetch_margin) break;
+                const int32_t slot = d.res_mut[lb + (size_t) v];
+                P.dst2[q] = (unsigned long long) (d.cache_base + (d.cache_slot_off ? (size_t) d.cache_slot_off[slot]
+                                                                                   : (size_t) slot * (size_t) d.cache_blob));
+                d.res_mut[lb + (size_t) v] = -1;   // kNotResident
+                d.res_mut[lb + (size_t) e] = slot;
+                ++d.fetch_admitted;
+                d.res_dirty = true;
+                d.res_dirty_idx.push_back((int32_t) (lb + (size_t) v));
+                d.res_dirty_idx.push_back((int32_t) (lb + (size_t) e));
+                if (d.fetch_log_on) d.fetch_log.emplace_back((int64_t) (lb + (size_t) e), slot);
+            }
+            for (int64_t i = 0; i < n; ++i)
+                if (ids[i] >= 0 && ids[i] < d.n_expert) d.fetch_mark[(size_t) ids[i]] = 0;
         }
-        P.counts[0] = groups;
-        P.counts[1] = entries;
-        P.counts[2] = fetches;
-        if (P.fixed_zero_pcie && P.counts[2] != 0) {
-            // Leave an empty plan for the verifier's no-plan drain; do not raise A here.
-            P.counts[0] = P.counts[1] = P.counts[2] = 0;
-            P.start[0] = P.start2[0] = 0;
-            P.fixed_zero_pcie_violation = true;
-            d.failed = true;
-            d.fail = "the fixed-zero PCIe verifier received a nonempty PCIe expert plan";
-            d.fail_layer = d.layers;
-            return;
+        if (!P.device_hits_only) {
+            P.start2[fetches] = entries;
+            const bool peer_p2p_hit = d.peer != nullptr && d.peer->p2p() && P.hit_out_dev != nullptr && d.peer->direct_mode();
+            if (peer_p2p_hit) {
+                for (int64_t i = 0; i < n; ++i)
+                    if (kind[i] == 2) P.dst[entries++] = (int32_t) i;
+            }
+            P.counts[0] = groups;
+            P.counts[1] = entries;
+            P.counts[2] = fetches;
+            std::atomic_thread_fence(std::memory_order_seq_cst);
+            pt("publish", fetches);
+            if (P.publish) P.publish(P.ctx);
+            pt("fetch", fetches);
+            if (P.fetch) P.fetch(P.ctx, dma_src, P.pcie_mode != 0 ? 0 : fetches, (size_t) bb);   // the copy engine, beside the CPU's work
         }
-        std::atomic_thread_fence(std::memory_order_seq_cst);
-        pt("publish", fetches);
-        if (P.publish) P.publish(P.ctx);
-        if (measure) {
-            const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                std::chrono::steady_clock::now() - plan_start).count();
-            // Bucket after A is visible; no per-ring logging or extra work before publication.
-            struct PlanStats {
-                struct Bucket { uint64_t calls = 0, fast = 0, ns = 0; };
-                Bucket data[48][3][4]{};
-                ~PlanStats() {
-                    for (int l = 0; l < 48; ++l)
-                        for (int w = 0; w < 3; ++w)
-                            for (int m = 0; m < 4; ++m) {
-                                const auto& b = data[l][w][m];
-                                if (b.calls)
-                                    std::fprintf(stderr, "strata zero PCIe plan: layer=%d rows=%d misses=%d calls=%llu fast=%llu ns=%llu\n",
-                                                 l, w + 2, m, (unsigned long long) b.calls,
-                                                 (unsigned long long) b.fast, (unsigned long long) b.ns);
-                            }
-                }
-            };
-            static thread_local PlanStats stats;
-            int misses = 0;
-            for (int i = 0; i < n && misses < 3; ++i)
-                if (kind[i] == -1 && zero_pcie_plan::first_entry(ids, i) == i) ++misses;
-            auto& b = stats.data[d.layers][n_tok - 2][misses];
-            ++b.calls;
-            b.fast += built;
-            b.ns += (uint64_t) elapsed;
-        }
-        pt("fetch", fetches);
-        if (P.fetch) P.fetch(P.ctx, dma_src, P.pcie_mode != 0 ? 0 : fetches, (size_t) bb);   // the copy engine, beside the CPU's work
     } else {
         for (int64_t i = 0; i < n; ++i) {
             const int32_t e = ids[i];
@@ -5735,9 +5683,13 @@ void expert_pool_dispatch_multi(ExpertDispatch& d, const float* x_f, const int32
         }
     }
     static const bool dec_batch = [] { const char* v = std::getenv("STRATA_DEC_BATCH"); return v == nullptr || std::atoi(v) != 0; }();
-    // the GPU's copy_rows_from_mapped zeroes the rows it computed itself (dec_batch); STRATA_VERIFY_DEVICE_PLAN's
-    // copy_or_zero_from_mapped copies every row, so there the host still zeroes them
-    static const bool device_plan = [] { const char* v = std::getenv("STRATA_VERIFY_DEVICE_PLAN"); return v != nullptr && std::atoi(v) != 0; }();
+    // the GPU's copy_rows_from_mapped zeroes the rows it computed itself (dec_batch); STRATA_VERIFY_DEVICE_PLAN /
+    // STRATA_VERIFY_DEVICE_HITS's copy_or_zero_from_mapped copies every row, so there the host still zeroes them
+    static const bool device_plan = [] {
+        const char* p = std::getenv("STRATA_VERIFY_DEVICE_PLAN");
+        const char* h = std::getenv("STRATA_VERIFY_DEVICE_HITS");
+        return (p != nullptr && std::atoi(p) != 0) || (h != nullptr && std::atoi(h) != 0);
+    }();
     const bool gpu_zeroes_hits = (d.plan != nullptr && n <= kMaxWindowEntries && n <= d.plan->cap && dec_batch && !device_plan);
     bool any_cpu = false;
     for (int64_t i = 0; i < n; ++i)
@@ -7308,8 +7260,10 @@ ForesightSwap* foresight_swap_from_env(int64_t layers, int64_t experts, const st
     const char* v = std::getenv("STRATA_FS_SLOTS");
     const int slots = v ? std::atoi(v) : 0;
     if (slots <= 0) return nullptr;
-    if (const char* dp = std::getenv("STRATA_VERIFY_DEVICE_PLAN"); dp && std::atoi(dp) != 0) {
-        std::fprintf(stderr, "strata serve: foresight swap: off beside STRATA_VERIFY_DEVICE_PLAN (the device would plan "
+    const char* dp = std::getenv("STRATA_VERIFY_DEVICE_PLAN");
+    const char* dh = std::getenv("STRATA_VERIFY_DEVICE_HITS");
+    if ((dp && std::atoi(dp) != 0) || (dh && std::atoi(dh) != 0)) {
+        std::fprintf(stderr, "strata serve: foresight swap: off beside STRATA_VERIFY_DEVICE_PLAN/HITS (the device would plan "
                              "resident layers without the host)\n");
         return nullptr;
     }

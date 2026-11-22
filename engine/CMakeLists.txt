@@ -10,7 +10,7 @@
 # building for a pre-Ampere arch would produce a binary that runs and is wrong about its own performance, which is
 # the worst of both outcomes.
 cmake_minimum_required(VERSION 3.24)
-project(strata VERSION 0.1.64 LANGUAGES CXX)
+project(strata VERSION 0.1.65 LANGUAGES CXX)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/strata_geometry.cmake)   # -DSTRATA_GEOMETRY=<name>: the model shape the kernels are compiled for (default flash_next, no flag added)
 # The build is cut by backend (cleanup 5.4): each file below only DEFINES macros (strata_<part>()), which run here, in this scope, at the place their
 # block used to be - so this file reads in the order the old single CMakeLists.txt evaluated.
@@ -830,6 +830,12 @@ if(STRATA_BUILD_SPLIT)
   add_subdirectory(src/split)
 endif()
 
+# ---- strata-inkling: standalone Inkling-2-Mini (.strata v1.1) shape-engine binary (CMake component `inkling2`) ----
+option(STRATA_BUILD_INKLING2 "Build strata-inkling: Inkling-2-Mini (.strata v1.1) looped MoE engine + Vision + 1..64 continuous batching" ON)
+if(STRATA_BUILD_INKLING2 AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/inkling2/CMakeLists.txt")
+  add_subdirectory(src/inkling2)
+endif()
+
 # What this configure registered, so a missing capability is a stated skip (tools/check prints this line too).
 if(STRATA_BUILD_TESTS)
   set(_strata_test_kinds "cpu")
@@ -850,10 +856,6 @@ endif()
 
 # Local RDNA3 HC read, opt-in and restricted to the HIP gfx1100 test build.
 if(STRATA_ENABLE_HIP)
-  target_sources(strata_kernels PRIVATE src/kernels/cuda/rdna_gr_local.cu)
-  set_source_files_properties(src/kernels/cuda/rdna_gr_local.cu PROPERTIES LANGUAGE HIP INCLUDE_DIRECTORIES "${STRATA_HIP_COMPAT_INCLUDE_DIR}")
-  target_sources(strata_kernels PRIVATE src/kernels/cuda/rdna_kquant_lab.cu)
-  set_source_files_properties(src/kernels/cuda/rdna_kquant_lab.cu PROPERTIES LANGUAGE HIP INCLUDE_DIRECTORIES "${STRATA_HIP_COMPAT_INCLUDE_DIR}")
 endif()
 
 if(STRATA_ENABLE_HIP)
@@ -866,7 +868,4 @@ if(STRATA_ENABLE_HIP)
  add_executable(rdna_mmvq_probe src/kernels/rdna_mmvq_probe.cpp)
  target_include_directories(rdna_mmvq_probe PRIVATE ${STRATA_HIP_COMPAT_INCLUDE_DIR})
  target_link_libraries(rdna_mmvq_probe PRIVATE strata_kernels)
- add_executable(rdna_kquant_probe src/kernels/rdna_kquant_probe.cpp)
- target_include_directories(rdna_kquant_probe PRIVATE ${STRATA_HIP_COMPAT_INCLUDE_DIR})
- target_link_libraries(rdna_kquant_probe PRIVATE strata_kernels)
 endif()

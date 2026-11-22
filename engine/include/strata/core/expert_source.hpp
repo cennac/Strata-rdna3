@@ -422,6 +422,7 @@ struct GpuPlanSink {
     bool async_queued = false;
     void (*complete)(void* ctx, uint32_t want) = nullptr;
     float* hit_out_dev = nullptr;   ///< device address of this group's hit_out buffer on the primary GPU (P2P peer scatter)
+    bool device_hits_only = false;   ///< STRATA_VERIFY_DEVICE_HITS=1: GPU built its own hit plan; host only marks kind[]
 };
 
 /// Verifier::set_pcie_balance: a verify window's costs, fitted to each layer's measured times (ms, least squares with
