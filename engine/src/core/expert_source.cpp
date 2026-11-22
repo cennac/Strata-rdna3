@@ -1,5 +1,6 @@
 // src/core/expert_source.cpp - the adapter.  See the header for the three clauses of the contract.
 #include "strata/core/expert_source.hpp"
+#include "strata/platform/cpu_relax.hpp"   // strata_cpu_pause: the pool queue's full-ring spins
 #include "strata/core/expert_nibble.hpp"
 #include "strata/core/tail_skip_default.hpp"
 #include "strata/core/conversation_memory.hpp"
