@@ -1,0 +1,239 @@
+{
+  "experiment": "b453 per-bucket GPU-stage profile A/B: production 0.1.43 vs dev 0.1.64 (diagnostic, no adoption)",
+  "arms": {
+    "leg-prof": "production binary 58854970... (0.1.43) + test config + strict STRATA_VERIFY_PROFILE (fused paths off)",
+    "dev-prof": "dev binary 88c08615... (0.1.64) + same config + same strict mode",
+    "dev-light": "dev binary + STRATA_VERIFY_PROFILE_LIGHT (fused paths on)"
+  },
+  "walls": {
+    "leg_strict_ms": [
+      18.63,
+      16.82,
+      18.67
+    ],
+    "dev_strict_ms": [
+      21.57,
+      20.26,
+      21.72
+    ],
+    "dev_light_ms": [
+      21.03,
+      19.99,
+      21.2
+    ],
+    "windows": {
+      "leg": [
+        772,
+        534,
+        563,
+        450,
+        772,
+        534
+      ],
+      "dev": [
+        819,
+        546,
+        545,
+        424,
+        819,
+        546
+      ]
+    }
+  },
+  "paired_wall_delta": {
+    "zh": 2.94,
+    "code": 3.44
+  },
+  "bucket_deltas_top": [
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "waitCPU",
+      "leg": 0.22,
+      "dev": 1.7,
+      "delta": 1.48
+    },
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "waitCPU",
+      "leg": 0.22,
+      "dev": 1.63,
+      "delta": 1.41
+    },
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "waitCPU",
+      "leg": 0.06,
+      "dev": 1.46,
+      "delta": 1.4
+    },
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "copy+combine",
+      "leg": 1.54,
+      "dev": 0.28,
+      "delta": -1.26
+    },
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "copy+combine",
+      "leg": 1.53,
+      "dev": 0.28,
+      "delta": -1.25
+    },
+    {
+      "stage": 0,
+      "segment": "gdn",
+      "bucket": "waitCPU",
+      "leg": 0.07,
+      "dev": 1.04,
+      "delta": 0.97
+    },
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "copy+combine",
+      "leg": 1.0,
+      "dev": 0.29,
+      "delta": -0.71
+    },
+    {
+      "stage": 1,
+      "segment": "qsa",
+      "bucket": "waitCPU",
+      "leg": 0.03,
+      "dev": 0.67,
+      "delta": 0.64
+    },
+    {
+      "stage": 0,
+      "segment": "gdn",
+      "bucket": "router+plan+bell",
+      "leg": 0.52,
+      "dev": 0.0,
+      "delta": -0.52
+    },
+    {
+      "stage": 0,
+      "segment": "gdn",
+      "bucket": "router+plan+bell",
+      "leg": 0.51,
+      "dev": 0.0,
+      "delta": -0.51
+    },
+    {
+      "stage": 0,
+      "segment": "gdn",
+      "bucket": "router+plan+bell",
+      "leg": 0.51,
+      "dev": 0.0,
+      "delta": -0.51
+    },
+    {
+      "stage": 0,
+      "segment": "gdn",
+      "bucket": "copy+combine",
+      "leg": 0.82,
+      "dev": 0.33,
+      "delta": -0.49
+    },
+    {
+      "stage": 1,
+      "segment": "qsa",
+      "bucket": "waitCPU",
+      "leg": 0.06,
+      "dev": 0.53,
+      "delta": 0.47
+    },
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "router+plan+bell",
+      "leg": 0.46,
+      "dev": 0.0,
+      "delta": -0.46
+    },
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "router+plan+bell",
+      "leg": 0.45,
+      "dev": 0.0,
+      "delta": -0.45
+    },
+    {
+      "stage": 1,
+      "segment": "qsa",
+      "bucket": "waitCPU",
+      "leg": 0.06,
+      "dev": 0.51,
+      "delta": 0.45
+    },
+    {
+      "stage": 1,
+      "segment": "qsa",
+      "bucket": "copy+combine",
+      "leg": 0.56,
+      "dev": 0.11,
+      "delta": -0.45
+    },
+    {
+      "stage": 1,
+      "segment": "gdn",
+      "bucket": "router+plan+bell",
+      "leg": 0.45,
+      "dev": 0.0,
+      "delta": -0.45
+    },
+    {
+      "stage": 0,
+      "segment": "gdn",
+      "bucket": "router (proj+topk)",
+      "leg": 0.0,
+      "dev": 0.44,
+      "delta": 0.44
+    },
+    {
+      "stage": 0,
+      "segment": "gdn",
+      "bucket": "router (proj+topk)",
+      "leg": 0.0,
+      "dev": 0.43,
+      "delta": 0.43
+    }
+  ],
+  "findings": {
+    "wait_cpu_chain": "stage-1 waitCPU leg 0.22 vs dev 1.70 (+1.48 ms/window); stage-0 +0.97; qsa +0.45..0.64 - the CPU-expert row delivery is THE dominant net-positive delta (~+3.5 ms/request), larger than round33's +0.82 estimate; copy+combine offsets it (leg 1.54 vs dev 0.28, -1.26 x2) because legacy front-loads rows inline while dev defers them to the pool",
+    "router_rebucketing": "legacy router+plan+bell (0.46-0.52) vs dev plan+bell + router (proj+topk) - rename, cosmetic in the diff",
+    "compute_kernels": "all other compute buckets at parity or dev-better (confirms round33 on the current line)",
+    "light_vs_strict_on_dev": "21.03 vs 21.57 - the fused paths are worth ~-0.5 ms/window on 0.1.64",
+    "reconciliation": "net bucketed delta +3.43 ms/request matches the paired wall delta +2.94..+3.44"
+  },
+  "windows": {
+    "leg": [
+      772,
+      534,
+      563,
+      450,
+      772,
+      534
+    ],
+    "dev": [
+      819,
+      546,
+      545,
+      424,
+      819,
+      546
+    ]
+  },
+  "completed": false,
+  "restored": true,
+  "production_after_sha256": "588549701c867dc5a4aafef8de48c1e77b3d2f0dff4fd8d6e3a71db72df50df2",
+  "aborted_attempts": "attempts 1-4 aborted on harness gates (legacy has no io-prefetch line / no verifier node listings; missing --batch 2; window-count gate too strict); production restored and verified after every attempt; attempt 5 completed all three arms and the diff was computed from its results",
+  "decision": "PER THE PREDECLARED RULE the campaign closes: no NEW >=0.5 ms regression bucket outside the known wait chain (the five throughput-measured repairs of that chain all stand; its premise-eroded look-ahead stays closed). The refreshed map confirms: compute kernels at parity or dev-better; the remaining wall gap is the pool row-delivery structure, which only a cross-window look-ahead redesign could touch - measured-negative neighbors, eroded premise, not justified."
+}

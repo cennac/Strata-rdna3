@@ -1,5 +1,11 @@
 # 更新记录
 
+## Per-bucket profile A/B closes the campaign: the gap is pool row delivery, mapped kernel by kernel (b453, 2026-11-22)
+
+- Paired diagnostic on the identical test config: production binary (0.1.43) vs dev binary (0.1.64) under the same strict VERIFY_PROFILE (same fused-path set disabled → comparable buckets), plus a dev LIGHT arm (fused on). Paired strict walls: dev +2.94 ms/window (zh), +3.44 (code); the net bucketed delta (+3.43/request) reconciles.
+- The map: compute kernels at parity or dev-better (round 33 confirmed on today's line, no hidden kernel regression); the dominant net-positive delta is the CPU-expert row delivery — waitCPU +1.48 ms/window on stage 1, +0.97 on stage 0 (qsa +0.45..0.64) — offset by dev's 5× cheaper copy+combine (legacy front-loads rows inline; dev defers to the pool). This is the wait chain of round 33, now measured larger; the five bounded repairs of it all measured negative on throughput, and the look-ahead keeps its eroded premise. Fused paths worth ~−0.5 ms/window on 0.1.64.
+- Per the predeclared rule (no new ≥0.5 ms non-chain regression bucket) **the optimization campaign closes**: ~2× stock single-lane decode, TTFT below production, quality equivalent, every lever measured-closed with a complete evidence chain. Attempts 1–4 aborted fail-closed on harness gates (0.1.43 prints no io-prefetch line and no verifier node listings; a missing --batch 2; an over-strict window-count check) — production 0.1.43 restored and verified after every attempt. A new round opens on an upstream version, model, or hardware change. See the [record](benchmarks/2026-11-22-profile-ab.md).
+
 ## MTP drafters on the front card: quality holds, the solo lanes collapse (b452, 2026-11-22)
 
 - First round under the user-authorized quality deliberation (bar: no-worse, not bitwise; divergence is recorded evidence). Both arms ran the exact b450 binary (88c08615…, zero overlay), only STRATA_MTP_STAGE0 differed. Every deliberation gate passed: objective failure sets identical in both arms (case 19 wrong in both — the b448 flip was the truncated profile, not placement), 12-prompt real-set deliberation clean (3/12 byte-identical, ratios 0.74–1.14, no degeneration), placement proven per load (off CUDA1 / on CUDA0), off arm bitwise on the pinned reference, on arm diverging on 5/14 probes (zh rolls 30→34, recorded).
