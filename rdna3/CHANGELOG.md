@@ -1,5 +1,11 @@
 # 更新记录
 
+## Attribution closed: the 0.1.65 divergence is upstream's, the merge carry is output-neutral (2026-11-23)
+
+- Pristine upstream build (vendor c84f22a, zero carry, binary ce560089) vs the dev/0.2.19 merge (0f4ae265), same pins/config/seed: **zh-serial/zh-repeat/zh-pw2 byte-identical across arms** (96 tokens each), both diverging from the pinned reference at token 12 (98144 vs 97427). Predeclared verdict: upstream_source — a legitimate engine 0.1.65 numeric step; the fixed-zero graph/pool-queue carry is proven output-neutral.
+- Upstream also dropped the penalty-aware pipeline (penalized requests decode serially on 0.2.19-pristine) — and the merged line's pipelined path yields identical tokens: scheduling-only, re-confirming the b421/b447 class across engine versions.
+- Next: b457 self-repro window pins reference v2 (0.1.65 provenance), then the gfx11 default-table screens and the rdna port fix. Production restored+verified after all nine windows. See the [attribution record](benchmarks/2026-11-23-v0219-attribution.md).
+
 ## dev/0.2.19 integrated: merged, built, running; the reference gate holds at zh token 12 (2026-11-23)
 
 - Upstream v0.2.19 (engine 0.1.65, 55 commits/278 files) triggered the campaign's documented reopen condition. Merged on dev/0.2.19 (vendor c84f22a + carry/fix chain to 72744d1): upstream ports supersede rdna_gr_local/rdna_kquant_lab/zero_pcie_plan (dropped); the adopted fixed-zero graph, pool queue, PLE-snap test and probes carry. Five build iterations converged (binary 0f4ae265); production restored+verified after all four validation windows.

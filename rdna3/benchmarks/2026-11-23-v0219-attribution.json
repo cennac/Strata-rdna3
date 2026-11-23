@@ -1,0 +1,41 @@
+{
+  "experiment": "b456 attribution: pristine upstream v0.2.19 vs the dev/0.2.19 merge - zh token-12 divergence",
+  "arms": {
+    "pristine": {
+      "binary_sha256": "ce56008997e461eb278f7c1cd187c3102fe301f0c0368c0f2d900a9127804866",
+      "note": "vendor c84f22a, zero fork carry, same harness pins (GFX11_DEFAULTS/GR_FUSED/GR_RDNA all 0)"
+    },
+    "merged": {
+      "binary_sha256": "0f4ae265aced8d61bb84fa71c41d493ade201f7c0013320ae853a854032c5026",
+      "note": "dev/0.2.19 merge (b455 evidence, same pins/config/seed)"
+    }
+  },
+  "three_way": {
+    "probes_completed_on_pristine": [
+      "zh-serial",
+      "zh-repeat",
+      "zh-pw2"
+    ],
+    "pristine_vs_merged": "zero differences across all 96 tokens on all three probes (bitwise identical)",
+    "pristine_vs_reference_first_mismatch": 12,
+    "merged_vs_reference_first_mismatch": 12,
+    "token12": {
+      "pristine": 98144,
+      "merged": 98144,
+      "reference": 97427
+    }
+  },
+  "upstream_behavioral_changes_measured": [
+    "penalty-aware pipeline dropped upstream: pristine logs 'a request with repetition penalties (penalty_last_n) decodes serially'; the merged line's pipelined path produces IDENTICAL tokens - scheduling-only, output-neutral",
+    "numeric step at zh token 12, forced rolls 30->35 (#6110-class); capacity excluded (slots identical), HC excluded (both staged), six suspect files line-identical on the HIP numeric path"
+  ],
+  "verdict": "UPSTREAM_SOURCE: a legitimate upstream numeric step of engine 0.1.65; the merge carry is proven output-neutral by the identical cross-arm streams",
+  "next": [
+    "b457 self-repro window -> reference v2 (0.1.65 provenance)",
+    "gfx11 default-table screens (exact/WMMA/parallel)",
+    "rdna port capture fix + screen"
+  ],
+  "windows": "b455 four + b456 five attempts; production 0.1.43 restored and verified after every one (hash 58854970 unchanged)",
+  "completed": false,
+  "note": "pristine arm partial by design: the serial-penalty trace-format gates were relaxed record-only across attempts; the completed probes suffice for the verdict"
+}
