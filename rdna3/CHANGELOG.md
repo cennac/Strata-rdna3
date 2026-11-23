@@ -1,5 +1,11 @@
 # 更新记录
 
+## v0.2.20 integration and gfx1100 exact subset (b459–b464, 2026-11-23)
+
+- Integrated upstream engine 0.1.66. Automatic expert-cache sizing missed the frozen 0.1.65 reference; matching actual residency restored all 26 token and finish comparisons and the 35/21 forced rollback counts. The standalone development baseline did not score because one Chinese dual request stopped at 713 tokens.
+- The four-switch exact subset passed the matched-residency quality gates and the three-pair adoption rule. Chinese dual improved from 161.36 to 171.58 tok/s (+6.34%, faster in all three pairs); Chinese single fell 1.42%, within the 2% guardrail. All TTFT changes were within the 5% guardrail. The measured profile is opt-in; the automatic-cache template is unchanged.
+- Recorded the pristine v0.2.20 baseline and the three-way throughput/TTFT comparison in the [b464 benchmark](benchmarks/2026-11-23-v0220-exact.md). Production restoration was verified; no deployment or `main` change.
+
 ## v0.2.19 stock baseline and three-way throughput comparison (b458, 2026-11-23)
 
 - The pristine upstream 0.1.65 build completed two fresh loads using upstream tuning defaults, without compatibility overrides. Medians were 63.4 / 112.6 / 79.7 / 106.5 tok/s for Chinese single/dual and code single/dual. The optimized b457 build gained 44–99% against stock but remained 13–19% below the historical production 0.1.43 baseline. Production restoration was verified; no runtime configuration changed.

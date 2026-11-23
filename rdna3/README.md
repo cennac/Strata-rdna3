@@ -1,16 +1,18 @@
-# rdna3 — dev/0.2.19 optimization campaign (upstream v0.2.19, engine 0.1.65)
+# rdna3 — dev/0.2.20 optimization campaign (upstream v0.2.20, engine 0.1.66)
 
 Development records for the dual RX 7900 XTX rig. The goal in [DEVELOPMENT.md](DEVELOPMENT.md)
 is to match the production baseline — `main`, v0.1.43-rdna3.1, engine 0.1.43 — in measured
 service speed and correctness before merging. Experimental runs use an isolated maintenance
 window and verify production restoration afterward.
 
-The current development baseline passed the 26-probe [b457 reproducibility check](benchmarks/2026-11-23-refv2.md).
-The [b458 three-way comparison](benchmarks/2026-11-23-stock-vs-optimized.md) supplies the current
-throughput numbers: production 0.1.43, pristine upstream v0.2.19, and optimized dev/0.2.19.
-Reuse the production and same-version stock measurements in later summaries unless their
-identities or the benchmark protocol change. For adoption decisions, use paired runs and the
-quality gates rather than cross-window rankings.
+The [b464 benchmark](benchmarks/2026-11-23-v0220-exact.md) compares historical production,
+pristine v0.2.20, and the opt-in gfx1100 exact subset. The candidate matched the frozen
+[0.1.65 reference](reference-0.1.65.json) at verified expert-cache residency and improved Chinese
+dual throughput by 6.34% over the paired control. For reproduction, use the four exact overrides
+and phase-specific cache budgets listed in the benchmark; the automatic-cache template is not
+qualified by this result and remains unchanged. Reuse the production and same-version stock
+measurements unless their identities or the protocol change. Use paired runs and quality gates
+for adoption decisions, not cross-window rankings.
 
 ## Rig and protocol
 
