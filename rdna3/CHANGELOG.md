@@ -1,5 +1,13 @@
 # 更新记录
 
+## CPU pool workers 9 vs 12 on the adopted profile (b478, 2026-11-24)
+
+- 9 vs 12 workers on the adopted profile: arms identical at all 26 frozen probes, but 9 workers lost on every lane (Chinese single -2.67%, Chinese dual -3.65%, code dual -2.56%); 12 kept. See the [b478 record](benchmarks/2026-11-24-v0220-pool9-adapted-b478.md).
+
+## CPU pool workers 16 vs 12 on the adopted profile (b479, 2026-11-24)
+
+- 16 vs 12 workers on the adopted profile: arms identical at all 26 frozen probes; Chinese single -3.27% (1/3); Chinese dual -2.26% (2/3); Code single -1.33% (1/3); Code dual -0.89% (1/3) — not adopted, 12 kept. See the [b479 record](benchmarks/2026-11-24-v0220-pool16-adapted-b479.md).
+
 ## RDNA hyper-connection read adopted under quality review (b477, 2026-11-24)
 
 - `STRATA_GR_RDNA=1` with `STRATA_GR_FUSED` absent is now part of the development template, together with the gfx1100 exact subset and `STRATA_EXPDEC=1`. Three pairs, each faster in all three: Chinese single +5.61%, Chinese dual +5.03%, code single +3.84%, code dual +4.69%; TTFT 4.5% to 6.6% lower. Code dual (239.46) is above the historical production figure (235.83); the other lanes remain 4.4% to 15.7% below.
