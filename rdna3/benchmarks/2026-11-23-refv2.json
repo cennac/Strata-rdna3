@@ -1,0 +1,31 @@
+{
+  "experiment": "b457 reference-v2 self-reproducibility + integration completion",
+  "binary_sha256": "0f4ae265aced8d61bb84fa71c41d493ade201f7c0013320ae853a854032c5026",
+  "engine_version": "0.1.65",
+  "anchor": "72744d1",
+  "self_repro": {
+    "passes": 2,
+    "probes": "26/26 tokens_equal + finish_equal",
+    "rolls": {
+      "zh-forced": 35,
+      "code-forced": 21
+    }
+  },
+  "reference_v2": "pinned to rdna3/reference-0.1.65.json (supersedes b442 reference; divergence attributed upstream by b456)",
+  "objective_passed": true,
+  "bonus_two_load_baseline_tps": {
+    "zh-n1": 120.7,
+    "zh-n2": 162.0,
+    "code-n1": 158.3,
+    "code-n2": 200.4
+  },
+  "completed": true,
+  "restored": true,
+  "production_after_sha256": "588549701c867dc5a4aafef8de48c1e77b3d2f0dff4fd8d6e3a71db72df50df2",
+  "windows_total_b455_b457": 10,
+  "next": [
+    "gfx11 default-table screens vs reference v2 (exact/WMMA/parallel)",
+    "rdna port capture fix + screen",
+    "dual-lane dip attribution if it survives pairing"
+  ]
+}

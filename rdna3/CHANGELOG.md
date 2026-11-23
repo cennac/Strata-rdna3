@@ -1,5 +1,11 @@
 # 更新记录
 
+## Reference v2 pinned on engine 0.1.65; dev/0.2.19 integration complete (2026-11-23)
+
+- b457 self-reproducibility window: TWO full validation passes (raw 14 + sample 12 each, four fresh loads) reproduced token-for-token on all 26 probes with identical forced rolls (zh 35 / code 21) — pass-1 pinned as reference v2 (rdna3/reference-0.1.65.json, 0.1.65/0f4ae265 provenance, supersedes the b442 reference whose divergence b456 attributed upstream). The dev/0.2.19 integration is complete: merged tree behaviorally == pristine upstream, self-reproducible, objective clean, restores verified.
+- Bonus two-load throughput baseline on 0.1.65 (pinned template): zh single 120.7 / dual 162.0, code single 158.3 / dual 200.4 tok/s medians — zh single at parity with 0.1.64, dual lanes 5-9% below (to be confirmed against the paired machinery in the screen rounds). All gates green before the reference pin; production restored+verified (58854970).
+- Next: the gfx11 default-table screens (exact -> WMMA -> parallel) run against reference v2; the rdna port capture fix follows. See the [b457 record](benchmarks/2026-11-23-refv2.md).
+
 ## Attribution closed: the 0.1.65 divergence is upstream's, the merge carry is output-neutral (2026-11-23)
 
 - Pristine upstream build (vendor c84f22a, zero carry, binary ce560089) vs the dev/0.2.19 merge (0f4ae265), same pins/config/seed: **zh-serial/zh-repeat/zh-pw2 byte-identical across arms** (96 tokens each), both diverging from the pinned reference at token 12 (98144 vs 97427). Predeclared verdict: upstream_source — a legitimate engine 0.1.65 numeric step; the fixed-zero graph/pool-queue carry is proven output-neutral.
