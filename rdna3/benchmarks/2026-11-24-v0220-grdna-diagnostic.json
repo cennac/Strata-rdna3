@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "report_date": "2026-11-24",
+  "release": "v0.2.20",
+  "engine_version": "0.1.66",
+  "role": "Record-only diagnostic of STRATA_GR_RDNA=1 with STRATA_GR_FUSED absent, on the b472 profile",
+  "status": "diagnostic_not_adoptable",
+  "adopted": false,
+  "engine_sha256": "40834ddf961f2273a84394277f353e3ccce572a9116d66966703aaa7f2f4767c",
+  "source_revision": "53b86299229dd9581e17cafa2d5e8b9721b78cbd",
+  "capture_finding": "With STRATA_GR_FUSED merely present the port allocates its fusion barrier inside the first graph capture; with the variable absent the upstream RDNA GR port loads and is captured.",
+  "expert_cache_budgets": {
+    "validation": 8624,
+    "objective": 8012,
+    "scored": 8013
+  },
+  "arm_order": [
+    "off",
+    "on",
+    "on",
+    "off",
+    "off",
+    "on"
+  ],
+  "quality": {
+    "off": {
+      "reference_passed": true,
+      "mismatched_probes": {},
+      "forced_rollbacks": {
+        "zh-forced": 35,
+        "code-forced": 21
+      },
+      "first_mismatch": {},
+      "objective_correct_ids": [
+        19,
+        23
+      ],
+      "validation_residency": {
+        "cuda0": 12905,
+        "cuda1": 9623
+      },
+      "rdna_gr_nodes": {
+        "0": 0,
+        "1": 0
+      }
+    },
+    "on": {
+      "reference_passed": false,
+      "mismatched_probes": {
+        "raw": 7
+      },
+      "forced_rollbacks": {
+        "zh-forced": 33,
+        "code-forced": 23
+      },
+      "first_mismatch": {
+        "raw": {
+          "zh-batch": 7,
+          "zh-forced": 7,
+          "zh-neutral-pw2": 21,
+          "zh-neutral-serial": 21,
+          "zh-pw2": 7,
+          "zh-repeat": 7,
+          "zh-serial": 7
+        }
+      },
+      "objective_correct_ids": [
+        19,
+        23
+      ],
+      "validation_residency": {
+        "cuda0": 12905,
+        "cuda1": 9623
+      },
+      "rdna_gr_nodes": {
+        "0": 416,
+        "1": 360
+      }
+    }
+  },
+  "objective_new_failures_vs_control": [],
+  "invalid_bursts": [
+    {
+      "pair": 3,
+      "mode": "on",
+      "workload": "zh-n2",
+      "tokens": [
+        1024,
+        806
+      ],
+      "finishes": [
+        "length",
+        "stop"
+      ]
+    }
+  ],
+  "diagnostic_speed": {
+    "zh-n1": {
+      "pairs": [
+        {
+          "pair": 1,
+          "complete": true,
+          "off_tps": 121.8,
+          "on_tps": 126.5,
+          "off_ttft_s": 0.28851574199507013,
+          "on_ttft_s": 0.27292098198086023
+        },
+        {
+          "pair": 2,
+          "complete": true,
+          "off_tps": 115.6,
+          "on_tps": 125.6,
+          "off_ttft_s": 0.2925216570147313,
+          "on_ttft_s": 0.27247315197018906
+        },
+        {
+          "pair": 3,
+          "complete": true,
+          "off_tps": 117.0,
+          "on_tps": 123.5,
+          "off_ttft_s": 0.2928131409571506,
+          "on_ttft_s": 0.27491918596206233
+        }
+      ],
+      "complete_pairs": 3,
+      "off_median_tps": 117.0,
+      "on_median_tps": 125.6,
+      "percent": 7.3504273504273465,
+      "off_median_ttft_s": 0.2925216570147313,
+      "on_median_ttft_s": 0.27292098198086023,
+      "ttft_percent": -6.700589362819043
+    },
+    "zh-n2": {
+      "pairs": [
+        {
+          "pair": 1,
+          "complete": true,
+          "off_tps": 172.92102022558527,
+          "on_tps": 177.0308729679245,
+          "off_ttft_s": 0.5879527525103185,
+          "on_ttft_s": 0.5498385679966304
+        },
+        {
+          "pair": 2,
+          "complete": true,
+          "off_tps": 176.14021237572652,
+          "on_tps": 180.67946434758497,
+          "off_ttft_s": 0.5957798684830777,
+          "on_ttft_s": 0.560906458995305
+        },
+        {
+          "pair": 3,
+          "complete": false,
+          "off_tps": 166.60287765451574,
+          "on_tps": null,
+          "off_ttft_s": 0.5899409854901023,
+          "on_ttft_s": null
+        }
+      ],
+      "complete_pairs": 2,
+      "off_median_tps": 174.53061630065588,
+      "on_median_tps": 178.85516865775475,
+      "percent": 2.4778187625540404,
+      "off_median_ttft_s": 0.5918663104966981,
+      "on_median_ttft_s": 0.5553725134959677,
+      "ttft_percent": -6.16588515911719
+    },
+    "code-n1": {
+      "pairs": [
+        {
+          "pair": 1,
+          "complete": true,
+          "off_tps": 158.9,
+          "on_tps": 163.8,
+          "off_ttft_s": 0.2733922339975834,
+          "on_ttft_s": 0.26028285699430853
+        },
+        {
+          "pair": 2,
+          "complete": true,
+          "off_tps": 159.6,
+          "on_tps": 170.0,
+          "off_ttft_s": 0.2648537349887192,
+          "on_ttft_s": 0.24783148895949125
+        },
+        {
+          "pair": 3,
+          "complete": true,
+          "off_tps": 158.4,
+          "on_tps": 168.4,
+          "off_ttft_s": 0.27599659899715334,
+          "on_ttft_s": 0.258928265015129
+        }
+      ],
+      "complete_pairs": 3,
+      "off_median_tps": 158.9,
+      "on_median_tps": 168.4,
+      "percent": 5.978602894902463,
+      "off_median_ttft_s": 0.2733922339975834,
+      "on_median_ttft_s": 0.258928265015129,
+      "ttft_percent": -5.290555906054828
+    },
+    "code-n2": {
+      "pairs": [
+        {
+          "pair": 1,
+          "complete": true,
+          "off_tps": 231.33722567294467,
+          "on_tps": 241.55286650579708,
+          "off_ttft_s": 0.5371578264748678,
+          "on_ttft_s": 0.5042359700019006
+        },
+        {
+          "pair": 2,
+          "complete": true,
+          "off_tps": 179.1090411123896,
+          "on_tps": 186.58506509477678,
+          "off_ttft_s": 0.5492090104962699,
+          "on_ttft_s": 0.517042171995854
+        },
+        {
+          "pair": 3,
+          "complete": true,
+          "off_tps": 228.96101296651202,
+          "on_tps": 242.47783011195196,
+          "off_ttft_s": 0.5407101250020787,
+          "on_ttft_s": 0.5044761189783458
+        }
+      ],
+      "complete_pairs": 3,
+      "off_median_tps": 228.96101296651202,
+      "on_median_tps": 241.55286650579708,
+      "percent": 5.499562294968863,
+      "off_median_ttft_s": 0.5407101250020787,
+      "on_median_ttft_s": 0.5044761189783458,
+      "ttft_percent": -6.701188742044295
+    }
+  },
+  "restoration": {
+    "production_restored": true,
+    "production_binary_digest_unchanged": true,
+    "source_unchanged": true,
+    "test_port_closed": true,
+    "recorded_fault_count": 0
+  }
+}

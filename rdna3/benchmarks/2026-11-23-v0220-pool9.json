@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "report_date": "2026-11-23",
+  "release": "v0.2.20",
+  "engine_version": "0.1.66",
+  "role": "Paired CPU pool worker count screen on the b472 profile",
+  "status": "passed_opt_in_with_tradeoff",
+  "engine_sha256": "40834ddf961f2273a84394277f353e3ccce572a9116d66966703aaa7f2f4767c",
+  "source_revision": "53b86299229dd9581e17cafa2d5e8b9721b78cbd",
+  "overrides": {
+    "STRATA_MMVF_ROWS": "1",
+    "STRATA_ATTN_LANECELL": "1",
+    "STRATA_ATTN_MERGE_V2": "1",
+    "STRATA_SMALL_UNR": "3",
+    "STRATA_EXPDEC": "1"
+  },
+  "pool_workers": {
+    "off": 12,
+    "on": 9
+  },
+  "host_physical_cores": 10,
+  "expert_cache_budgets": {
+    "validation": 8624,
+    "objective": 8012,
+    "scored": 8013
+  },
+  "arm_order": [
+    "off",
+    "on",
+    "on",
+    "off",
+    "off",
+    "on"
+  ],
+  "reversed_workload_order_pair": 2,
+  "scored_requests": 36,
+  "quality": {
+    "off": {
+      "reference_passed": true,
+      "forced_rollbacks": {
+        "zh-forced": 35,
+        "code-forced": 21
+      },
+      "objective_passed": true,
+      "objective_correct_ids": [
+        19,
+        23
+      ],
+      "worker_binding": {
+        "warned": true,
+        "unpinned": 3,
+        "pinned": [
+          [
+            "1-9",
+            "9"
+          ]
+        ]
+      },
+      "validation_residency": {
+        "cuda0": 12905,
+        "cuda1": 9623
+      }
+    },
+    "on": {
+      "reference_passed": true,
+      "forced_rollbacks": {
+        "zh-forced": 35,
+        "code-forced": 21
+      },
+      "objective_passed": true,
+      "objective_correct_ids": [
+        19,
+        23
+      ],
+      "worker_binding": {
+        "warned": false,
+        "unpinned": 0,
+        "pinned": [
+          [
+            "1-9",
+            "9"
+          ]
+        ]
+      },
+      "validation_residency": {
+        "cuda0": 12905,
+        "cuda1": 9623
+      }
+    }
+  },
+  "objective_new_failures_vs_control": [],
+  "scores": {
+    "workloads": {
+      "zh-n1": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off_tps": 118.2,
+            "on_tps": 119.0,
+            "off_ttft_s": 0.2906319990288466,
+            "on_ttft_s": 0.29316574498079717
+          },
+          {
+            "pair": 2,
+            "off_tps": 116.2,
+            "on_tps": 113.2,
+            "off_ttft_s": 0.2923371240030974,
+            "on_ttft_s": 0.29118317598477006
+          },
+          {
+            "pair": 3,
+            "off_tps": 113.9,
+            "on_tps": 119.1,
+            "off_ttft_s": 0.2927943160175346,
+            "on_ttft_s": 0.29265280097024515
+          }
+        ],
+        "arm_medians": {
+          "off_tps": 116.2,
+          "on_tps": 119.0,
+          "off_ttft_s": 0.2923371240030974,
+          "on_ttft_s": 0.29265280097024515
+        },
+        "metric": "predicted_per_second",
+        "median_tps_pct": 2.4096385542168752,
+        "median_ttft_pct": 0.1079838793051735,
+        "all_pairs_improved": false
+      },
+      "zh-n2": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off_tps": 160.24178244082077,
+            "on_tps": 174.69353482036706,
+            "off_ttft_s": 0.5886979219794739,
+            "on_ttft_s": 0.5871378199954052
+          },
+          {
+            "pair": 2,
+            "off_tps": 162.65384130535,
+            "on_tps": 164.5443134382709,
+            "off_ttft_s": 0.592155268008355,
+            "on_ttft_s": 0.5944811515219044
+          },
+          {
+            "pair": 3,
+            "off_tps": 159.89074330699094,
+            "on_tps": 163.34343215019103,
+            "off_ttft_s": 0.5878576860122848,
+            "on_ttft_s": 0.5874026195087936
+          }
+        ],
+        "arm_medians": {
+          "off_tps": 160.24178244082077,
+          "on_tps": 164.5443134382709,
+          "off_ttft_s": 0.5886979219794739,
+          "on_ttft_s": 0.5874026195087936
+        },
+        "metric": "total_tokens / batch_wall_s",
+        "median_tps_pct": 2.6850244249118527,
+        "median_ttft_pct": -0.22002837487941074,
+        "all_pairs_improved": true
+      },
+      "code-n1": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off_tps": 160.0,
+            "on_tps": 160.3,
+            "off_ttft_s": 0.27292286697775126,
+            "on_ttft_s": 0.2757706609554589
+          },
+          {
+            "pair": 2,
+            "off_tps": 155.0,
+            "on_tps": 160.0,
+            "off_ttft_s": 0.26418005500454456,
+            "on_ttft_s": 0.2621175950043835
+          },
+          {
+            "pair": 3,
+            "off_tps": 158.8,
+            "on_tps": 154.1,
+            "off_ttft_s": 0.27686941396677867,
+            "on_ttft_s": 0.27640541800064966
+          }
+        ],
+        "arm_medians": {
+          "off_tps": 158.8,
+          "on_tps": 160.0,
+          "off_ttft_s": 0.27292286697775126,
+          "on_ttft_s": 0.2757706609554589
+        },
+        "metric": "predicted_per_second",
+        "median_tps_pct": 0.7556675062972307,
+        "median_ttft_pct": 1.043442789987914,
+        "all_pairs_improved": false
+      },
+      "code-n2": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off_tps": 229.91825163527827,
+            "on_tps": 225.39136356037255,
+            "off_ttft_s": 0.5389928014774341,
+            "on_ttft_s": 0.5370195850264281
+          },
+          {
+            "pair": 2,
+            "off_tps": 178.5838317917935,
+            "on_tps": 179.03056487155126,
+            "off_ttft_s": 0.5531613955099601,
+            "on_ttft_s": 0.5510613085352816
+          },
+          {
+            "pair": 3,
+            "off_tps": 229.36608411178628,
+            "on_tps": 231.17104404871185,
+            "off_ttft_s": 0.5414683359849732,
+            "on_ttft_s": 0.5354621330043301
+          }
+        ],
+        "arm_medians": {
+          "off_tps": 229.36608411178628,
+          "on_tps": 225.39136356037255,
+          "off_ttft_s": 0.5414683359849732,
+          "on_ttft_s": 0.5370195850264281
+        },
+        "metric": "total_tokens / batch_wall_s",
+        "median_tps_pct": -1.7329155558485132,
+        "median_ttft_pct": -0.8216087004335182,
+        "all_pairs_improved": false
+      }
+    },
+    "qualifying_improvements": [
+      "zh-n2"
+    ],
+    "throughput_loss": [],
+    "ttft_regression": [],
+    "passed": true
+  },
+  "restoration": {
+    "production_restored": true,
+    "production_binary_digest_unchanged": true,
+    "source_unchanged": true,
+    "test_port_closed": true,
+    "recorded_fault_count": 0
+  }
+}

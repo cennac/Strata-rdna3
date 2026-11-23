@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "report_date": "2026-11-23",
+  "release": "v0.2.20",
+  "engine_version": "0.1.66",
+  "role": "Paired parallel batch-slot stack screen on the b472 profile",
+  "status": "rejected_no_qualifying_gain",
+  "adopted": false,
+  "engine_sha256": "40834ddf961f2273a84394277f353e3ccce572a9116d66966703aaa7f2f4767c",
+  "source_revision": "53b86299229dd9581e17cafa2d5e8b9721b78cbd",
+  "overrides": {
+    "off": {
+      "STRATA_MMVF_ROWS": "1",
+      "STRATA_ATTN_LANECELL": "1",
+      "STRATA_ATTN_MERGE_V2": "1",
+      "STRATA_SMALL_UNR": "3",
+      "STRATA_EXPDEC": "1"
+    },
+    "on": {
+      "STRATA_MMVF_ROWS": "1",
+      "STRATA_ATTN_LANECELL": "1",
+      "STRATA_ATTN_MERGE_V2": "1",
+      "STRATA_SMALL_UNR": "3",
+      "STRATA_EXPDEC": "1",
+      "STRATA_CKPT_POOL": "1",
+      "STRATA_CKPT_POOL_READY": "4",
+      "STRATA_SLOT_CKPT_MOVE": "1",
+      "STRATA_SLOT_COPY_BATCHSYNC": "1",
+      "STRATA_BATCH_GDN_GROUPS": "1",
+      "STRATA_BATCH_ATTN_ROWS": "1",
+      "STRATA_QSA_SLOTS": "1"
+    }
+  },
+  "excluded": {
+    "STRATA_BATCH_SELF_COMMIT": "disables pipelined MTP in this profile"
+  },
+  "expert_cache_budgets": {
+    "validation": 8624,
+    "objective": 8012,
+    "scored": 8013
+  },
+  "arm_order": [
+    "off",
+    "on",
+    "on",
+    "off",
+    "off",
+    "on"
+  ],
+  "reversed_workload_order_pair": 2,
+  "scored_requests": 36,
+  "quality": {
+    "off": {
+      "reference_passed": true,
+      "forced_rollbacks": {
+        "zh-forced": 35,
+        "code-forced": 21
+      },
+      "objective_passed": true,
+      "objective_correct_ids": [
+        19,
+        23
+      ],
+      "batch_window_nodes": {
+        "stage0": 1122,
+        "stage1": 963
+      },
+      "witness": {
+        "rows_lines": 0,
+        "attention_kept_per_row": false,
+        "pool_requests": 0,
+        "pool_served": 0,
+        "pool_fresh": 0
+      }
+    },
+    "on": {
+      "reference_passed": true,
+      "forced_rollbacks": {
+        "zh-forced": 35,
+        "code-forced": 21
+      },
+      "objective_passed": true,
+      "objective_correct_ids": [
+        19,
+        23
+      ],
+      "batch_window_nodes": {
+        "stage0": 1122,
+        "stage1": 963
+      },
+      "witness": {
+        "rows_lines": 2,
+        "attention_kept_per_row": true,
+        "pool_requests": 0,
+        "pool_served": 0,
+        "pool_fresh": 0
+      }
+    }
+  },
+  "objective_new_failures_vs_control": [],
+  "scores": {
+    "workloads": {
+      "zh-n1": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off_tps": 120.9,
+            "on_tps": 117.3,
+            "off_ttft_s": 0.2880062750191428,
+            "on_ttft_s": 0.29280405695317313
+          },
+          {
+            "pair": 2,
+            "off_tps": 115.8,
+            "on_tps": 119.4,
+            "off_ttft_s": 0.2921156150405295,
+            "on_ttft_s": 0.28861978702479973
+          },
+          {
+            "pair": 3,
+            "off_tps": 112.3,
+            "on_tps": 114.6,
+            "off_ttft_s": 0.29522595199523494,
+            "on_ttft_s": 0.29253854404669255
+          }
+        ],
+        "arm_medians": {
+          "off_tps": 115.8,
+          "on_tps": 117.3,
+          "off_ttft_s": 0.2921156150405295,
+          "on_ttft_s": 0.29253854404669255
+        },
+        "metric": "predicted_per_second",
+        "median_tps_pct": 1.2953367875647714,
+        "median_ttft_pct": 0.14478137572493388,
+        "all_pairs_improved": false
+      },
+      "zh-n2": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off_tps": 166.42939467920692,
+            "on_tps": 161.80841937424356,
+            "off_ttft_s": 0.5870322090340778,
+            "on_ttft_s": 0.5877440854965243
+          },
+          {
+            "pair": 2,
+            "off_tps": 164.38699405306684,
+            "on_tps": 165.37122243509612,
+            "off_ttft_s": 0.5905593245115597,
+            "on_ttft_s": 0.5893141664855648
+          },
+          {
+            "pair": 3,
+            "off_tps": 170.59510467855927,
+            "on_tps": 166.40273767864986,
+            "off_ttft_s": 0.5905113590124529,
+            "on_ttft_s": 0.5856485804833937
+          }
+        ],
+        "arm_medians": {
+          "off_tps": 166.42939467920692,
+          "on_tps": 165.37122243509612,
+          "off_ttft_s": 0.5905113590124529,
+          "on_ttft_s": 0.5877440854965243
+        },
+        "metric": "total_tokens / batch_wall_s",
+        "median_tps_pct": -0.6358085037504568,
+        "median_ttft_pct": -0.4686232489340081,
+        "all_pairs_improved": false
+      },
+      "code-n1": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off_tps": 157.5,
+            "on_tps": 158.4,
+            "off_ttft_s": 0.2730630310252309,
+            "on_ttft_s": 0.2760546179488301
+          },
+          {
+            "pair": 2,
+            "off_tps": 155.1,
+            "on_tps": 158.1,
+            "off_ttft_s": 0.26250489498488605,
+            "on_ttft_s": 0.2630804139771499
+          },
+          {
+            "pair": 3,
+            "off_tps": 159.8,
+            "on_tps": 157.4,
+            "off_ttft_s": 0.278062220022548,
+            "on_ttft_s": 0.27612440899247304
+          }
+        ],
+        "arm_medians": {
+          "off_tps": 157.5,
+          "on_tps": 158.1,
+          "off_ttft_s": 0.2730630310252309,
+          "on_ttft_s": 0.2760546179488301
+        },
+        "metric": "predicted_per_second",
+        "median_tps_pct": 0.3809523809523707,
+        "median_ttft_pct": 1.095566438403317,
+        "all_pairs_improved": false
+      },
+      "code-n2": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off_tps": 228.34558271006102,
+            "on_tps": 227.88533556507574,
+            "off_ttft_s": 0.5351899010420311,
+            "on_ttft_s": 0.5344774475088343
+          },
+          {
+            "pair": 2,
+            "off_tps": 178.48914935067202,
+            "on_tps": 179.23457974743212,
+            "off_ttft_s": 0.5469440424640197,
+            "on_ttft_s": 0.5446864665136673
+          },
+          {
+            "pair": 3,
+            "off_tps": 227.54817174364484,
+            "on_tps": 229.6459598824862,
+            "off_ttft_s": 0.5392465305048972,
+            "on_ttft_s": 0.5391383005189709
+          }
+        ],
+        "arm_medians": {
+          "off_tps": 227.54817174364484,
+          "on_tps": 227.88533556507574,
+          "off_ttft_s": 0.5392465305048972,
+          "on_ttft_s": 0.5391383005189709
+        },
+        "metric": "total_tokens / batch_wall_s",
+        "median_tps_pct": 0.14817250292422646,
+        "median_ttft_pct": -0.020070594765808636,
+        "all_pairs_improved": false
+      }
+    },
+    "qualifying_improvements": [],
+    "throughput_loss": [],
+    "ttft_regression": [],
+    "passed": false
+  },
+  "restoration": {
+    "production_restored": true,
+    "production_binary_digest_unchanged": true,
+    "source_unchanged": true,
+    "test_port_closed": true,
+    "recorded_fault_count": 0
+  }
+}

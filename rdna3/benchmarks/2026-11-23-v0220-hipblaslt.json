@@ -1,0 +1,256 @@
+{
+  "run": "b466",
+  "engine": "0.1.66",
+  "engine_sha256": "40834ddf961f2273a84394277f353e3ccce572a9116d66966703aaa7f2f4767c",
+  "source_revision": "53b86299229dd9581e17cafa2d5e8b9721b78cbd",
+  "tuning_sha256": "c5f0ae29587f9bb3c0c7caa0e8fa2de3901256c5ba3b2a5f682b8f970bf1b42e",
+  "quality_passed": false,
+  "formal_scoring_started": false,
+  "scores_eligible": false,
+  "adopted": false,
+  "restored": true,
+  "source_unchanged": true,
+  "production_binary_unchanged": true,
+  "candidate_port_closed": true,
+  "fault_count": 0,
+  "short_validation": {
+    "off": {
+      "reference_passed": true,
+      "forced_rollbacks": {
+        "zh-forced": 35,
+        "code-forced": 21
+      },
+      "objective_passed": true,
+      "objective_correct_ids": [
+        19,
+        23
+      ]
+    },
+    "on": {
+      "reference_passed": true,
+      "forced_rollbacks": {
+        "zh-forced": 35,
+        "code-forced": 21
+      },
+      "objective_passed": true,
+      "objective_correct_ids": [
+        19,
+        23
+      ]
+    }
+  },
+  "long_probes": {
+    "8192": {
+      "off": {
+        "residency": {
+          "cuda0": 12905,
+          "cuda1": 9623
+        },
+        "table_loaded": false,
+        "launches": 0,
+        "fallbacks": 0,
+        "diagnostic_median_prompt_ms": 4338.35,
+        "diagnostic_prefill_tps": 1888.2754964445007,
+        "requests": {
+          "serial": {
+            "fresh": 8192,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 8191,
+            "prompt_ms": 4834.6,
+            "rollbacks": 0
+          },
+          "repeat": {
+            "fresh": 8192,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 8191,
+            "prompt_ms": 4323.2,
+            "rollbacks": 0
+          },
+          "pw2": {
+            "fresh": 8192,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 8191,
+            "prompt_ms": 4323.5,
+            "rollbacks": 33
+          },
+          "forced": {
+            "fresh": 8192,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 8191,
+            "prompt_ms": 4353.2,
+            "rollbacks": 36
+          }
+        }
+      },
+      "on": {
+        "residency": {
+          "cuda0": 12905,
+          "cuda1": 9623
+        },
+        "table_loaded": true,
+        "launches": 776,
+        "fallbacks": 0,
+        "diagnostic_median_prompt_ms": 4167.200000000001,
+        "diagnostic_prefill_tps": 1965.8283739681317,
+        "requests": {
+          "serial": {
+            "fresh": 8192,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 8191,
+            "prompt_ms": 4357.7,
+            "rollbacks": 0
+          },
+          "repeat": {
+            "fresh": 8192,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 8191,
+            "prompt_ms": 4155.4,
+            "rollbacks": 0
+          },
+          "pw2": {
+            "fresh": 8192,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 8191,
+            "prompt_ms": 4155.8,
+            "rollbacks": 26
+          },
+          "forced": {
+            "fresh": 8192,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 8191,
+            "prompt_ms": 4178.6,
+            "rollbacks": 28
+          }
+        }
+      },
+      "first_mismatch_1_based": {
+        "serial": 31,
+        "repeat": 31,
+        "pw2": 31,
+        "forced": 31
+      }
+    },
+    "16384": {
+      "off": {
+        "residency": {
+          "cuda0": 12905,
+          "cuda1": 9623
+        },
+        "table_loaded": false,
+        "launches": 0,
+        "fallbacks": 0,
+        "diagnostic_median_prompt_ms": 7381.299999999999,
+        "diagnostic_prefill_tps": 2219.6632029588286,
+        "requests": {
+          "serial": {
+            "fresh": 16384,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 16383,
+            "prompt_ms": 7462.1,
+            "rollbacks": 0
+          },
+          "repeat": {
+            "fresh": 16384,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 16383,
+            "prompt_ms": 7382.7,
+            "rollbacks": 0
+          },
+          "pw2": {
+            "fresh": 16384,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 16383,
+            "prompt_ms": 7368.4,
+            "rollbacks": 27
+          },
+          "forced": {
+            "fresh": 16384,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 16383,
+            "prompt_ms": 7379.9,
+            "rollbacks": 31
+          }
+        }
+      },
+      "on": {
+        "residency": {
+          "cuda0": 12905,
+          "cuda1": 9623
+        },
+        "table_loaded": true,
+        "launches": 776,
+        "fallbacks": 0,
+        "diagnostic_median_prompt_ms": 6997.0,
+        "diagnostic_prefill_tps": 2341.574960697442,
+        "requests": {
+          "serial": {
+            "fresh": 16384,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 16383,
+            "prompt_ms": 7034.2,
+            "rollbacks": 0
+          },
+          "repeat": {
+            "fresh": 16384,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 16383,
+            "prompt_ms": 6967.3,
+            "rollbacks": 0
+          },
+          "pw2": {
+            "fresh": 16384,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 16383,
+            "prompt_ms": 6991.5,
+            "rollbacks": 27
+          },
+          "forced": {
+            "fresh": 16384,
+            "reused": 0,
+            "output_tokens": 96,
+            "finish": "length",
+            "chunk": 16383,
+            "prompt_ms": 7002.5,
+            "rollbacks": 30
+          }
+        }
+      },
+      "first_mismatch_1_based": {
+        "serial": 1,
+        "repeat": 1,
+        "pw2": 1,
+        "forced": 1
+      }
+    }
+  }
+}

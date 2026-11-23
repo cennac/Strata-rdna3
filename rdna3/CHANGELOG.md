@@ -1,5 +1,38 @@
 # 更新记录
 
+## RDNA hyper-connection read adopted under quality review (b477, 2026-11-24)
+
+- `STRATA_GR_RDNA=1` with `STRATA_GR_FUSED` absent is now part of the development template, together with the gfx1100 exact subset and `STRATA_EXPDEC=1`. Three pairs, each faster in all three: Chinese single +5.61%, Chinese dual +5.03%, code single +3.84%, code dual +4.69%; TTFT 4.5% to 6.6% lower. Code dual (239.46) is above the historical production figure (235.83); the other lanes remain 4.4% to 15.7% below.
+- The change alters the summation order, so it was gated by a declared review instead of token identity: the control still matches the frozen reference, the candidate differs only on the 7 raw Chinese greedy probes, sampled and code probes and the objective suite agree, and the scored texts show no degeneration. Production restoration was verified; no deployment or `main` change. See the [b477 record](benchmarks/2026-11-24-v0220-grdna-adoption.md).
+
+
+
+- The upstream RDNA GR port aborted at the first graph capture only because `STRATA_GR_FUSED` was present in the environment (it allocates the fusion barrier during capture even when set to 0). With the variable absent and `STRATA_GR_RDNA=1` the kernels run on gfx1100.
+- Diagnostic, not adopted: Chinese single +7.35%, code single +5.98% and code dual +5.50% in three pairs, Chinese dual +2.48% in the two complete pairs (one 806-token natural stop). The kernel changes the summation order: 7 of 14 raw Chinese greedy probes differ from the frozen reference (first difference at token 7 or 21), while all sampled and code probes, and the objective suite, are unchanged. See the [b476 record](benchmarks/2026-11-24-v0220-grdna-diagnostic.md).
+
+## CPU pool workers: 9 instead of 12 (b475, 2026-11-23)
+
+- With `--pool-workers 9` every worker is pinned to its own physical core and the engine's oversubscription warning disappears. All 26 reference probes and the 35/21 forced rollbacks held. Three pairs: Chinese dual +2.69% (faster in all three), Chinese single +2.41%, code single +0.76%, code dual -1.73% (within the 2% guardrail). Meets the adoption rule with a trade-off: about 2.5% on the Chinese lanes for a little code-dual throughput.
+- Recorded as an opt-in choice; the automatic-cache template is unchanged. Production restoration was verified. See the [b475 benchmark](benchmarks/2026-11-23-v0220-pool9.md).
+
+## Parallel batch-slot stack is neutral on this profile (b474, 2026-11-23)
+
+- Seven parallel-stack switches (checkpoint pool, slot checkpoint move and batch-synced copy, batch GDN groups, batch attention rows, QSA slots) kept the 26 reference probes but moved every lane by less than 1.3%. Under KV streaming the engine keeps one attention launch per row, so the row merge is inactive here. `STRATA_BATCH_SELF_COMMIT` was excluded because it disables pipelined MTP. Not adopted; the gfx1100 default tables are now exhausted for this profile. See the [b474 record](benchmarks/2026-11-23-v0220-parallel.md).
+
+## STRATA_GDN_SPLIT rejected on the exact + EXPDEC profile (b473, 2026-11-23)
+
+- The switch kept all 26 reference probes and the 35/21 forced rollbacks, but lost median throughput on Chinese dual (-6.70%), code single (-2.32%) and code dual (-2.43%); Chinese single was flat (+0.34%). Not adopted; the profile stays at the b472 configuration. Production restoration was verified. See the [b473 record](benchmarks/2026-11-23-v0220-gdnsplit.md).
+
+## STRATA_EXPDEC adopted on the exact profile (b472, 2026-11-23)
+
+- Adding `STRATA_EXPDEC=1` to the four exact overrides kept all 26 reference probes and the 35/21 forced rollbacks, with no new objective failures. Three pairs: Chinese single +2.92% and Chinese dual +3.55%, each faster in all three pairs; code lanes within 1%. TTFT changes stayed within 0.7%.
+- Recorded as an opt-in development profile only. Production restoration was verified; no deployment or `main` change. See the [b472 benchmark](benchmarks/2026-11-23-v0220-expdec.md).
+
+## gfx1100 hipBLASLt long-prefill screen (b466, 2026-11-23)
+
+- At matched expert residency, the 100401 hipBLASLt table improved diagnostic prefill rates by 4.1% at 8,192 fresh tokens and 5.5% at 16,384. Actual table dispatch was observed, but all long token streams differed across arms despite the short reference and objective checks passing. The output-preservation gate blocked formal scoring and adoption.
+- No profile change. Production restoration was verified. See the [b466 benchmark](benchmarks/2026-11-23-v0220-hipblaslt.md).
+
 ## v0.2.20 integration and gfx1100 exact subset (b459–b464, 2026-11-23)
 
 - Integrated upstream engine 0.1.66. Automatic expert-cache sizing missed the frozen 0.1.65 reference; matching actual residency restored all 26 token and finish comparisons and the 35/21 forced rollback counts. The standalone development baseline did not score because one Chinese dual request stopped at 713 tokens.

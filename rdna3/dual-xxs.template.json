@@ -98,7 +98,7 @@
     "STRATA_HEAD_MIX_MULTI": "1",
     "STRATA_ONE_TOKEN_COMMIT": "0",
     "STRATA_AUX_CPUS": "auto",
-    "STRATA_GR_RDNA": "0",
+    "STRATA_GR_RDNA": "1",
     "STRATA_GR_RDNA_Q8": "1",
     "STRATA_RDNA_Q6K": "1",
     "STRATA_GR_RDNA_A8": "1",
@@ -113,7 +113,6 @@
     "STRATA_GR_INJ_UP": "1",
     "STRATA_STAGER_RING": "64",
     "STRATA_PREFILL_CPU_SHARE_MAX": "1024",
-    "STRATA_GR_FUSED": "0",
     "STRATA_GDN_HEAD": "1",
     "STRATA_GDN_CHUNK_GDV": "0",
     "STRATA_PA_KLDS": "1",
@@ -150,6 +149,11 @@
     "STRATA_GR_V3": "0",
     "STRATA_LAB_RDNA_GR": "1",
     "STRATA_LAB_RDNA_ZERO_PCIE_GRAPH": "1",
+    "STRATA_MMVF_ROWS": "1",
+    "STRATA_ATTN_LANECELL": "1",
+    "STRATA_ATTN_MERGE_V2": "1",
+    "STRATA_SMALL_UNR": "3",
+    "STRATA_EXPDEC": "1",
     "STRATA_GFX11_DEFAULTS": "0"
   },
   "lib_dirs": [
@@ -166,12 +170,12 @@
   "max_active_requests": 2,
   "deployment": {
     "framework": "Strata",
-    "version": "0.2.20-rdna3.1",
+    "version": "0.2.20-rdna3.2",
     "engine_version": "0.1.66",
-    "optimization": "RDNA3 penalty pipeline + BF16 HC + SH stream + aux auto + pool12 + fixed-zero PCIe graph",
-    "revision": "v0220-shstream-aux-pool12-zero-pcie",
+    "optimization": "RDNA3 penalty pipeline + RDNA GR read + gfx1100 exact subset + EXPDEC + SH stream + aux auto + pool12 + fixed-zero PCIe graph",
+    "revision": "v0220-shstream-aux-pool12-zero-pcie-exact-expdec-rdnagr",
     "weights_variant": "GSQ-RCO IQ3_XXS",
     "upstream_version": "0.2.20",
-    "rdna3_revision": 1
+    "rdna3_revision": 2
   }
 }

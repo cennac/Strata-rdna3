@@ -5,14 +5,22 @@ is to match the production baseline — `main`, v0.1.43-rdna3.1, engine 0.1.43 �
 service speed and correctness before merging. Experimental runs use an isolated maintenance
 window and verify production restoration afterward.
 
-The [b464 benchmark](benchmarks/2026-11-23-v0220-exact.md) compares historical production,
-pristine v0.2.20, and the opt-in gfx1100 exact subset. The candidate matched the frozen
-[0.1.65 reference](reference-0.1.65.json) at verified expert-cache residency and improved Chinese
-dual throughput by 6.34% over the paired control. For reproduction, use the four exact overrides
-and phase-specific cache budgets listed in the benchmark; the automatic-cache template is not
-qualified by this result and remains unchanged. Reuse the production and same-version stock
-measurements unless their identities or the protocol change. Use paired runs and quality gates
-for adoption decisions, not cross-window rankings.
+The current development profile is the template below: the earlier optimization set plus the gfx1100 exact
+subset, `STRATA_EXPDEC=1` and the RDNA hyper-connection read (`STRATA_GR_RDNA=1`, with `STRATA_GR_FUSED` absent).
+The [b477 adoption record](benchmarks/2026-11-24-v0220-grdna-adoption.md) holds the latest three-way numbers:
+historical production 0.1.43, pristine v0.2.20 and this profile. Reuse the production and same-version stock
+measurements unless their identities or the protocol change, and use paired runs for adoption decisions, not
+cross-window rankings.
+
+Adoption gates so far: the exact subset ([b464](benchmarks/2026-11-23-v0220-exact.md)), `STRATA_EXPDEC`
+([b472](benchmarks/2026-11-23-v0220-expdec.md)) and the 9-worker option
+([b475](benchmarks/2026-11-23-v0220-pool9.md)) were output-identical to the frozen
+[0.1.65 reference](reference-0.1.65.json). The RDNA read changes the summation order and was adopted under a
+declared quality review ([b476 diagnostic](benchmarks/2026-11-24-v0220-grdna-diagnostic.md),
+[b477](benchmarks/2026-11-24-v0220-grdna-adoption.md)): the control still matches the reference, the candidate
+differs only on the raw Chinese greedy probes, sampled and code probes and the objective suite agree, and the
+scored texts show no degeneration. Measurements control expert residency with explicit phase-specific cache
+budgets; the template leaves sizing to the engine.
 
 ## Rig and protocol
 
@@ -41,7 +49,7 @@ campaign "official" arms had been measuring an upstream 0.1.62 package since 11-
 Dev trails production by ~11–14% on single lanes; the remaining work is the documented
 structural per-window gap.
 
-## Adopted (template revision `shstream-aux-pool12-zero-pcie`)
+## Adopted (template revision `shstream-aux-pool12-zero-pcie-exact-expdec-rdnagr`)
 
 1. **Penalty-history pipelining** — `STRATA_HYBRID_PENALTIES=1` + `STRATA_PW_WITH_BATCH=1`
    (round 1; the largest single win over stock v0.2.16).
@@ -56,6 +64,15 @@ structural per-window gap.
    template with `--pcie-frac 0`. Three fresh-load pairs improved throughput medians by
    +3.7% / +7.1% / +4.6% / +1.2% in the same workload order. The engine-wide default stays
    off. See the [paired results and validation scope](benchmarks/2026-11-20-zero-pcie-graph.md).
+7. **gfx1100 exact subset** - `STRATA_MMVF_ROWS=1`, `STRATA_ATTN_LANECELL=1`, `STRATA_ATTN_MERGE_V2=1`,
+   `STRATA_SMALL_UNR=3`, with `STRATA_GFX11_DEFAULTS=0` kept (b464: Chinese dual +6.34% in three pairs,
+   reference parity).
+8. **Expert gate/up decode kernel** - `STRATA_EXPDEC=1` (b472: Chinese single +2.92%, dual +3.55%,
+   reference parity).
+9. **RDNA hyper-connection read** - `STRATA_GR_RDNA=1`. Never set `STRATA_GR_FUSED`, not even to 0: the
+   upstream port allocates its fusion barrier whenever the variable is present, which aborts the first
+   graph capture (b476). Adopted under the quality review after b477: +5.61% / +5.03% / +3.84% / +4.69% in
+   the Chinese single/dual, code single/dual order, each faster in three pairs.
 
 ## Validated but not enabled by default
 
@@ -67,8 +84,20 @@ quantize kernel (`STRATA_LAB_RDNA_GR_Q32`, round 24), the draft-layer HC fusion 
 (`STRATA_LAB_RDNA_COMBINE_CPU`, rounds 26–27: no overall gain — recovering one legacy path
 is not the same as recovering the legacy engine's speed).
 
+The [b475 screen](benchmarks/2026-11-23-v0220-pool9.md) compares 12 and 9 CPU pool workers on that profile:
+9 workers keep exact reference parity and gain 2.69% on Chinese dual in all three pairs, at -1.73% on code
+dual — an opt-in trade-off, not a uniform win.
+
 ## Kept negative results
 
+- `--pool-workers 9` versus 12 on the same profile: within 1.7% on code dual, +2.69% Chinese dual — adopted
+  only as an opt-in choice ([2026-11-23 record](benchmarks/2026-11-23-v0220-pool9.md)).
+- The gfx1100 parallel batch-slot stack (seven switches) on the exact + EXPDEC profile: output-identical, every
+  lane within 1.3% — neutral, not adopted; KV streaming keeps one attention launch per row here
+  ([2026-11-23 record](benchmarks/2026-11-23-v0220-parallel.md)).
+- `STRATA_GDN_SPLIT=1` on the exact + EXPDEC profile: output-identical on the 26-probe reference, but
+  Chinese dual -6.70%, code single -2.32%, code dual -2.43% in three pairs — rejected
+  ([2026-11-23 record](benchmarks/2026-11-23-v0220-gdnsplit.md)).
 - `STRATA_LOOKAHEAD=0` (routing prefetch worker off): Chinese dual +8.03% in every pair but
   code single −2.17% in every pair — not a clear all-lane win, so the look-ahead stays on
   ([2026-11-20 screen](benchmarks/2026-11-20-lookahead-off.md)).
