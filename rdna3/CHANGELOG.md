@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.2.19 stock baseline and three-way throughput comparison (b458, 2026-11-23)
+
+- The pristine upstream 0.1.65 build completed two fresh loads using upstream tuning defaults, without compatibility overrides. Medians were 63.4 / 112.6 / 79.7 / 106.5 tok/s for Chinese single/dual and code single/dual. The optimized b457 build gained 44–99% against stock but remained 13–19% below the historical production 0.1.43 baseline. Production restoration was verified; no runtime configuration changed.
+- Keep the three series in future optimization summaries. Reuse the production and same-version stock baselines while their identities and the measurement protocol remain unchanged. See the [b458 benchmark](benchmarks/2026-11-23-stock-vs-optimized.md).
+
 ## Reference v2 pinned on engine 0.1.65; dev/0.2.19 integration complete (2026-11-23)
 
 - b457 self-reproducibility window: TWO full validation passes (raw 14 + sample 12 each, four fresh loads) reproduced token-for-token on all 26 probes with identical forced rolls (zh 35 / code 21) — pass-1 pinned as reference v2 (rdna3/reference-0.1.65.json, 0.1.65/0f4ae265 provenance, supersedes the b442 reference whose divergence b456 attributed upstream). The dev/0.2.19 integration is complete: merged tree behaviorally == pristine upstream, self-reproducible, objective clean, restores verified.

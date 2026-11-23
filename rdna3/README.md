@@ -1,11 +1,16 @@
-# rdna3 — dev/0.2.18 optimization campaign (upstream v0.2.18, engine 0.1.64; records from 2026-11-19)
+# rdna3 — dev/0.2.19 optimization campaign (upstream v0.2.19, engine 0.1.65)
 
-Development records for the `dev/0.2.18` branch (upstream v0.2.18, engine 0.1.64, merged on top of the validated `dev/0.2.17` line — upstream 0.2.18 is almost purely additive, adding the Tencent Hy4-Flash model family without touching the Qwen3.8 decode path) on the
-dual RX 7900 XTX rig. The goal is set in [DEVELOPMENT.md](DEVELOPMENT.md): match the
-production baseline — `main`, v0.1.43-rdna3.1, engine 0.1.43 — in measured service speed and
-correctness before anything merges. Production keeps serving from `main` throughout; every
-campaign runs its arms interleaved against a same-build control, then restores production and
-audits it (service active, config hash unchanged, test port closed, AER counters unchanged).
+Development records for the dual RX 7900 XTX rig. The goal in [DEVELOPMENT.md](DEVELOPMENT.md)
+is to match the production baseline — `main`, v0.1.43-rdna3.1, engine 0.1.43 — in measured
+service speed and correctness before merging. Experimental runs use an isolated maintenance
+window and verify production restoration afterward.
+
+The current development baseline passed the 26-probe [b457 reproducibility check](benchmarks/2026-11-23-refv2.md).
+The [b458 three-way comparison](benchmarks/2026-11-23-stock-vs-optimized.md) supplies the current
+throughput numbers: production 0.1.43, pristine upstream v0.2.19, and optimized dev/0.2.19.
+Reuse the production and same-version stock measurements in later summaries unless their
+identities or the benchmark protocol change. For adoption decisions, use paired runs and the
+quality gates rather than cross-window rankings.
 
 ## Rig and protocol
 
