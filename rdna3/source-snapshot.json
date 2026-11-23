@@ -1,34 +1,27 @@
 {
   "upstream": "https://github.com/Niko1221/Strata",
-  "tag": "v0.2.19",
-  "engine_version": "0.1.65",
-  "archive_sha256": "b24ec9b057e510a5cedb582bfe2a9f6d440dc6311ba5451082949307b8ba81b9",
-  "archive_note": "fetched via api.github.com tarball (codeload/github-web unreachable); tar-gz of the v0.2.19 tag tree",
-  "vendor_import_commit": "c84f22a",
+  "tag": "v0.2.20",
+  "upstream_commit": "a34979fc94f3d126b9bb8210f4ad311345688b52",
+  "engine_version": "0.1.66",
+  "archive_sha256": "af4b53687753cd3257b6dc6cb18f9bb0fdca6401dbaf77ca7fb41fc408b2036f",
+  "archive_note": "GitHub API tarball pinned to the v0.2.20 tag commit",
+  "vendor_import_commit": "7bec2fa5e75b3036caf99f21377a5bbb0acb2e17",
   "local_changes": [
     {
       "path": "engine/CMakeLists.txt",
-      "sha256": "54237404d8b3defe955e2b8b9bdf42b4d111a02beff13e88843fa43755ba6f15"
-    },
-    {
-      "path": "engine/cmake/backends/cpu.cmake",
-      "sha256": "2cebe2f079f43731c9bfc33a2cf64865dc88bb1eae265fc3959ef68884fb001a"
+      "sha256": "6269affaba9ec468116651ccd322a150bc41cb2dfeb7cfe7b229d817d4f2bd8c"
     },
     {
       "path": "engine/cmake/strata_gpu_engine.cmake",
-      "sha256": "40ea47c1ad24c60dcb5d50ada21768a706e5176be96d2287909988382807cdec"
+      "sha256": "513fa1578311c4c1372100a20169595629fa304106afad3a381541566db58b78"
     },
     {
       "path": "engine/include/strata/core/expert_source.hpp",
-      "sha256": "01e240b61261233341b0cf2803b291ebdcf592ff2dbb155f42400685b7a87e47"
+      "sha256": "18e4eff1a4b61dac33e44cebf4070e132e17b33e6f79cdc68a688020ddd839f7"
     },
     {
       "path": "engine/include/strata/core/verify.hpp",
-      "sha256": "abf95a3511f4ee20b00aa558192bb1968e65cca7bb499fe9d9be16e91074cbe8"
-    },
-    {
-      "path": "engine/include/strata/core/zero_pcie_plan.hpp",
-      "sha256": "8120c1dae9eafb4ffa5a3461e3b1a52adcc5f94cc05b7b3712ac8fb20b914557"
+      "sha256": "f300e62e565dca88f5a9b815fa881eb218cc2245da8a278054b825fe80e9cf63"
     },
     {
       "path": "engine/include/strata/kernels/native_moe.hpp",
@@ -43,28 +36,20 @@
       "sha256": "58059a20bc9ca4c503121ff5d78dddcee3a5ded89ce208890ec5b367fa37d16e"
     },
     {
-      "path": "engine/include/strata/kernels/rdna_kquant_lab.hpp",
-      "sha256": "e6b2641322b70b89f8e9f3ae7e29bc4fbc68ce0b94b61a78b6f829fb4d66a34e"
-    },
-    {
       "path": "engine/src/core/expert_source.cpp",
-      "sha256": "97f038522b908618c6234b3afe9122d9dadd035adc146e36d86dd990645aa6e6"
+      "sha256": "f241ae63fa03a8c3fa5b9a3fd7d85a439691a6bdf295f824ef663f96d324e53e"
     },
     {
       "path": "engine/src/core/mtp.cpp",
-      "sha256": "7b4d3976a29111bee9047ab2929bcd9ab9b902468e2221a82480041077c989e8"
+      "sha256": "b68d19a6f5e44c23bb13e055641e0a0ed2bfe359c3157a267d2a8e4a2a8085e4"
     },
     {
       "path": "engine/src/core/verify.cpp",
-      "sha256": "cbf042d920efc17c6c0afeebd7cced206f775032325221c706dd45e26f21a24b"
-    },
-    {
-      "path": "engine/src/kernels/cuda/fused_gr.cu",
-      "sha256": "0ce88eb94f95525f8dab4238c68eaa21cd10e3c31847476e61c09710ca682862"
+      "sha256": "c69fb61aaa76e94ec04e1b12a1d0dd61d5a9e2cbf0e8f105ad9e5e6ff07d1c99"
     },
     {
       "path": "engine/src/kernels/cuda/native_mmvq.cu",
-      "sha256": "d3e4843bfeeb0faffa54bb045806a3bbb880b545a497bacb7c07511da0781a39"
+      "sha256": "90836b86ab9e25439a17bcd252f57d72a4fd8dc248eeea34c6e2ad3830cd72ad"
     },
     {
       "path": "engine/src/kernels/cuda/native_moe.cu",
@@ -79,16 +64,8 @@
       "sha256": "3d002dc1ca4b554c3b6a166167089b43743714094f520c9eab06d89bc6285e20"
     },
     {
-      "path": "engine/src/kernels/cuda/rdna_gr_local.cu",
-      "sha256": "213c9c5b9999d8b366ee1c8ace61f5095753bbc437b517a2ebc8f04633754b23"
-    },
-    {
-      "path": "engine/src/kernels/cuda/rdna_kquant_lab.cu",
-      "sha256": "0faf6d784ced0931b06e9dd4dbff1d540d617c93634ba476fa976ea3c2db3f45"
-    },
-    {
       "path": "engine/src/kernels/cuda/shared_expert.cu",
-      "sha256": "3d5d39a233a7dfd063c0ae7bdf23972905daa2b67e97ccf7ab374cdc5a669eb7"
+      "sha256": "4dc1ee766d055ebba51eebf18b5ec1e16cdca971a83ad599395e36ebc0815e6c"
     },
     {
       "path": "engine/src/kernels/rdna_cpu_combine_probe.cpp",
@@ -99,31 +76,16 @@
       "sha256": "2884fd42ab17761ce56f3a64e0e088e831329ab798ec678fad4d3dfa800bf1d3"
     },
     {
-      "path": "engine/src/kernels/rdna_kquant_probe.cpp",
-      "sha256": "6c476d171eebb8fda4ef1ceb93a1bbc27cd3cb12f1166f6ddb77bcc222290e5c"
-    },
-    {
       "path": "engine/src/kernels/rdna_mmvq_probe.cpp",
       "sha256": "de447b90c8ca9a07be1fab88d6453d3bdda91f3526fec7f5550517c499824ed0"
     },
     {
       "path": "engine/src/program/generate.cpp",
-      "sha256": "70a4224f39db2fc74d115dfba7aac6333a66c62e4c44dbc6bc45caa62b7af8e6"
-    },
-    {
-      "path": "engine/tests/core/zero_pcie_plan_test.cpp",
-      "sha256": "8ad465688a2b476d0f98296edc2a1176abc9c0aeab18a7793d1f8442bf9b5fe7"
+      "sha256": "f15df2b2d7e6b70e16c08360f8797cf786dd9d5ef2da1f65ff2ad3d3e0008790"
     },
     {
       "path": "engine/tests/hip/ple_history_snap_test.cpp",
       "sha256": "bb866a31fe709bce5befcb8bc4fe02de7b743db7a35fea59b6067e55e210c092"
     }
-  ],
-  "release_version": "0.2.18-rdna3.1",
-  "baseline_pinned_env": {
-    "STRATA_POOL_DEP": "0 (screened mixed on 0.1.63; upstream default on since 0.1.63)",
-    "STRATA_SPLIT_CPU_SHARE": "0 (HIP-inert; kept for CUDA symmetry)",
-    "STRATA_MTP_STAGE0": "0 (placement rejected: capacity-coupled and not output-preserving even at equal pinned cache)"
-  },
-  "merge_note": "dev/0.2.19 = vendor c84f22a + fork carry (pool queue, PLE-snap test, 3 probes, fixed-zero verifier graph via set_fixed_zero_pcie); upstream ports supersede rdna_gr_local/rdna_kquant_lab/zero_pcie_plan (dropped); STRATA_GFX11_DEFAULTS=0 pins the three new gfx1100 default tables for a bitwise-equivalent integration"
+  ]
 }

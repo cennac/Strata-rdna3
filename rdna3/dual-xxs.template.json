@@ -166,12 +166,12 @@
   "max_active_requests": 2,
   "deployment": {
     "framework": "Strata",
-    "version": "0.2.19-rdna3.1",
-    "engine_version": "0.1.65",
+    "version": "0.2.20-rdna3.1",
+    "engine_version": "0.1.66",
     "optimization": "RDNA3 penalty pipeline + BF16 HC + SH stream + aux auto + pool12 + fixed-zero PCIe graph",
-    "revision": "v0218-shstream-aux-pool12-zero-pcie",
+    "revision": "v0220-shstream-aux-pool12-zero-pcie",
     "weights_variant": "GSQ-RCO IQ3_XXS",
-    "upstream_version": "0.2.19",
+    "upstream_version": "0.2.20",
     "rdna3_revision": 1
   }
 }
