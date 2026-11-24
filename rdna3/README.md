@@ -12,6 +12,9 @@ historical production 0.1.43, pristine v0.2.20 and this profile. Reuse the produ
 measurements unless their identities or the protocol change, and use paired runs for adoption decisions, not
 cross-window rankings.
 
+The [v0.2.20 campaign summary](benchmarks/2026-11-24-v0220-summary.md) lists every screen of this line with its
+verdict, including the single-card stock comparison.
+
 Adoption gates so far: the exact subset ([b464](benchmarks/2026-11-23-v0220-exact.md)), `STRATA_EXPDEC`
 ([b472](benchmarks/2026-11-23-v0220-expdec.md)) and the 9-worker option
 ([b475](benchmarks/2026-11-23-v0220-pool9.md)) were output-identical to the frozen

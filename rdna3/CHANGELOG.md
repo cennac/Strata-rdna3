@@ -4,6 +4,10 @@
 
 - 9 vs 12 workers on the adopted profile: arms identical at all 26 frozen probes, but 9 workers lost on every lane (Chinese single -2.67%, Chinese dual -3.65%, code dual -2.56%); 12 kept. See the [b478 record](benchmarks/2026-11-24-v0220-pool9-adapted-b478.md).
 
+## v0.2.20 campaign summary (2026-11-24)
+
+- One page for the whole line: adopted changes with their paired gains, the three-way numbers, the findings worth keeping and what remains. See the [summary](benchmarks/2026-11-24-v0220-summary.md).
+
 ## CPU pool workers 16 vs 12 on the adopted profile (b479, 2026-11-24)
 
 - 16 vs 12 workers on the adopted profile: arms identical at all 26 frozen probes; Chinese single -3.27% (1/3); Chinese dual -2.26% (2/3); Code single -1.33% (1/3); Code dual -0.89% (1/3) — not adopted, 12 kept. See the [b479 record](benchmarks/2026-11-24-v0220-pool16-adapted-b479.md).
