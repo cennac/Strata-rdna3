@@ -4,6 +4,14 @@
 
 - 9 vs 12 workers on the adopted profile: arms identical at all 26 frozen probes, but 9 workers lost on every lane (Chinese single -2.67%, Chinese dual -3.65%, code dual -2.56%); 12 kept. See the [b478 record](benchmarks/2026-11-24-v0220-pool9-adapted-b478.md).
 
+## --spec-min-p 0.35 does not qualify (b481, 2026-11-24)
+
+- Against 0.5 on the adopted profile: Chinese single +1.96% (two of three pairs), Chinese dual +0.57%, code single -2.51%, code dual +0.63%. The lower threshold offered more guesses at a lower acceptance rate (Chinese 0.655 to 0.611). Not adopted; the profile keeps 0.5. See the [b481 record](benchmarks/2026-11-24-v0220-specminp-b481.md).
+
+## CPU frequency governor is neutral (b480, 2026-11-24)
+
+- `performance` against `powersave` on the adopted profile, switched only inside the candidate loads and restored after each one: Chinese single +1.76% and code single +1.46%, Chinese dual -0.75% and code dual -1.39%, with token-identical arms. Not adopted; the frequency ramp is not where the remaining single-lane time goes. The host was verified back at `powersave`. See the [b480 record](benchmarks/2026-11-24-v0220-governor-b480.md).
+
 ## v0.2.20 campaign summary (2026-11-24)
 
 - One page for the whole line: adopted changes with their paired gains, the three-way numbers, the findings worth keeping and what remains. See the [summary](benchmarks/2026-11-24-v0220-summary.md).

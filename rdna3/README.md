@@ -94,6 +94,10 @@ dual — an opt-in trade-off, not a uniform win.
 ## Kept negative results
 
 - `--pool-workers 9` versus 12 on the adopted profile (RDNA read on): output-identical, Chinese single -2.67%; Chinese dual -3.65%; Code single +0.06%; Code dual -2.56% — 12 kept ([b478 record](benchmarks/2026-11-24-v0220-pool9-adapted-b478.md)).
+- `--spec-min-p 0.35` versus 0.5 on the adopted profile: more drafts at a lower acceptance rate, Chinese single
+  +1.96% and code single -2.51% — not adopted ([b481 record](benchmarks/2026-11-24-v0220-specminp-b481.md)).
+- CPU governor `performance` versus `powersave` on the adopted profile: single lanes within 1.8%, dual lanes
+  slightly slower — neutral, host left at `powersave` ([b480 record](benchmarks/2026-11-24-v0220-governor-b480.md)).
 - `--pool-workers 16` versus 12 on the adopted profile (RDNA read on): output-identical, Chinese single -3.27%; Chinese dual -2.26%; Code single -1.33%; Code dual -0.89% — 12 kept ([b479 record](benchmarks/2026-11-24-v0220-pool16-adapted-b479.md)).
 - `--pool-workers 9` versus 12 on the same profile: within 1.7% on code dual, +2.69% Chinese dual — adopted
   only as an opt-in choice ([2026-11-23 record](benchmarks/2026-11-23-v0220-pool9.md)).
