@@ -1,19 +1,19 @@
 {
   "upstream": "https://github.com/Niko1221/Strata",
-  "tag": "v0.2.20",
-  "upstream_commit": "a34979fc94f3d126b9bb8210f4ad311345688b52",
-  "engine_version": "0.1.66",
-  "archive_sha256": "af4b53687753cd3257b6dc6cb18f9bb0fdca6401dbaf77ca7fb41fc408b2036f",
-  "archive_note": "GitHub API tarball pinned to the v0.2.20 tag commit",
-  "vendor_import_commit": "7bec2fa5e75b3036caf99f21377a5bbb0acb2e17",
+  "tag": "v0.2.21",
+  "upstream_commit": "d46f5f268f8ed797e83a5c63a69bffbd7a581cf6",
+  "engine_version": "0.1.67",
+  "archive_sha256": "e23078def6ce4f772cedd0fe86034159d1b4fd2fb8e7bf1f60de3213edee058f",
+  "archive_note": "GitHub codeload archive pinned to the v0.2.21 tag commit",
+  "vendor_import_commit": "2a2add372cb60fbbab48e723ee37c7cce801a51f",
   "local_changes": [
     {
       "path": "engine/CMakeLists.txt",
-      "sha256": "6269affaba9ec468116651ccd322a150bc41cb2dfeb7cfe7b229d817d4f2bd8c"
+      "sha256": "594ba80574831e26adf38f41f934fadf7d8634bab0b21bbd9476e793c590f9f1"
     },
     {
       "path": "engine/cmake/strata_gpu_engine.cmake",
-      "sha256": "513fa1578311c4c1372100a20169595629fa304106afad3a381541566db58b78"
+      "sha256": "0811362d670776d159363b3ee60a542fca12fb9c13d64eeee75ec4b1941214bb"
     },
     {
       "path": "engine/include/strata/core/expert_source.hpp",
@@ -81,7 +81,7 @@
     },
     {
       "path": "engine/src/program/generate.cpp",
-      "sha256": "f15df2b2d7e6b70e16c08360f8797cf786dd9d5ef2da1f65ff2ad3d3e0008790"
+      "sha256": "94e75ec89154b1d40db967706a12725c8e7b44f84308a978158a7cb02a7fa58f"
     },
     {
       "path": "engine/tests/hip/ple_history_snap_test.cpp",

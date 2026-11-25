@@ -1,5 +1,9 @@
 # 更新记录
 
+## v0.2.21 migration (2026-11-26)
+
+- Imported upstream v0.2.21 (engine 0.1.67) and merged the adopted dev/0.2.20 RDNA3 profile on `dev/0.2.21`. Validation and speed confirmation are pending; production and `main` remain on the measured legacy baseline.
+
 ## CPU pool workers 9 vs 12 on the adopted profile (b478, 2026-11-24)
 
 - 9 vs 12 workers on the adopted profile: arms identical at all 26 frozen probes, but 9 workers lost on every lane (Chinese single -2.67%, Chinese dual -3.65%, code dual -2.56%); 12 kept. See the [b478 record](benchmarks/2026-11-24-v0220-pool9-adapted-b478.md).
