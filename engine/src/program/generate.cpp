@@ -16488,6 +16488,28 @@ int main(int argc, char** argv) {
                 drive.d.failed = false;
             }
         }
+#if defined(STRATA_USE_HIP)
+        // These layouts depend only on the slot and width. Capture without running a prompt or changing its expert cache.
+        const char* precapture = std::getenv("STRATA_RDNA_BATCH_PRECAPTURE");
+        if (precapture && std::strcmp(precapture, "1") == 0 && piped_mtp && n_stages == 2 &&
+            o.batch == 2 && o.batch_groups == 2 && pm_group_rows() <= batch_max_t()) {
+            const auto start = Clock::now();
+            const int widths = pm_slot_rows();
+            for (int stage = 0; stage < n_stages; ++stage) {
+                for (int slot = 0; slot < o.batch; ++slot) {
+                    for (int width = 1; width <= widths; ++width) {
+                        if (!stage_ver(stage).prepare_batch_slot(slot, width, slot * pm_group_rows(), err)) {
+                            std::fprintf(stderr, "strata serve: batch precapture failed: %s\n", err.c_str());
+                            return 1;
+                        }
+                    }
+                }
+            }
+            std::fprintf(stderr, "strata serve: batch precapture prepared %d layouts in %.0f ms\n",
+                         n_stages * o.batch * widths,
+                         std::chrono::duration<double, std::milli>(Clock::now() - start).count());
+        }
+#endif
         g_gpu_pause_idle.idle(gpu_pause_now());   // AMD on Linux: the gap before the first request starts here (the start-up's own pauses are not a "between")
         std::printf("READY %lld stop hold holdb\n", (long long) o.max_context);   // "stop": this engine honours STOP; "hold": GEN hold=N:ID; "holdb": the --batch slots end at the hold too (BDONE hold)
         std::fflush(stdout);

@@ -286,6 +286,8 @@ public:
     /// The saved buffers for `rows` hand-off rows (after init_slots).
     bool init_deferred_commit(int rows, std::string& err);
     bool deferred_commit_on() const { return dc_rows_ > 0; }
+    /// Prepare a single slot's pipelined graphs without executing a decode window.
+    bool prepare_batch_slot(int slot, int width, int hbase, std::string& err);
     /// The window over the slots `rows` (a slot's rows contiguous) at hand-off rows [hbase, hbase + S), its save right
     /// behind it, and no commit (batch_commit_rows, after the verdict).  The PLE history advances at the commit.
     bool batch_launch_rows(const int* rows, int S, int hbase, const int32_t* tokens, const int64_t* pos,

@@ -5105,6 +5105,20 @@ bool Verifier::capture_deferred(const int* rows, int S, int hbase, std::string& 
     return true;
 }
 
+bool Verifier::prepare_batch_slot(int slot, int width, int hbase, std::string& err) {
+    using strata::kernels::kVerifyNarrowT;
+    if (b_running_ || released_.load() || slot < 0 || slot >= static_cast<int>(slots_.size()) ||
+        width < 1 || width > std::min(max_t_, kVerifyNarrowT) || hbase < 0 || hbase + width > dc_rows_) {
+        err = "verify: invalid startup batch slot layout";
+        return false;
+    }
+    const OnDevice on_device(device_);
+    int rows[kVerifyNarrowT];
+    std::fill_n(rows, width, slot);
+    refresh_ar();
+    return capture_batch(rows, width, hbase, err) && capture_deferred(rows, width, hbase, err);
+}
+
 bool Verifier::batch_launch_rows(const int* rows, int S, int hbase, const int32_t* tokens, const int64_t* pos,
                                  std::string& err) {
     const OnDevice on_device(device_);
