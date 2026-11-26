@@ -88,5 +88,5 @@
       "sha256": "bb866a31fe709bce5befcb8bc4fe02de7b743db7a35fea59b6067e55e210c092"
     }
   ],
-  "local_hash_basis": "Git worktree files at the pending v0.2.22 merge; replaced by tested Git blob hashes in the final record"
+  "local_hash_basis": "Git blob bytes at 151f20df35e75e39b8afbc44eecfac548f7f8c02"
 }

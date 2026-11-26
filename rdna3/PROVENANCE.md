@@ -60,3 +60,7 @@ GGML来自历史构建使用的llama.cpp源码；其量化布局参考记录为 
 ## dev/0.2.21
 
 Imported upstream v0.2.21 commit `d46f5f268f8ed797e83a5c63a69bffbd7a581cf6` as vendor `2a2add3`; integration `2aeba59` merges the adopted dev/0.2.20 profile. Engine version is 0.1.67. The source archive SHA-256 is `e23078def6ce4f772cedd0fe86034159d1b4fd2fb8e7bf1f60de3213edee058f`; fresh HIP gfx1100 binary SHA-256 is `603175a85134e039290cadf0d42220ece7ff77ef1d3ce6550ae87981add1d2c5`. The [frozen adopted-profile reference](reference-0.1.66-rdnagr.json) retains the source record identity. All 26 probes and forced rollbacks agree in the [integration test](benchmarks/2026-11-26-v0221-integration.md). No production or main promotion.
+
+## dev/0.2.22
+
+Imported upstream v0.2.22 commit `b28ca95e3e6847f2d5e317994f253b66716deeaa` as vendor `04e4d3f`; integration `151f20d` preserves the adopted profile. Qwen engine version is 0.1.69. Source archive SHA-256: `73ce15ec2b15e99f59de8470492a1585578c7ea62aecfb729e734b8a02085afd`. Pristine gfx1100 binary: `56c52fdc2c9954134e7a03f71b2573533c1d0e02dcfbe3ebe5191275891ca823`; migrated binary: `bead36426dfe1ac0a5e04557a8a53c95a494695aaa120eea5a24519ad01c4f40`. Both were built fresh with the same compiler. [Benchmark and validation records](benchmarks/2026-11-26-v0222-summary.md) retain identities and limits. No deployment or main promotion.

@@ -1,0 +1,73 @@
+{
+  "release": "0.2.22",
+  "engine_version": "0.1.69",
+  "experiment": "STRATA_SPLIT_LEND_RESERVE=0 versus default",
+  "status": "identical raw and scored allocation; default retained",
+  "source_revision": "151f20df35e75e39b8afbc44eecfac548f7f8c02",
+  "engine_sha256": "bead36426dfe1ac0a5e04557a8a53c95a494695aaa120eea5a24519ad01c4f40",
+  "raw_reference_passed": true,
+  "forced_rolls": {
+    "zh-forced": 33,
+    "code-forced": 23
+  },
+  "raw_probe_count": 14,
+  "raw_allocation": {
+    "default": {
+      "primary_slots": "12905",
+      "secondary_slots": "9623",
+      "ram_experts_gib": "14.93",
+      "complement_gib": "14.93",
+      "lend": [
+        "7017",
+        "7017",
+        "11.35"
+      ]
+    },
+    "reserve0": {
+      "primary_slots": "12905",
+      "secondary_slots": "9623",
+      "ram_experts_gib": "14.93",
+      "complement_gib": "14.93",
+      "lend": [
+        "7017",
+        "7017",
+        "11.35"
+      ]
+    },
+    "identical": true,
+    "reservation_log": []
+  },
+  "scored_allocation": {
+    "default": {
+      "primary_slots": "11977",
+      "secondary_slots": "9623",
+      "ram_experts_gib": "16.26",
+      "complement_gib": "16.26",
+      "lend": [
+        "7000",
+        "7000",
+        "11.35"
+      ]
+    },
+    "reserve0": {
+      "primary_slots": "11977",
+      "secondary_slots": "9623",
+      "ram_experts_gib": "16.26",
+      "complement_gib": "16.26",
+      "lend": [
+        "7000",
+        "7000",
+        "11.35"
+      ]
+    },
+    "identical": true
+  },
+  "adopted": false,
+  "scored_requests": 0,
+  "restored": true,
+  "source_unchanged": true,
+  "test_port_closed": true,
+  "faults": [],
+  "default_results_sha256": "4cc59949a0ecf134cae21ab2002c6b46945707853b2e05a86ef256164205e719",
+  "results_sha256": "5ea493f860d8f6e5206acfa4030fa59d9be67abb7ee417f4d602eb0d19342234"
+}

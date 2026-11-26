@@ -1,4 +1,6 @@
-# rdna3 — dev/0.2.21 (upstream v0.2.21, engine 0.1.67)
+# rdna3 — dev/0.2.22 (upstream v0.2.22, Qwen engine 0.1.69)
+
+Latest: the [v0.2.22 benchmark and optimization summary](benchmarks/2026-11-26-v0222-summary.md) records stock and optimized three-load medians, frozen token compatibility and the inactive RAM-reservation setting on this profile. There is no established extra speed gain over the prior optimization line; production and main remain unchanged.
 
 The [first v0.2.21 campaign summary](benchmarks/2026-11-26-v0221-summary.md) records the accepted migration, rejected attempts and runtime restoration.
 

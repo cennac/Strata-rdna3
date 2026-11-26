@@ -1,0 +1,253 @@
+{
+  "date": "2026-11-26",
+  "release": "0.2.22-rdna3.1",
+  "engine_version": "0.1.69",
+  "branch": "dev/0.2.22",
+  "source_revision": "151f20df35e75e39b8afbc44eecfac548f7f8c02",
+  "upstream_commit": "b28ca95e3e6847f2d5e317994f253b66716deeaa",
+  "source_archive_sha256": "73ce15ec2b15e99f59de8470492a1585578c7ea62aecfb729e734b8a02085afd",
+  "stock_engine_sha256": "56c52fdc2c9954134e7a03f71b2573533c1d0e02dcfbe3ebe5191275891ca823",
+  "optimized_engine_sha256": "bead36426dfe1ac0a5e04557a8a53c95a494695aaa120eea5a24519ad01c4f40",
+  "model": "Qwen3.8-Flash-Next GSQ-RCO IQ3_XXS",
+  "stock_metrics": {
+    "zh-n1": {
+      "load1_tps": 65.6,
+      "load2_tps": 63.5,
+      "load3_tps": 65.6,
+      "load1_ttft_s": 0.7812099769944325,
+      "load2_ttft_s": 0.7704911440087017,
+      "load3_ttft_s": 0.7793399779911852,
+      "repeat_tps_ratio": 0.9679878048780489,
+      "repeat_ttft_ratio": 0.9862791908687986,
+      "median_tps": 65.6,
+      "median_ttft_s": 0.7793399779911852,
+      "metric": "predicted_per_second"
+    },
+    "zh-n2": {
+      "load1_tps": 112.86572151995037,
+      "load2_tps": 110.89489585160118,
+      "load3_tps": 111.91102359754301,
+      "load1_ttft_s": 1.5581649879968609,
+      "load2_ttft_s": 1.5827133520069765,
+      "load3_ttft_s": 1.5606196430017008,
+      "repeat_tps_ratio": 0.9825383150720316,
+      "repeat_ttft_ratio": 1.0157546628240404,
+      "median_tps": 111.91102359754301,
+      "median_ttft_s": 1.5606196430017008,
+      "metric": "total_tokens / batch_wall_s"
+    },
+    "code-n1": {
+      "load1_tps": 80.9,
+      "load2_tps": 79.3,
+      "load3_tps": 82.0,
+      "load1_ttft_s": 0.7042165760067292,
+      "load2_ttft_s": 0.6979399350093445,
+      "load3_ttft_s": 0.6983059420017526,
+      "repeat_tps_ratio": 0.980222496909765,
+      "repeat_ttft_ratio": 0.9910870587100116,
+      "median_tps": 80.9,
+      "median_ttft_s": 0.6983059420017526,
+      "metric": "predicted_per_second"
+    },
+    "code-n2": {
+      "load1_tps": 113.47126733713709,
+      "load2_tps": 99.51025865858311,
+      "load3_tps": 112.79499545242129,
+      "load1_ttft_s": 1.4159398739939206,
+      "load2_ttft_s": 1.442504384998756,
+      "load3_ttft_s": 1.4097947800037218,
+      "repeat_tps_ratio": 0.8769643716318589,
+      "repeat_ttft_ratio": 1.0187610445137796,
+      "median_tps": 112.79499545242129,
+      "median_ttft_s": 1.4159398739939206,
+      "metric": "total_tokens / batch_wall_s"
+    }
+  },
+  "optimized_metrics": {
+    "zh-n1": {
+      "load1_tps": 123.6,
+      "load2_tps": 120.5,
+      "load3_tps": 123.4,
+      "load1_ttft_s": 0.2736168550036382,
+      "load2_ttft_s": 0.2693385080056032,
+      "load3_ttft_s": 0.2756326410017209,
+      "repeat_tps_ratio": 0.9749190938511327,
+      "repeat_ttft_ratio": 0.9843637300853484,
+      "median_tps": 123.4,
+      "median_ttft_s": 0.2736168550036382,
+      "metric": "predicted_per_second",
+      "stock_tps": 65.6,
+      "stock_gain_pct": 88.109756097561,
+      "prior_optimized_tps": 121.0,
+      "prior_optimized_change_pct": 1.983471074380172
+    },
+    "zh-n2": {
+      "load1_tps": 179.37860825332973,
+      "load2_tps": 183.93553689044418,
+      "load3_tps": 182.8066789754582,
+      "load1_ttft_s": 0.5577115734995459,
+      "load2_ttft_s": 0.5627680825054995,
+      "load3_ttft_s": 0.5595617365106591,
+      "repeat_tps_ratio": 1.0254039691883374,
+      "repeat_ttft_ratio": 1.0090665305262088,
+      "median_tps": 182.8066789754582,
+      "median_ttft_s": 0.5595617365106591,
+      "metric": "total_tokens / batch_wall_s",
+      "stock_tps": 111.91102359754301,
+      "stock_gain_pct": 63.35001959491655,
+      "prior_optimized_tps": 184.53449558264302,
+      "prior_optimized_change_pct": -0.9363109058441732
+    },
+    "code-n1": {
+      "load1_tps": 162.0,
+      "load2_tps": 168.0,
+      "load3_tps": 161.8,
+      "load1_ttft_s": 0.2545277419994818,
+      "load2_ttft_s": 0.24785806600993965,
+      "load3_ttft_s": 0.2575724530033767,
+      "repeat_tps_ratio": 1.037037037037037,
+      "repeat_ttft_ratio": 0.9737958780557769,
+      "median_tps": 162.0,
+      "median_ttft_s": 0.2545277419994818,
+      "metric": "predicted_per_second",
+      "stock_tps": 80.9,
+      "stock_gain_pct": 100.2472187886279,
+      "prior_optimized_tps": 168.9,
+      "prior_optimized_change_pct": -4.085257548845478
+    },
+    "code-n2": {
+      "load1_tps": 246.97033962520132,
+      "load2_tps": 185.179593596095,
+      "load3_tps": 237.2008850034805,
+      "load1_ttft_s": 0.507032834495476,
+      "load2_ttft_s": 0.5233228189972579,
+      "load3_ttft_s": 0.5047287555062212,
+      "repeat_tps_ratio": 0.7498049922801294,
+      "repeat_ttft_ratio": 1.0321280662582557,
+      "median_tps": 237.2008850034805,
+      "median_ttft_s": 0.507032834495476,
+      "metric": "total_tokens / batch_wall_s",
+      "stock_tps": 112.79499545242129,
+      "stock_gain_pct": 110.29380253269795,
+      "prior_optimized_tps": 245.50157976357642,
+      "prior_optimized_change_pct": -3.3811166380638635
+    }
+  },
+  "frozen_reference_passed": true,
+  "reserve_probe": {
+    "release": "0.2.22",
+    "engine_version": "0.1.69",
+    "experiment": "STRATA_SPLIT_LEND_RESERVE=0 versus default",
+    "status": "identical raw and scored allocation; default retained",
+    "source_revision": "151f20df35e75e39b8afbc44eecfac548f7f8c02",
+    "engine_sha256": "bead36426dfe1ac0a5e04557a8a53c95a494695aaa120eea5a24519ad01c4f40",
+    "raw_reference_passed": true,
+    "forced_rolls": {
+      "zh-forced": 33,
+      "code-forced": 23
+    },
+    "raw_probe_count": 14,
+    "raw_allocation": {
+      "default": {
+        "primary_slots": "12905",
+        "secondary_slots": "9623",
+        "ram_experts_gib": "14.93",
+        "complement_gib": "14.93",
+        "lend": [
+          "7017",
+          "7017",
+          "11.35"
+        ]
+      },
+      "reserve0": {
+        "primary_slots": "12905",
+        "secondary_slots": "9623",
+        "ram_experts_gib": "14.93",
+        "complement_gib": "14.93",
+        "lend": [
+          "7017",
+          "7017",
+          "11.35"
+        ]
+      },
+      "identical": true,
+      "reservation_log": []
+    },
+    "scored_allocation": {
+      "default": {
+        "primary_slots": "11977",
+        "secondary_slots": "9623",
+        "ram_experts_gib": "16.26",
+        "complement_gib": "16.26",
+        "lend": [
+          "7000",
+          "7000",
+          "11.35"
+        ]
+      },
+      "reserve0": {
+        "primary_slots": "11977",
+        "secondary_slots": "9623",
+        "ram_experts_gib": "16.26",
+        "complement_gib": "16.26",
+        "lend": [
+          "7000",
+          "7000",
+          "11.35"
+        ]
+      },
+      "identical": true
+    },
+    "adopted": false,
+    "scored_requests": 0,
+    "restored": true,
+    "source_unchanged": true,
+    "test_port_closed": true,
+    "faults": [],
+    "default_results_sha256": "4cc59949a0ecf134cae21ab2002c6b46945707853b2e05a86ef256164205e719",
+    "results_sha256": "5ea493f860d8f6e5206acfa4030fa59d9be67abb7ee417f4d602eb0d19342234"
+  },
+  "runtime_audit": {
+    "at": 1795655358.9345431,
+    "ready": true,
+    "production_unchanged": true,
+    "boot_unchanged": true,
+    "one_engine": true,
+    "test_port_closed": true,
+    "test_units": {
+      "strata-v0222-stock-b508.service": "inactive",
+      "strata-v0222-integration-b510.service": "inactive",
+      "strata-v0222-lendreserve-b512.service": "inactive"
+    },
+    "hardware_error_lines": [],
+    "gpu": {
+      "blower": {
+        "power1_cap": 231000000,
+        "pwm1_enable": 2,
+        "fan1_input": 2949,
+        "edge": 36.0,
+        "junction": 40.0,
+        "mem": 36.0
+      },
+      "platinum": {
+        "power1_cap": 272000000,
+        "pwm1_enable": 2,
+        "fan1_input": 0,
+        "edge": 44.0,
+        "junction": 50.0,
+        "mem": 45.0
+      }
+    },
+    "production_model": "Qwen3.8-Flash-Next-IQ3_XXS",
+    "production_engine": "0.1.43",
+    "context": {
+      "native": 131072,
+      "max_positions": 131072
+    },
+    "concurrency": {
+      "serving": 2,
+      "requested": 2
+    }
+  },
+  "deployment_changed": false
+}

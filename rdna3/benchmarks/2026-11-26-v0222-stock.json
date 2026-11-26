@@ -1,0 +1,84 @@
+{
+  "release": "0.2.22",
+  "engine_version": "0.1.69",
+  "source_commit": "b28ca95e3e6847f2d5e317994f253b66716deeaa",
+  "source_archive_sha256": "73ce15ec2b15e99f59de8470492a1585578c7ea62aecfb729e734b8a02085afd",
+  "engine_sha256": "56c52fdc2c9954134e7a03f71b2573533c1d0e02dcfbe3ebe5191275891ca823",
+  "role": "pristine source build, no RDNA3 optimization environment overrides",
+  "model": "Qwen3.8-Flash-Next GSQ-RCO IQ3_XXS",
+  "context_capacity": 131072,
+  "concurrency": 2,
+  "loads": 3,
+  "scored_requests": 18,
+  "output_tokens_per_request": 1024,
+  "metrics": {
+    "zh-n1": {
+      "load1_tps": 65.6,
+      "load2_tps": 63.5,
+      "load3_tps": 65.6,
+      "load1_ttft_s": 0.7812099769944325,
+      "load2_ttft_s": 0.7704911440087017,
+      "load3_ttft_s": 0.7793399779911852,
+      "repeat_tps_ratio": 0.9679878048780489,
+      "repeat_ttft_ratio": 0.9862791908687986,
+      "median_tps": 65.6,
+      "median_ttft_s": 0.7793399779911852,
+      "metric": "predicted_per_second"
+    },
+    "zh-n2": {
+      "load1_tps": 112.86572151995037,
+      "load2_tps": 110.89489585160118,
+      "load3_tps": 111.91102359754301,
+      "load1_ttft_s": 1.5581649879968609,
+      "load2_ttft_s": 1.5827133520069765,
+      "load3_ttft_s": 1.5606196430017008,
+      "repeat_tps_ratio": 0.9825383150720316,
+      "repeat_ttft_ratio": 1.0157546628240404,
+      "median_tps": 111.91102359754301,
+      "median_ttft_s": 1.5606196430017008,
+      "metric": "total_tokens / batch_wall_s"
+    },
+    "code-n1": {
+      "load1_tps": 80.9,
+      "load2_tps": 79.3,
+      "load3_tps": 82.0,
+      "load1_ttft_s": 0.7042165760067292,
+      "load2_ttft_s": 0.6979399350093445,
+      "load3_ttft_s": 0.6983059420017526,
+      "repeat_tps_ratio": 0.980222496909765,
+      "repeat_ttft_ratio": 0.9910870587100116,
+      "median_tps": 80.9,
+      "median_ttft_s": 0.6983059420017526,
+      "metric": "predicted_per_second"
+    },
+    "code-n2": {
+      "load1_tps": 113.47126733713709,
+      "load2_tps": 99.51025865858311,
+      "load3_tps": 112.79499545242129,
+      "load1_ttft_s": 1.4159398739939206,
+      "load2_ttft_s": 1.442504384998756,
+      "load3_ttft_s": 1.4097947800037218,
+      "repeat_tps_ratio": 0.8769643716318589,
+      "repeat_ttft_ratio": 1.0187610445137796,
+      "median_tps": 112.79499545242129,
+      "median_ttft_s": 1.4159398739939206,
+      "metric": "total_tokens / batch_wall_s"
+    }
+  },
+  "resources": {
+    "platinum": {
+      "hotspot_max_c": 81.0,
+      "memory_max_c": 70.0
+    },
+    "blower": {
+      "hotspot_max_c": 76.0,
+      "memory_max_c": 68.0
+    }
+  },
+  "minimum_available_gib": 35.77739715576172,
+  "restored": true,
+  "source_unchanged": true,
+  "test_port_closed": true,
+  "faults": [],
+  "result_sha256": "cf5b371fab01ccf8a254ac244c5392d8bfd86ad7efce318b5cb87485417c5084"
+}

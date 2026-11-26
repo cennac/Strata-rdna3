@@ -1,8 +1,8 @@
 # 更新记录
 
-## v0.2.22 migration started (2026-11-26)
+## v0.2.22 first campaign completed (2026-11-26)
 
-- Imported upstream v0.2.22 (Qwen engine 0.1.69) and retained the validated v0.2.21 RDNA3 profile on `dev/0.2.22`. Pristine-stock and migration measurements are pending; production and main are unchanged. The new split RAM lend-reserve control will be evaluated separately from the default migration.
+- Imported upstream v0.2.22 (Qwen engine 0.1.69) and retained the validated v0.2.21 RDNA3 profile on `dev/0.2.22`. Three-load stock and migrated measurements are complete: Chinese single/dual 65.60/111.91 to 123.40/182.81 tok/s, code 80.90/112.79 to 162.00/237.20 tok/s. All 26 frozen token probes and forced rollbacks agree. The new RAM reserve switch changes neither raw nor scored allocation on this 96 GB profile, so the default is retained. See the [summary](benchmarks/2026-11-26-v0222-summary.md); production and main are unchanged.
 
 ## v0.2.21 first campaign completed (2026-11-26)
 

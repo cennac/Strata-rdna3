@@ -1,0 +1,139 @@
+{
+  "release": "0.2.22-rdna3.1",
+  "engine_version": "0.1.69",
+  "source_revision": "151f20df35e75e39b8afbc44eecfac548f7f8c02",
+  "engine_sha256": "bead36426dfe1ac0a5e04557a8a53c95a494695aaa120eea5a24519ad01c4f40",
+  "upstream_commit": "b28ca95e3e6847f2d5e317994f253b66716deeaa",
+  "model": "Qwen3.8-Flash-Next GSQ-RCO IQ3_XXS",
+  "raw_probes": 14,
+  "sample_probes": 12,
+  "reference_passed": true,
+  "forced_rolls": {
+    "zh-forced": 33,
+    "code-forced": 23
+  },
+  "reference_sha256": "fd0b0b17eec85ab06baa63685c3226a2a3c52e423a899688de76bdd46ad13a58",
+  "objective_grades": [
+    {
+      "id": 4,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 8,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 16,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 19,
+      "score": 100,
+      "reason": "答案与格式完全正确"
+    },
+    {
+      "id": 23,
+      "score": 100,
+      "reason": "答案与格式完全正确"
+    },
+    {
+      "id": 27,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    }
+  ],
+  "scored_loads": 3,
+  "scored_requests": 18,
+  "metrics": {
+    "zh-n1": {
+      "load1_tps": 123.6,
+      "load2_tps": 120.5,
+      "load3_tps": 123.4,
+      "load1_ttft_s": 0.2736168550036382,
+      "load2_ttft_s": 0.2693385080056032,
+      "load3_ttft_s": 0.2756326410017209,
+      "repeat_tps_ratio": 0.9749190938511327,
+      "repeat_ttft_ratio": 0.9843637300853484,
+      "median_tps": 123.4,
+      "median_ttft_s": 0.2736168550036382,
+      "metric": "predicted_per_second",
+      "stock_tps": 65.6,
+      "stock_gain_pct": 88.109756097561,
+      "prior_optimized_tps": 121.0,
+      "prior_optimized_change_pct": 1.983471074380172
+    },
+    "zh-n2": {
+      "load1_tps": 179.37860825332973,
+      "load2_tps": 183.93553689044418,
+      "load3_tps": 182.8066789754582,
+      "load1_ttft_s": 0.5577115734995459,
+      "load2_ttft_s": 0.5627680825054995,
+      "load3_ttft_s": 0.5595617365106591,
+      "repeat_tps_ratio": 1.0254039691883374,
+      "repeat_ttft_ratio": 1.0090665305262088,
+      "median_tps": 182.8066789754582,
+      "median_ttft_s": 0.5595617365106591,
+      "metric": "total_tokens / batch_wall_s",
+      "stock_tps": 111.91102359754301,
+      "stock_gain_pct": 63.35001959491655,
+      "prior_optimized_tps": 184.53449558264302,
+      "prior_optimized_change_pct": -0.9363109058441732
+    },
+    "code-n1": {
+      "load1_tps": 162.0,
+      "load2_tps": 168.0,
+      "load3_tps": 161.8,
+      "load1_ttft_s": 0.2545277419994818,
+      "load2_ttft_s": 0.24785806600993965,
+      "load3_ttft_s": 0.2575724530033767,
+      "repeat_tps_ratio": 1.037037037037037,
+      "repeat_ttft_ratio": 0.9737958780557769,
+      "median_tps": 162.0,
+      "median_ttft_s": 0.2545277419994818,
+      "metric": "predicted_per_second",
+      "stock_tps": 80.9,
+      "stock_gain_pct": 100.2472187886279,
+      "prior_optimized_tps": 168.9,
+      "prior_optimized_change_pct": -4.085257548845478
+    },
+    "code-n2": {
+      "load1_tps": 246.97033962520132,
+      "load2_tps": 185.179593596095,
+      "load3_tps": 237.2008850034805,
+      "load1_ttft_s": 0.507032834495476,
+      "load2_ttft_s": 0.5233228189972579,
+      "load3_ttft_s": 0.5047287555062212,
+      "repeat_tps_ratio": 0.7498049922801294,
+      "repeat_ttft_ratio": 1.0321280662582557,
+      "median_tps": 237.2008850034805,
+      "median_ttft_s": 0.507032834495476,
+      "metric": "total_tokens / batch_wall_s",
+      "stock_tps": 112.79499545242129,
+      "stock_gain_pct": 110.29380253269795,
+      "prior_optimized_tps": 245.50157976357642,
+      "prior_optimized_change_pct": -3.3811166380638635
+    }
+  },
+  "resources": {
+    "platinum": {
+      "hotspot_max_c": 81.0,
+      "memory_max_c": 70.0,
+      "vram_max_gib": 22.375179290771484
+    },
+    "blower": {
+      "hotspot_max_c": 80.0,
+      "memory_max_c": 72.0,
+      "vram_max_gib": 22.495624542236328
+    }
+  },
+  "minimum_available_gib": 33.983482360839844,
+  "restored": true,
+  "source_unchanged": true,
+  "test_port_closed": true,
+  "faults": [],
+  "results_sha256": "4cc59949a0ecf134cae21ab2002c6b46945707853b2e05a86ef256164205e719",
+  "status": "validated migration; experimental, not deployed"
+}
