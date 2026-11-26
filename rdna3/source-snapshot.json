@@ -1,15 +1,15 @@
 {
   "upstream": "https://github.com/Niko1221/Strata",
-  "tag": "v0.2.21",
-  "upstream_commit": "d46f5f268f8ed797e83a5c63a69bffbd7a581cf6",
-  "engine_version": "0.1.67",
-  "archive_sha256": "e23078def6ce4f772cedd0fe86034159d1b4fd2fb8e7bf1f60de3213edee058f",
-  "archive_note": "GitHub codeload archive pinned to the v0.2.21 tag commit",
-  "vendor_import_commit": "2a2add372cb60fbbab48e723ee37c7cce801a51f",
+  "tag": "v0.2.22",
+  "upstream_commit": "b28ca95e3e6847f2d5e317994f253b66716deeaa",
+  "engine_version": "0.1.69",
+  "archive_sha256": "73ce15ec2b15e99f59de8470492a1585578c7ea62aecfb729e734b8a02085afd",
+  "archive_note": "GitHub codeload archive pinned to the v0.2.22 tag commit",
+  "vendor_import_commit": "04e4d3f2a239b648015375b1aadc3be6567765c3",
   "local_changes": [
     {
       "path": "engine/CMakeLists.txt",
-      "sha256": "594ba80574831e26adf38f41f934fadf7d8634bab0b21bbd9476e793c590f9f1"
+      "sha256": "26837717ef4b5633401bfbbd78b16b63a42cfb51bd3444ab565c8bb7e180b74a"
     },
     {
       "path": "engine/cmake/strata_gpu_engine.cmake",
@@ -17,7 +17,7 @@
     },
     {
       "path": "engine/include/strata/core/expert_source.hpp",
-      "sha256": "18e4eff1a4b61dac33e44cebf4070e132e17b33e6f79cdc68a688020ddd839f7"
+      "sha256": "4af7e1771ea69d8ea342185d909e786fc2449cf0e209de78551252745aa7b93c"
     },
     {
       "path": "engine/include/strata/core/verify.hpp",
@@ -37,7 +37,7 @@
     },
     {
       "path": "engine/src/core/expert_source.cpp",
-      "sha256": "f241ae63fa03a8c3fa5b9a3fd7d85a439691a6bdf295f824ef663f96d324e53e"
+      "sha256": "46b2815e74c72d00b97ab9b5644ff0b676fcbc1340db4d146e019fececca604c"
     },
     {
       "path": "engine/src/core/mtp.cpp",
@@ -88,5 +88,5 @@
       "sha256": "bb866a31fe709bce5befcb8bc4fe02de7b743db7a35fea59b6067e55e210c092"
     }
   ],
-  "local_hash_basis": "Git blob bytes at 2aeba59de961973ad37bc5255a2294ff34a00841"
+  "local_hash_basis": "Git worktree files at the pending v0.2.22 merge; replaced by tested Git blob hashes in the final record"
 }

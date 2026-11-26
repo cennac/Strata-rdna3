@@ -1,5 +1,9 @@
 # 更新记录
 
+## v0.2.22 migration started (2026-11-26)
+
+- Imported upstream v0.2.22 (Qwen engine 0.1.69) and retained the validated v0.2.21 RDNA3 profile on `dev/0.2.22`. Pristine-stock and migration measurements are pending; production and main are unchanged. The new split RAM lend-reserve control will be evaluated separately from the default migration.
+
 ## v0.2.21 first campaign completed (2026-11-26)
 
 - The [summary](benchmarks/2026-11-26-v0221-summary.md) compares stock, the migrated profile and both historical optimized baselines. GR fusion is inactive for this BF16 layer split; CPU dot-x4 loses 0.89% geometrically over three alternating pairs and is not adopted. All windows restored production; no main or deployment change.

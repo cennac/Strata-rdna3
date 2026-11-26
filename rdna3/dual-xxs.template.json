@@ -170,12 +170,12 @@
   "max_active_requests": 2,
   "deployment": {
     "framework": "Strata",
-    "version": "0.2.21-rdna3.1",
-    "engine_version": "0.1.67",
+    "version": "0.2.22-rdna3.1",
+    "engine_version": "0.1.69",
     "optimization": "RDNA3 penalty pipeline + RDNA GR read + gfx1100 exact subset + EXPDEC + SH stream + aux auto + pool12 + fixed-zero PCIe graph",
-    "revision": "v0221-migrated-shstream-aux-pool12-zero-pcie-exact-expdec-rdnagr",
+    "revision": "v0222-migrated-shstream-aux-pool12-zero-pcie-exact-expdec-rdnagr",
     "weights_variant": "GSQ-RCO IQ3_XXS",
-    "upstream_version": "0.2.21",
+    "upstream_version": "0.2.22",
     "rdna3_revision": 1
   }
 }
