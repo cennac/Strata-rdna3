@@ -11862,6 +11862,8 @@ int main(int argc, char** argv) {
                                  "every %d to %d group windows, more often while the rounds find experts to move (the "
                                  "pipeline empties for each)%s\n", strata::program::batch_groups::kPipeAdaptMin,
                          strata::program::batch_groups::kPipeAdaptMax, off);
+        else if (strata::program::batch_groups::pipe_adapt_first(pae))
+            std::fprintf(stderr, "strata batch: STRATA_PIPE_ADAPT_EVERY=first: refresh during the first batch that swaps experts%s\n", off);
         else if (every > 0)
             std::fprintf(stderr, "strata batch: STRATA_PIPE_ADAPT_EVERY=%d: the pipelined groups run an adaptive-tier round "
                                  "every %d group windows (the pipeline empties for it)%s\n", every, every, off);
@@ -18106,8 +18108,10 @@ int main(int argc, char** argv) {
         // changes - a slot that starts quoting its prompt routes to experts the tier does not hold, and on 2x RTX 3090
         // its windows then waited 3.7 + 1.0 ms a window for the CPU's experts on the first card alone - or empties the
         // pipeline for nothing once the tier has caught up.
-        const bool pa_auto = strata::program::batch_groups::pipe_adapt_auto(std::getenv("STRATA_PIPE_ADAPT_EVERY"));
-        int pipe_adapt_every = strata::program::batch_groups::pipe_adapt_every(std::getenv("STRATA_PIPE_ADAPT_EVERY"));
+        const char* pa_setting = std::getenv("STRATA_PIPE_ADAPT_EVERY");
+        const bool pa_first = strata::program::batch_groups::pipe_adapt_first(pa_setting);
+        const bool pa_auto = pa_first || strata::program::batch_groups::pipe_adapt_auto(pa_setting);
+        int pipe_adapt_every = strata::program::batch_groups::pipe_adapt_every(pa_setting);
         int64_t pa_windows = 0, pa_last = 0, pa_rounds = 0, pa_swaps = 0;
         double pa_ms = 0;
         auto pa_due = [&] {
@@ -18459,7 +18463,7 @@ int main(int argc, char** argv) {
                 char pa_txt[224] = "";
                 if (pipe_adapt_every > 0)
                     std::snprintf(pa_txt, sizeof pa_txt, "; adaptive tier (STRATA_PIPE_ADAPT_EVERY%s): %lld rounds, %lld experts "
-                                  "swapped in, %.0f ms%s", pa_auto ? "=auto" : "", (long long) pa_rounds, (long long) pa_swaps,
+                                  "swapped in, %.0f ms%s", pa_first ? "=first" : pa_auto ? "=auto" : "", (long long) pa_rounds, (long long) pa_swaps,
                                   pa_ms, pa_auto ? (", every " + std::to_string(pipe_adapt_every) + " windows now").c_str() : "");
                 std::fprintf(stderr, "strata batch (pipelined, %d groups of %d): %lld group-steps, %lld rows in %.0f ms = "
                                      "%.1f rows/s (admissions included)%s", o.batch_groups, GS, (long long) bt_windows,
@@ -18474,6 +18478,10 @@ int main(int argc, char** argv) {
                                  (long long) bt_rd_rows, (long long) bt_rd_turns, (long long) bt_rd_ahead);
                 std::fprintf(stderr, "\n");
                 p4.flush();
+                if (pa_first && pa_swaps > 0) {
+                    pipe_adapt_every = 0;
+                    std::fprintf(stderr, "strata batch: first-batch expert refresh completed\n");
+                }
                 pa_rounds = pa_swaps = 0;
                 pa_ms = 0;
                 for (int k = 0; k < n_pipe; ++k) {

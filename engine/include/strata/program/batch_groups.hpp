@@ -28,12 +28,13 @@ namespace strata::program::batch_groups {
 /// fit beside the slots, so every round came back full: 16 lost to 32 by the rounds' own time, 64 was 3% behind.)
 inline constexpr int kPipeAdaptStart = 32, kPipeAdaptMin = 32, kPipeAdaptMax = 256;
 inline bool pipe_adapt_auto(const char* value) { return value != nullptr && std::strcmp(value, "auto") == 0; }
+inline bool pipe_adapt_first(const char* value) { return value != nullptr && std::strcmp(value, "first") == 0; }
 
 /// STRATA_PIPE_ADAPT_EVERY's value -> the interval in group windows; 0 (off: the pipelined path adapts nothing, as before)
 /// when unset, empty, not a number, 0 or negative.  `auto`: the interval it starts from.
 inline int pipe_adapt_every(const char* value) {
     if (value == nullptr) return 0;
-    if (pipe_adapt_auto(value)) return kPipeAdaptStart;
+    if (pipe_adapt_auto(value) || pipe_adapt_first(value)) return kPipeAdaptStart;
     const int n = std::atoi(value);
     return n > 0 ? n : 0;
 }
