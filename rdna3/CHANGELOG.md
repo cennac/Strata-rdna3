@@ -1,5 +1,9 @@
 # 更新记录
 
+## v0.2.22 首批双路专家缓存（2026-11-26）
+
+- `STRATA_PIPE_ADAPT_EVERY=first` 在首个发生专家换入的并发批次排空后关闭并发期刷新。首批代码双路合计 187.69 → 216.55 tok/s，三对均提升，配对中位 +15.70%。后续代码双路 +0.02%，中文双路 −2.47%。开关保留为实验选项。图预捕获和持续刷新对照、正确性覆盖及复测步骤见[实验记录](benchmarks/2026-11-26-v0222-first-batch.md)。
+
 ## v0.2.22 first campaign completed (2026-11-26)
 
 - Imported upstream v0.2.22 (Qwen engine 0.1.69) and retained the validated v0.2.21 RDNA3 profile on `dev/0.2.22`. Three-load stock and migrated measurements are complete: Chinese single/dual 65.60/111.91 to 123.40/182.81 tok/s, code 80.90/112.79 to 162.00/237.20 tok/s. All 26 frozen token probes and forced rollbacks agree. The new RAM reserve switch changes neither raw nor scored allocation on this 96 GB profile, so the default is retained. See the [summary](benchmarks/2026-11-26-v0222-summary.md); production and main are unchanged.

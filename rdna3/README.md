@@ -1,6 +1,8 @@
 # rdna3 — dev/0.2.22 (upstream v0.2.22, Qwen engine 0.1.69)
 
-Latest: the [v0.2.22 benchmark and optimization summary](benchmarks/2026-11-26-v0222-summary.md) records stock and optimized three-load medians, frozen token compatibility and the inactive RAM-reservation setting on this profile. There is no established extra speed gain over the prior optimization line; production and main remain unchanged.
+`STRATA_PIPE_ADAPT_EVERY=first` is an experimental option for the first code burst after loading. On this rig it raised the first two-request burst by 15.70% across three pairs, with a +0.02% paired change on the later code burst. See the [first-burst benchmark](benchmarks/2026-11-26-v0222-first-batch.md).
+
+The v0.2.22 migration record includes stock and optimized three-load medians, frozen token compatibility and the RAM-reservation check. See the [v0.2.22 benchmark and optimization summary](benchmarks/2026-11-26-v0222-summary.md).
 
 The [first v0.2.21 campaign summary](benchmarks/2026-11-26-v0221-summary.md) records the accepted migration, rejected attempts and runtime restoration.
 
