@@ -1,0 +1,139 @@
+{
+  "release": "0.2.21-rdna3.1",
+  "engine_version": "0.1.67",
+  "source_revision": "2aeba59de961973ad37bc5255a2294ff34a00841",
+  "engine_sha256": "603175a85134e039290cadf0d42220ece7ff77ef1d3ce6550ae87981add1d2c5",
+  "upstream_commit": "d46f5f268f8ed797e83a5c63a69bffbd7a581cf6",
+  "model": "Qwen3.8-Flash-Next GSQ-RCO IQ3_XXS",
+  "raw_probes": 14,
+  "sample_probes": 12,
+  "reference_passed": true,
+  "forced_rolls": {
+    "zh-forced": 33,
+    "code-forced": 23
+  },
+  "reference_sha256": "fd0b0b17eec85ab06baa63685c3226a2a3c52e423a899688de76bdd46ad13a58",
+  "objective_grades": [
+    {
+      "id": 4,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 8,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 16,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 19,
+      "score": 100,
+      "reason": "答案与格式完全正确"
+    },
+    {
+      "id": 23,
+      "score": 100,
+      "reason": "答案与格式完全正确"
+    },
+    {
+      "id": 27,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    }
+  ],
+  "scored_loads": 3,
+  "scored_requests": 18,
+  "metrics": {
+    "zh-n1": {
+      "load1_tps": 115.4,
+      "load2_tps": 121.0,
+      "load3_tps": 124.2,
+      "load1_ttft_s": 0.276045876002172,
+      "load2_ttft_s": 0.2690872500097612,
+      "load3_ttft_s": 0.2742553680000128,
+      "repeat_tps_ratio": 1.048526863084922,
+      "repeat_ttft_ratio": 0.9747917770292788,
+      "median_tps": 121.0,
+      "median_ttft_s": 0.2742553680000128,
+      "metric": "predicted_per_second",
+      "stock_tps": 66.25,
+      "stock_gain_pct": 82.64150943396227,
+      "prior_optimized_tps": 128.0,
+      "prior_optimized_change_pct": -5.46875
+    },
+    "zh-n2": {
+      "load1_tps": 184.53449558264302,
+      "load2_tps": 179.49378833163004,
+      "load3_tps": 188.33134793465564,
+      "load1_ttft_s": 0.5553548199968645,
+      "load2_ttft_s": 0.5646919704959146,
+      "load3_ttft_s": 0.5584219364973251,
+      "repeat_tps_ratio": 0.9726842006688364,
+      "repeat_ttft_ratio": 1.01681294581922,
+      "median_tps": 184.53449558264302,
+      "median_ttft_s": 0.5584219364973251,
+      "metric": "total_tokens / batch_wall_s",
+      "stock_tps": 112.08795995084637,
+      "stock_gain_pct": 64.63364634664279,
+      "prior_optimized_tps": 177.512316183727,
+      "prior_optimized_change_pct": 3.9558829211872926
+    },
+    "code-n1": {
+      "load1_tps": 169.1,
+      "load2_tps": 168.0,
+      "load3_tps": 168.9,
+      "load1_ttft_s": 0.2557146990002366,
+      "load2_ttft_s": 0.24501056599547155,
+      "load3_ttft_s": 0.25334575699525885,
+      "repeat_tps_ratio": 0.9934949733885275,
+      "repeat_ttft_ratio": 0.9581403296462238,
+      "median_tps": 168.9,
+      "median_ttft_s": 0.25334575699525885,
+      "metric": "predicted_per_second",
+      "stock_tps": 80.55000000000001,
+      "stock_gain_pct": 109.68342644320295,
+      "prior_optimized_tps": 164.8,
+      "prior_optimized_change_pct": 2.487864077669899
+    },
+    "code-n2": {
+      "load1_tps": 245.50157976357642,
+      "load2_tps": 187.02359523187624,
+      "load3_tps": 246.8290771767242,
+      "load1_ttft_s": 0.5054875135028851,
+      "load2_ttft_s": 0.5175877955043688,
+      "load3_ttft_s": 0.5096465704918955,
+      "repeat_tps_ratio": 0.7618020031153535,
+      "repeat_ttft_ratio": 1.0239378455021217,
+      "median_tps": 245.50157976357642,
+      "median_ttft_s": 0.5096465704918955,
+      "metric": "total_tokens / batch_wall_s",
+      "stock_tps": 106.81775434675743,
+      "stock_gain_pct": 129.8321859179105,
+      "prior_optimized_tps": 239.45773347264736,
+      "prior_optimized_change_pct": 2.523972061073332
+    }
+  },
+  "resources": {
+    "platinum": {
+      "hotspot_max_c": 80.0,
+      "memory_max_c": 68.0,
+      "vram_max_gib": 22.375164031982422
+    },
+    "blower": {
+      "hotspot_max_c": 76.0,
+      "memory_max_c": 66.0,
+      "vram_max_gib": 22.49561309814453
+    }
+  },
+  "minimum_available_gib": 34.049983978271484,
+  "restored": true,
+  "source_unchanged": true,
+  "test_port_closed": true,
+  "faults": [],
+  "results_sha256": "64d4e7a5777866c4d64b8bf81eb00a34e0dddba7641eddb6806885bd8dc61b97",
+  "status": "validated migration; experimental, not deployed"
+}

@@ -1,8 +1,12 @@
 # 更新记录
 
+## v0.2.21 first campaign completed (2026-11-26)
+
+- The [summary](benchmarks/2026-11-26-v0221-summary.md) compares stock, the migrated profile and both historical optimized baselines. GR fusion is inactive for this BF16 layer split; CPU dot-x4 loses 0.89% geometrically over three alternating pairs and is not adopted. All windows restored production; no main or deployment change.
+
 ## v0.2.21 migration (2026-11-26)
 
-- Imported upstream v0.2.21 (engine 0.1.67) and merged the adopted dev/0.2.20 RDNA3 profile on `dev/0.2.21`. Validation and speed confirmation are pending; production and `main` remain on the measured legacy baseline.
+- Imported upstream v0.2.21 (engine 0.1.67) and merged the adopted dev/0.2.20 RDNA3 profile on `dev/0.2.21`. All 26 frozen adopted-profile token probes and forced rollback counts match; no new failures in the six-case capped objective screen. Three-load medians: Chinese single/dual 121.00/184.53 tok/s, code single/dual 168.90/245.50 tok/s, 65% to 130% over stock. The [integration record](benchmarks/2026-11-26-v0221-integration.md) retains per-load variability and limitations. Production and `main` remain on the measured legacy baseline.
 
 ## CPU pool workers 9 vs 12 on the adopted profile (b478, 2026-11-24)
 

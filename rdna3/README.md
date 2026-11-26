@@ -1,13 +1,17 @@
-# rdna3 — dev/0.2.20 optimization campaign (upstream v0.2.20, engine 0.1.66)
+# rdna3 — dev/0.2.21 (upstream v0.2.21, engine 0.1.67)
+
+The [first v0.2.21 campaign summary](benchmarks/2026-11-26-v0221-summary.md) records the accepted migration, rejected attempts and runtime restoration.
+
+The [v0.2.21 migration](benchmarks/2026-11-26-v0221-integration.md) preserves all 26 frozen adopted-profile probes. Three-load medians are Chinese single/dual **121.00/184.53 tok/s**, code single/dual **168.90/245.50 tok/s**. Production and main are unchanged; the 0.2.20 lineage below describes the inherited optimizations.
 
 Development records for the dual RX 7900 XTX rig. The goal in [DEVELOPMENT.md](DEVELOPMENT.md)
 is to match the production baseline — `main`, v0.1.43-rdna3.1, engine 0.1.43 — in measured
 service speed and correctness before merging. Experimental runs use an isolated maintenance
 window and verify production restoration afterward.
 
-The current development profile is the template below: the earlier optimization set plus the gfx1100 exact
+The profile inherited from dev/0.2.20 is the template below: the earlier optimization set plus the gfx1100 exact
 subset, `STRATA_EXPDEC=1` and the RDNA hyper-connection read (`STRATA_GR_RDNA=1`, with `STRATA_GR_FUSED` absent).
-The [b477 adoption record](benchmarks/2026-11-24-v0220-grdna-adoption.md) holds the latest three-way numbers:
+The [b477 adoption record](benchmarks/2026-11-24-v0220-grdna-adoption.md) holds the prior three-way numbers:
 historical production 0.1.43, pristine v0.2.20 and this profile. Reuse the production and same-version stock
 measurements unless their identities or the protocol change, and use paired runs for adoption decisions, not
 cross-window rankings.

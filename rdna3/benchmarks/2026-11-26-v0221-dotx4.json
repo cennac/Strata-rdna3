@@ -1,0 +1,255 @@
+{
+  "date": "2026-11-26",
+  "release": "0.2.21",
+  "engine_version": "0.1.67",
+  "experiment": "STRATA_DOT_X4=1 versus upstream default off on the migrated profile",
+  "engine_sha256": "603175a85134e039290cadf0d42220ece7ff77ef1d3ce6550ae87981add1d2c5",
+  "source_revision": "2aeba59de961973ad37bc5255a2294ff34a00841",
+  "reference_sha256": "fd0b0b17eec85ab06baa63685c3226a2a3c52e423a899688de76bdd46ad13a58",
+  "reference_passed": true,
+  "forced_rolls": {
+    "zh-forced": 33,
+    "code-forced": 23
+  },
+  "objective_grades": [
+    {
+      "id": 4,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 8,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 16,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    },
+    {
+      "id": 19,
+      "score": 100,
+      "reason": "答案与格式完全正确"
+    },
+    {
+      "id": 23,
+      "score": 100,
+      "reason": "答案与格式完全正确"
+    },
+    {
+      "id": 27,
+      "score": 0,
+      "reason": "输出达到max_tokens，结果无效"
+    }
+  ],
+  "scores": {
+    "workloads": {
+      "zh-n1": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off": {
+              "tps": 124.1,
+              "ttft_s": 0.2720888030016795
+            },
+            "on": {
+              "tps": 120.8,
+              "ttft_s": 0.2737123630067799
+            },
+            "ratio": 0.9734085414987913
+          },
+          {
+            "pair": 2,
+            "off": {
+              "tps": 127.7,
+              "ttft_s": 0.2697156350041041
+            },
+            "on": {
+              "tps": 124.7,
+              "ttft_s": 0.2698132270015776
+            },
+            "ratio": 0.9765074393108849
+          },
+          {
+            "pair": 3,
+            "off": {
+              "tps": 124.4,
+              "ttft_s": 0.27605433599092066
+            },
+            "on": {
+              "tps": 127.0,
+              "ttft_s": 0.27365541498875245
+            },
+            "ratio": 1.0209003215434083
+          }
+        ],
+        "off_median_tps": 124.4,
+        "on_median_tps": 124.7,
+        "off_median_ttft_s": 0.2720888030016795,
+        "on_median_ttft_s": 0.27365541498875245,
+        "paired_median_pct": -2.3492560689115094,
+        "wins": 1
+      },
+      "zh-n2": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off": {
+              "tps": 179.3374484170121,
+              "ttft_s": 0.5566308979978203
+            },
+            "on": {
+              "tps": 178.07663524638465,
+              "ttft_s": 0.5588659360000747
+            },
+            "ratio": 0.9929696046098767
+          },
+          {
+            "pair": 2,
+            "off": {
+              "tps": 175.04705070049857,
+              "ttft_s": 0.566602225007955
+            },
+            "on": {
+              "tps": 176.19738345320636,
+              "ttft_s": 0.5632902389988885
+            },
+            "ratio": 1.006571563177468
+          },
+          {
+            "pair": 3,
+            "off": {
+              "tps": 186.72191074841692,
+              "ttft_s": 0.5596449619988562
+            },
+            "on": {
+              "tps": 178.40676874349924,
+              "ttft_s": 0.5603081870067399
+            },
+            "ratio": 0.9554677757335012
+          }
+        ],
+        "off_median_tps": 179.3374484170121,
+        "on_median_tps": 178.07663524638465,
+        "off_median_ttft_s": 0.5596449619988562,
+        "on_median_ttft_s": 0.5603081870067399,
+        "paired_median_pct": -0.703039539012329,
+        "wins": 1
+      },
+      "code-n1": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off": {
+              "tps": 164.3,
+              "ttft_s": 0.25521893599943724
+            },
+            "on": {
+              "tps": 163.2,
+              "ttft_s": 0.25597130101232324
+            },
+            "ratio": 0.9933049300060863
+          },
+          {
+            "pair": 2,
+            "off": {
+              "tps": 164.5,
+              "ttft_s": 0.24580242499359883
+            },
+            "on": {
+              "tps": 163.0,
+              "ttft_s": 0.24474042799556628
+            },
+            "ratio": 0.9908814589665653
+          },
+          {
+            "pair": 3,
+            "off": {
+              "tps": 161.9,
+              "ttft_s": 0.2567870560014853
+            },
+            "on": {
+              "tps": 165.2,
+              "ttft_s": 0.25469854900438804
+            },
+            "ratio": 1.0203829524397776
+          }
+        ],
+        "off_median_tps": 164.3,
+        "on_median_tps": 163.2,
+        "off_median_ttft_s": 0.25521893599943724,
+        "on_median_ttft_s": 0.25469854900438804,
+        "paired_median_pct": -0.6695069993913672,
+        "wins": 1
+      },
+      "code-n2": {
+        "pairs": [
+          {
+            "pair": 1,
+            "off": {
+              "tps": 240.66705194166855,
+              "ttft_s": 0.5070671444991603
+            },
+            "on": {
+              "tps": 243.25548234298913,
+              "ttft_s": 0.5080499219911871
+            },
+            "ratio": 1.0107552337573318
+          },
+          {
+            "pair": 2,
+            "off": {
+              "tps": 187.16887859908408,
+              "ttft_s": 0.5204155640021781
+            },
+            "on": {
+              "tps": 181.72894591991653,
+              "ttft_s": 0.5187296839940245
+            },
+            "ratio": 0.9709356987129261
+          },
+          {
+            "pair": 3,
+            "off": {
+              "tps": 242.9329711542207,
+              "ttft_s": 0.5120501675046398
+            },
+            "on": {
+              "tps": 243.318473644521,
+              "ttft_s": 0.5096006415042211
+            },
+            "ratio": 1.001586867721037
+          }
+        ],
+        "off_median_tps": 240.66705194166855,
+        "on_median_tps": 243.25548234298913,
+        "off_median_ttft_s": 0.5120501675046398,
+        "on_median_ttft_s": 0.5096006415042211,
+        "paired_median_pct": 0.15868677210371107,
+        "wins": 2
+      }
+    },
+    "geometric_mean_paired_gain_pct": -0.8949737520249634,
+    "speed_gate_passed": false,
+    "rule": "geomean >=2%; every lane >=-2%; any >=2% gain wins >=2/3 pairs"
+  },
+  "adopted": false,
+  "scored_requests": 36,
+  "resources": {
+    "platinum": {
+      "hotspot_max_c": 81.0,
+      "memory_max_c": 70.0
+    },
+    "blower": {
+      "hotspot_max_c": 81.0,
+      "memory_max_c": 72.0
+    }
+  },
+  "minimum_available_gib": 34.033504486083984,
+  "restored": true,
+  "source_unchanged": true,
+  "test_port_closed": true,
+  "faults": [],
+  "results_sha256": "c7aed34c231e72a7c2dafb95ff336d1ebddcbe8091c94b9852d11d641f8d7998"
+}

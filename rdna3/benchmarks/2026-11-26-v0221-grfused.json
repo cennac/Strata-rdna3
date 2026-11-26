@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-26",
+  "release": "0.2.21",
+  "engine_version": "0.1.67",
+  "experiment": "STRATA_GR_FUSED=1 on the migrated BF16 layer-split profile",
+  "status": "inactive path; cancelled before timing",
+  "adopted": false,
+  "source_revision": "2aeba59de961973ad37bc5255a2294ff34a00841",
+  "engine_sha256": "603175a85134e039290cadf0d42220ece7ff77ef1d3ce6550ae87981add1d2c5",
+  "fused_nodes": 0,
+  "observed_read_kernels": [
+    "_ZN6strata7kernels12_GLOBAL__N_110rdna_gr_upILi1ELb0ELb0EEEvNS1_6RdnaGrE",
+    "_ZN6strata7kernels12_GLOBAL__N_110rdna_gr_upILi2ELb0ELb0EEEvNS1_6RdnaGrE",
+    "_ZN6strata7kernels12_GLOBAL__N_110rdna_gr_upILi3ELb0ELb0EEEvNS1_6RdnaGrE",
+    "_ZN6strata7kernels12_GLOBAL__N_110rdna_gr_upILi4ELb0ELb0EEEvNS1_6RdnaGrE",
+    "_ZN6strata7kernels12_GLOBAL__N_112rdna_gr_downILi1ELi2EEEvNS1_6RdnaGrE",
+    "_ZN6strata7kernels12_GLOBAL__N_112rdna_gr_downILi2ELi2EEEvNS1_6RdnaGrE",
+    "_ZN6strata7kernels12_GLOBAL__N_112rdna_gr_downILi3ELi2EEEvNS1_6RdnaGrE",
+    "_ZN6strata7kernels12_GLOBAL__N_112rdna_gr_downILi4ELi2EEEvNS1_6RdnaGrE"
+  ],
+  "raw_and_sample_reference_passed": true,
+  "forced_rolls": {
+    "zh-forced": 33,
+    "code-forced": 23
+  },
+  "scored_requests": 0,
+  "cancellation_reason": "Captured raw graphs contain no rdna_gr_fused nodes; fused RDNA GR requires the int8+FP32-scale STRATA_HC_REQ8 representation, which upstream rejects on a layer split and falls back to BF16. Continuing timing would measure an inactive switch.",
+  "restored": true,
+  "faults": [],
+  "source_unchanged": true,
+  "test_port_closed": true,
+  "results_sha256": "2844514781e246ea9d639c18ea7f4d4e39d1ddf3551c43054bc98832eec16a28"
+}

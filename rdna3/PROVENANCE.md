@@ -56,3 +56,7 @@ GGML来自历史构建使用的llama.cpp源码；其量化布局参考记录为 
 ## 版本命名
 
 使用 `v<上游版本>-rdna3.<修订号>`：稳定首版 `v0.1.43-rdna3.1`，开发首版 `v0.2.16-rdna3.1`。`legacy-20261110`继续用于追溯原测试和运行快照；它不是新的上游版本号。
+
+## dev/0.2.21
+
+Imported upstream v0.2.21 commit `d46f5f268f8ed797e83a5c63a69bffbd7a581cf6` as vendor `2a2add3`; integration `2aeba59` merges the adopted dev/0.2.20 profile. Engine version is 0.1.67. The source archive SHA-256 is `e23078def6ce4f772cedd0fe86034159d1b4fd2fb8e7bf1f60de3213edee058f`; fresh HIP gfx1100 binary SHA-256 is `603175a85134e039290cadf0d42220ece7ff77ef1d3ce6550ae87981add1d2c5`. The [frozen adopted-profile reference](reference-0.1.66-rdnagr.json) retains the source record identity. All 26 probes and forced rollbacks agree in the [integration test](benchmarks/2026-11-26-v0221-integration.md). No production or main promotion.
