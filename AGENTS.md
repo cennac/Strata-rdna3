@@ -3,7 +3,7 @@
 This is Cennac's independent RDNA3 optimization repository.
 
 - `main` is the measured legacy-20261110 baseline, engine 0.1.43. Keep its serving behavior stable.
-- `dev/0.2.22` integrates upstream v0.2.22, engine 0.1.69. Keep its migrated profile experimental until the performance and correctness gates pass.
+- `dev/0.2.23` integrates upstream v0.2.23, engine 0.1.70. Keep its migrated profile experimental until the performance and correctness gates pass.
 - Compare the same weights, expert-profile seed, prompts, penalties, cache policy, output length, power limits and hardware. Record tokens/s and time to first token for one and two simultaneous requests.
 - A request on two GPUs is not a single physical GPU result. Combined throughput must use total tokens divided by batch wall time.
 - Keep early EOS, failures and unsuccessful experiments in the evidence. Do not call a capacity setting an actual long-input measurement.
